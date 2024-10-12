@@ -9,7 +9,7 @@ extern "C" {
 #include <chrono>
 #include <numeric>
 #include <algorithm>
-#include "gui/window.h"
+#include <sdlwrapper/gui/window.h>
 #include "sim/view_config.h"
 #include "sim/lidar_view.h"
 
@@ -24,8 +24,7 @@ struct LidarScan {
     std::vector<icp::Vector> points;
 };
 
-void set_config_param(const char* var, const char* data,
-    void* user_data __unused) {
+void set_config_param(const char* var, const char* data, void* user_data) {
     if (strcmp(var, "x_displace") == 0) {
         view_config::x_displace = std::stod(data);
     } else if (strcmp(var, "y_displace") == 0) {
@@ -51,7 +50,7 @@ void parse_lidar_scan(const char* var, const char* data, void* user_data) {
         Log << "scan->angle_min = " << scan->angle_min << '\n';
     } else if (strcmp(var, "angle_increment") == 0) {
         scan->angle_increment = strtod(data, NULL);
-    } else if (isnumber(var[0])) {
+    } else if (isdigit(var[0])) {
         long index = strtol(var, NULL, 10);
         double angle = scan->angle_min + index * scan->angle_increment;
         double range = strtod(data, NULL);
@@ -64,8 +63,7 @@ void parse_lidar_scan(const char* var, const char* data, void* user_data) {
     }
 }
 
-void parse_config(const char* path, conf_parse_handler_t handler,
-    void* user_data) {
+void parse_config(const char* path, conf_parse_handler_t handler, void* user_data) {
     FILE* file = fopen(path, "r");
     if (!file) {
         perror("parse_config: fopen");
@@ -81,8 +79,7 @@ void parse_config(const char* path, conf_parse_handler_t handler,
 }
 
 void launch_gui(LidarView* view, std::string visualized = "LiDAR scans") {
-    Window window("Scan Matching", view_config::window_width,
-        view_config::window_height);
+    Window window("Scan Matching", view_config::window_width, view_config::window_height);
 
     window.attach_view(view);
 
@@ -97,8 +94,7 @@ void launch_gui(LidarView* view, std::string visualized = "LiDAR scans") {
     window.present();
 }
 
-void run_benchmark(const char* method, const LidarScan& source,
-    const LidarScan& destination) {
+void run_benchmark(const char* method, const LidarScan& source, const LidarScan& destination) {
     std::cout << "ICP ALGORITHM BENCHMARKING\n";
     std::cout << "=======================================\n";
     std::unique_ptr<icp::ICP> icp = icp::ICP::from_method(method);
@@ -110,8 +106,7 @@ void run_benchmark(const char* method, const LidarScan& source,
     std::cout << "* Method name: " << method << '\n';
     std::cout << "* Number of trials: " << N << '\n';
     std::cout << "* Burn-in period: " << burn_in << '\n';
-    std::cout << "* Ideal convergence threshold: " << convergence_threshold
-              << '\n';
+    std::cout << "* Ideal convergence threshold: " << convergence_threshold << '\n';
 
     std::vector<double> final_costs;
     std::vector<size_t> iteration_counts;
@@ -120,8 +115,7 @@ void run_benchmark(const char* method, const LidarScan& source,
 
     for (size_t i = 0; i < N; i++) {
         icp->begin(source.points, destination.points, icp::RBTransform());
-        icp::ICP::ConvergenceReport result = icp->converge(burn_in,
-            convergence_threshold);
+        icp::ICP::ConvergenceReport result = icp->converge(burn_in, convergence_threshold);
         final_costs.push_back(result.final_cost);
         iteration_counts.push_back(result.iteration_count);
     }
@@ -132,8 +126,7 @@ void run_benchmark(const char* method, const LidarScan& source,
     double min_cost = final_costs.front();
     double max_cost = final_costs.back();
     double median_cost = final_costs[final_costs.size() / 2];
-    double mean_cost = std::accumulate(final_costs.begin(), final_costs.end(),
-                           0.0)
+    double mean_cost = std::accumulate(final_costs.begin(), final_costs.end(), 0.0)
                        / final_costs.size();
 
     std::sort(iteration_counts.begin(), iteration_counts.end());
@@ -141,24 +134,22 @@ void run_benchmark(const char* method, const LidarScan& source,
     size_t min_iterations = iteration_counts.front();
     size_t max_iterations = iteration_counts.back();
     size_t median_iterations = iteration_counts[iteration_counts.size() / 2];
-    double mean_iterations = std::accumulate(iteration_counts.begin(),
-                                 iteration_counts.end(), 0.0)
+    double mean_iterations = std::accumulate(iteration_counts.begin(), iteration_counts.end(), 0.0)
                              / iteration_counts.size();
 
     std::cout << "* Min cost: " << min_cost << "\n"
               << "* Max cost: " << max_cost << "\n"
               << "* Median cost: " << median_cost << "\n"
               << "* Mean cost: " << mean_cost << "\n";
-    std::cout << "* Min iterations: " << min_iterations
-              << " (real: " << (min_iterations - burn_in) << ")\n"
-              << "* Max iterations: " << max_iterations
-              << " (real: " << (max_iterations - burn_in) << ")\n"
+    std::cout << "* Min iterations: " << min_iterations << " (real: " << (min_iterations - burn_in)
+              << ")\n"
+              << "* Max iterations: " << max_iterations << " (real: " << (max_iterations - burn_in)
+              << ")\n"
               << "* Median iterations: " << median_iterations
               << " (real: " << (median_iterations - burn_in) << ")\n"
               << "* Mean iterations: " << mean_iterations
               << " (real: " << (mean_iterations - burn_in) << ")\n";
-    std::cout << "* Average time per invocation: " << (diff.count() / N)
-              << "s\n";
+    std::cout << "* Average time per invocation: " << (diff.count() / N) << "s\n";
 }
 
 int main(int argc, const char** argv) {
@@ -189,16 +180,13 @@ int main(int argc, const char** argv) {
 
     assert(do_bench = ca_opt('b', "bench", "&SD", NULL,
                "benchmarks an ICP method (see -m). must pass -S/-D"));
-    assert(read_scan_files = ca_opt('S', "src", ".FILE&D", &f_src,
-               "source scan (pass with -D)"));
+    assert(read_scan_files = ca_opt('S', "src", ".FILE&D", &f_src, "source scan (pass with -D)"));
     assert(use_gui = ca_opt('g', "gui", "!@b", NULL, "visualizes ICP"));
-    assert(ca_opt('D', "dst", ".FILE&S", &f_dst,
-        "destination scan (pass with -S)"));
+    assert(ca_opt('D', "dst", ".FILE&S", &f_dst, "destination scan (pass with -S)"));
     assert(ca_opt('c', "config", ".FILE", &config_file,
         "selects a configuration file (default: view.conf)"));
     assert(ca_opt('m', "method", ".METHOD", &method, "selects an ICP method"));
-    assert(basic_mode = ca_long_opt("basic-mode", "", NULL,
-               "uses a ligher gui background"));
+    assert(basic_mode = ca_long_opt("basic-mode", "", NULL, "uses a ligher gui background"));
     assert(enable_log = ca_opt('l', "log", "", NULL, "enables debug logging"));
     assert(ca_opt('h', "help", "<h", NULL, "prints this info"));
     assert(ca_opt('v', "version", "<v", NULL, "prints version info"));
@@ -217,10 +205,8 @@ int main(int argc, const char** argv) {
     }
 
     if (!icp::ICP::is_registered_method(method)) {
-        std::cerr << "error: unknown ICP method '" << method
-                  << "'. expected one of:\n";
-        for (const std::string& registered_method:
-            icp::ICP::registered_methods()) {
+        std::cerr << "error: unknown ICP method '" << method << "'. expected one of:\n";
+        for (const std::string& registered_method: icp::ICP::registered_methods()) {
             std::cerr << "* " << registered_method << '\n';
         }
         std::exit(1);
@@ -235,22 +221,15 @@ int main(int argc, const char** argv) {
 
     if (*read_scan_files) {
         LidarScan source, destination;
-        std::cerr << "source\n";
         parse_config(f_src, parse_lidar_scan, &source);
-        std::cerr << "dest\n";
         parse_config(f_dst, parse_lidar_scan, &destination);
-        // std::unique_ptr<icp::ICP> icp = icp::ICP::from_method("vanilla");
-        // icp->begin(source.points, destination.points, icp::RBTransform());
-        // icp->iterate();
-        // return 1;
+
         if (*use_gui) {
             icp::ICP::Config config;
             config.set("overlap_rate", 0.7);
-            LidarView* view = new LidarView(source.points, destination.points,
-                method, config);
+            LidarView* view = new LidarView(source.points, destination.points, method, config);
 
-            launch_gui(view,
-                std::string(f_src) + std::string(" and ") + std::string(f_dst));
+            launch_gui(view, std::string(f_src) + std::string(" and ") + std::string(f_dst));
         } else if (*do_bench) {
             run_benchmark(method, source, destination);
         }

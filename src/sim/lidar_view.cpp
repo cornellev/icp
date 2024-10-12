@@ -6,17 +6,16 @@
 #include <cassert>
 #include <cstdlib>
 #include <random>
-#include "util/logger.h"
-#include "util/keyboard.h"
+#include <sdlwrapper/util/logger.h>
+#include <sdlwrapper/util/keyboard.h>
+#include <sdlwrapper/geo/midpoint.h>
 #include "lidar_view.h"
-#include "geo/midpoint.h"
 #include "view_config.h"
 
 #define CIRCLE_RADIUS 3
 
-LidarView::LidarView(std::vector<icp::Vector> source,
-    std::vector<icp::Vector> destination, const std::string method,
-    const icp::ICP::Config& config)
+LidarView::LidarView(std::vector<icp::Vector> source, std::vector<icp::Vector> destination,
+    const std::string method, const icp::ICP::Config& config)
     : source(source), destination(destination), keyboard(false), iterations{} {
     icp = icp::ICP::from_method(method, config);
     icp->begin(source, destination, icp::RBTransform());
@@ -48,16 +47,13 @@ void LidarView::on_event(const SDL_Event& event) {
     }
     if (!d_before && d_after) {
         std::cerr << "DEBUG PRINT:\n";
-        std::cerr << "icp->current_transform() = "
-                  << icp->current_transform().to_string() << '\n';
-        std::cerr << "icp->calculate_cost() = " << icp->calculate_cost()
-                  << '\n';
+        std::cerr << "icp->current_transform() = " << icp->current_transform().to_string() << '\n';
+        std::cerr << "icp->calculate_cost() = " << icp->calculate_cost() << '\n';
         std::cerr << "iterations = " << iterations << '\n';
     }
 }
 
-void LidarView::draw(SDL_Renderer* renderer, const SDL_Rect* frame __unused,
-    double dtime __unused) {
+void LidarView::draw(SDL_Renderer* renderer, const SDL_Rect* frame, double dtime) {
     if (view_config::use_light_background) {
         SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
     } else {
@@ -78,16 +74,15 @@ void LidarView::draw(SDL_Renderer* renderer, const SDL_Rect* frame __unused,
             result[1] + view_config::y_displace, CIRCLE_RADIUS);
     }
 
-    icp::Vector a_cm =
-        icp->current_transform().apply_to(icp::get_centroid(source));
+    icp::Vector a_cm = icp->current_transform().apply_to(icp::get_centroid(source));
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 10);
-    SDL_DrawCircle(renderer, a_cm.x() + view_config::x_displace,
-        a_cm.y() + view_config::y_displace, 20);
+    SDL_DrawCircle(renderer, a_cm.x() + view_config::x_displace, a_cm.y() + view_config::y_displace,
+        20);
 
     icp::Vector b_cm = icp::get_centroid(destination);
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 10);
-    SDL_DrawCircle(renderer, b_cm.x() + view_config::x_displace,
-        b_cm.y() + view_config::y_displace, 20);
+    SDL_DrawCircle(renderer, b_cm.x() + view_config::x_displace, b_cm.y() + view_config::y_displace,
+        20);
 
     if (is_iterating) {
         step();

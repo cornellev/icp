@@ -105,6 +105,7 @@
         "numeric": "cpp",
         "stop_token": "cpp",
         "svd": "cpp",
-        "core": "cpp"
+        "core": "cpp",
+        "text_encoding": "cpp"
     }
 }

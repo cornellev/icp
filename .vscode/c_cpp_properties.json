@@ -11,7 +11,25 @@
             ],
             "defines": [],
             "intelliSenseMode": "macos-gcc-arm64",
-            "cppStandard": "c++20"
+            "cppStandard": "c++17"
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${default}",
+                "${workspaceFolder}/**",
+                "/usr/include/SDL2",
+                "/usr/local/include/eigen3",
+                "/usr/local/include/sdlwrapper",
+                "/usr/local/include/cmdapp",
+                "/usr/local/include/config",
+                "/usr/local/include/simple_test"
+            ],
+            "defines": [
+                "__building_module(x)=0"
+            ],
+            "intelliSenseMode": "linux-gcc-x64",
+            "cppStandard": "c++17"
         }
     ],
     "version": 4

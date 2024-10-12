@@ -17,12 +17,14 @@ LDFLAGS		:= $(shell sdl2-config --libs) \
 			   /usr/local/lib/libsdlwrapper.a \
 			   /usr/local/lib/libconfig.a
 CFLAGS		+= $(shell sdl2-config --cflags) \
-			   -I/usr/local/include \
+			   -I/usr/local/include/cmdapp \
+			   -I/usr/local/include/config \
 			   -I/usr/local/include/sdlwrapper \
+			   -I/usr/local/include/simple_test \
 			   -I/usr/local/include/eigen3
 
-CFLAGS 		+= $(CRELEASE)
-# CFLAGS 		+= $(CDEBUG)
+# CFLAGS 		+= $(CRELEASE)
+CFLAGS 		+= $(CDEBUG)
 
 SRC			:= $(shell find $(SRCDIR) -name "*.cpp")
 OBJ			:= $(SRC:.cpp=.o)
@@ -40,7 +42,7 @@ N		:= 1
 METHOD	:= trimmed
 
 $(TARGET): main.cpp $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 	@make readme
 
 # .PHONY: run
@@ -49,7 +51,7 @@ $(TARGET): main.cpp $(OBJ)
 
 .PHONY: test
 test: test.cpp $(OBJ)
-	@$(CC) $(CFLAGS) $(LDFLAGS) -DTEST -o _temp $^
+	@$(CC) $(CFLAGS) -DTEST -o _temp $^ $(LDFLAGS)
 	@echo 'Running tests...'
 	@./_temp
 	@rm -f ./_temp
