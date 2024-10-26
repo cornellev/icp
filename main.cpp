@@ -212,12 +212,14 @@ int main(int argc, const char** argv) {
         std::exit(1);
     }
 
-    // std::vector<icp::Vector> a = {icp::Vector(0, 0), icp::Vector(0, 100)};
-    // std::vector<icp::Vector> b = {icp::Vector(100, 0), icp::Vector(100,
-    // 100)}; LidarView* view = new LidarView(a, b, method);
+    std::vector<icp::Vector> a = {icp::Vector(100, 200), icp::Vector(180, 420),
+        icp::Vector(-100, -200), icp::Vector(-50, -100)};
+    std::vector<icp::Vector> b = {icp::Vector(100, -200), icp::Vector(200, -400),
+        icp::Vector(-100, 200), icp::Vector(-50, 100)};
+    LidarView* view = new LidarView(a, b, method);
 
-    // launch_gui(view, "test");
-    // return 0;
+    launch_gui(view, "test");
+    return 0;
 
     if (*read_scan_files) {
         LidarScan source, destination;
@@ -226,7 +228,7 @@ int main(int argc, const char** argv) {
 
         if (*use_gui) {
             icp::ICP::Config config;
-            config.set("overlap_rate", 0.7);
+            config.set("overlap_rate", 0.9);
             LidarView* view = new LidarView(source.points, destination.points, method, config);
 
             launch_gui(view, std::string(f_src) + std::string(" and ") + std::string(f_dst));

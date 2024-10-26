@@ -40,7 +40,7 @@ LIBOBJ		:= $(LIBSRC:.cpp=.o)
 
 # Config parameters
 N		:= 1
-METHOD	:= vanilla
+METHOD	:= trimmed
 
 $(TARGET): main.cpp $(OBJ)
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@

@@ -32,7 +32,10 @@ namespace icp {
         }
 
         void iterate() override {
-            for (size_t i = 0; i < a.size(); i++) {
+            const size_t n = a.size();
+            const size_t m = b.size();
+
+            for (size_t i = 0; i < n; i++) {
                 a_current[i] = transform.apply_to(a[i]);
             }
 
@@ -44,15 +47,16 @@ namespace icp {
                 Matching Step: match closest points.
 
                 Sources:
+                https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
                 https://arxiv.org/pdf/2206.06435.pdf
                 https://web.archive.org/web/20220615080318/https://www.cs.technion.ac.il/~cs236329/tutorials/ICP.pdf
                 https://en.wikipedia.org/wiki/Iterative_closest_point
                 https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
                 -> use k-d tree
              */
-            for (size_t i = 0; i < a.size(); i++) {
+            for (size_t i = 0; i < n; i++) {
                 matches[i].sq_dist = std::numeric_limits<double>::infinity();
-                for (size_t j = 0; j < b.size(); j++) {
+                for (size_t j = 0; j < m; j++) {
                     // Point-to-point matching
                     double dist_ij = (b[j] - a_current[i]).squaredNorm();
 
@@ -64,7 +68,7 @@ namespace icp {
             }
 
             Matrix N{};
-            for (size_t i = 0; i < a.size(); i++) {
+            for (size_t i = 0; i < n; i++) {
                 N += (a_current[i] - a_current_cm) * (b[matches[i].pair] - b_cm).transpose();
             }
             auto svd = N.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
@@ -72,6 +76,7 @@ namespace icp {
             const Matrix V = svd.matrixV();
             const Matrix R = V * U.transpose();
 
+            // TODO: tricks to handle this case
             if (R.determinant() < 0) {
                 throw std::runtime_error(
                     "SVD determinant is negative. Got reflection instead of rotation.");
@@ -88,6 +93,7 @@ namespace icp {
                 calculated via singular value decomposition.
 
                 Sources:
+                https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
                 https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
              */
             transform.translation += b_cm - R * a_current_cm;
