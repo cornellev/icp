@@ -13,24 +13,13 @@ namespace icp {
 
     void ICP::setup() {}
 
-    void ICP::begin(const std::vector<Vector>& a, const std::vector<Vector>& b,
-        RBTransform t) {
+    void ICP::begin(const std::vector<Vector>& a, const std::vector<Vector>& b, RBTransform t) {
         // Initial transform guess
         this->transform = t;
 
         // Copy in point clouds
         this->a = a;
         this->b = b;
-
-        // Set relative to centroid
-        a_cm = get_centroid(this->a);
-        b_cm = get_centroid(this->b);
-        for (Vector& point: this->a) {
-            point -= a_cm;
-        }
-        for (Vector& point: this->b) {
-            point -= b_cm;
-        }
 
         // Cost is infinite initially
         previous_cost = std::numeric_limits<double>::infinity();
@@ -39,7 +28,6 @@ namespace icp {
         // Ensure arrays are the right size
         const size_t n = this->a.size();
         if (matches.size() < n) {
-            matches.resize(n);
             matches.resize(n);
         }
 
@@ -55,8 +43,7 @@ namespace icp {
         return std::sqrt(sum_squares / a.size());
     }
 
-    ICP::ConvergenceReport ICP::converge(size_t burn_in,
-        double convergence_threshold) {
+    ICP::ConvergenceReport ICP::converge(size_t burn_in, double convergence_threshold) {
         ConvergenceReport result{};
 
         // Repeat until convergence
@@ -71,8 +58,7 @@ namespace icp {
             // If cost rose, revert to previous transformation/cost and
             // exit
             current_cost = calculate_cost();
-            if (current_cost >= previous_cost
-                && result.iteration_count > burn_in) {
+            if (current_cost >= previous_cost && result.iteration_count > burn_in) {
                 transform = previous_transform;
                 current_cost = previous_cost;
                 break;
@@ -109,8 +95,7 @@ namespace icp {
         return global->registered_method_names;
     }
 
-    std::unique_ptr<ICP> ICP::from_method(std::string name,
-        const ICP::Config& config) {
+    std::unique_ptr<ICP> ICP::from_method(std::string name, const ICP::Config& config) {
         ensure_methods_exists();
         size_t index = std::find(global->registered_method_names.begin(),
                            global->registered_method_names.end(), name)

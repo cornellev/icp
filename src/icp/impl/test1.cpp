@@ -54,9 +54,7 @@ namespace icp {
                 #step Trimming Step: see \ref trimmed_icp for details.
             */
             std::sort(matches.begin(), matches.end(),
-                [](const auto& a, const auto& b) {
-                    return a.sq_dist < b.sq_dist;
-                });
+                [](const auto& a, const auto& b) { return a.sq_dist < b.sq_dist; });
             n = (size_t)(overlap_rate * n);
 
             /*
@@ -71,8 +69,7 @@ namespace icp {
             transform.translation = Vector::Zero();
             for (size_t i = 0; i < n; i++) {
                 transform.translation += (b[matches[i].pair] + b_cm)
-                                         - transform.rotation
-                                               * (a[matches[i].point] + a_cm);
+                                         - transform.rotation * (a[matches[i].point] + a_cm);
             }
             transform.translation /= n;
 
@@ -81,8 +78,7 @@ namespace icp {
             // and find new method
             Matrix N{};
             for (size_t i = 0; i < n; i++) {
-                N += (a[matches[i].point] + transform.translation)
-                     * b[matches[i].pair].transpose();
+                N += (a[matches[i].point] + transform.translation) * b[matches[i].pair].transpose();
             }
             auto svd = N.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
             const Matrix U = svd.matrixU();
@@ -92,14 +88,13 @@ namespace icp {
     };
 
     static bool static_initialization = []() {
-        assert(ICP::register_method("test1",
-            [](const ICP::Config& config) -> std::unique_ptr<ICP> {
-                /* #conf "overlap_rate" A `double` between `0.0` and `1.0` for
-                 * the overlap rate. The default is `1.0`. */
-                double overlap_rate = config.get<double>("overlap_rate", 1.0);
-                assert(overlap_rate >= 0 && overlap_rate <= 1);
-                return std::make_unique<Test1>(overlap_rate);
-            }));
+        assert(ICP::register_method("test1", [](const ICP::Config& config) -> std::unique_ptr<ICP> {
+            /* #conf "overlap_rate" A `double` between `0.0` and `1.0` for
+             * the overlap rate. The default is `1.0`. */
+            double overlap_rate = config.get<double>("overlap_rate", 1.0);
+            assert(overlap_rate >= 0 && overlap_rate <= 1);
+            return std::make_unique<Test1>(overlap_rate);
+        }));
         return true;
     }();
 }

@@ -64,9 +64,7 @@ namespace icp {
                 https://ieeexplore.ieee.org/abstract/document/1047997
             */
             std::sort(matches.begin(), matches.end(),
-                [](const auto& a, const auto& b) {
-                    return a.sq_dist < b.sq_dist;
-                });
+                [](const auto& a, const auto& b) { return a.sq_dist < b.sq_dist; });
             n = (size_t)(overlap_rate * n);
 
             /*

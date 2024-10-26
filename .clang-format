@@ -31,5 +31,7 @@ SpaceBeforeRangeBasedForLoopColon: false
 SpaceBeforeCaseColon: false
 SpaceBeforeCtorInitializerColon: false
 SpaceAfterTemplateKeyword: false
+NamespaceIndentation: All
+FixNamespaceComments: false
 ---
 

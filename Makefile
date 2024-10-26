@@ -3,7 +3,8 @@
 SRCDIR		:= src
 INCLUDEDIR	:= src
 
-CC			:= $(shell which g++ || which clang)
+CC			:= $(shell which g++ || which clang++)
+# CC			:= $(shell which clang++)
 PY			:= $(shell which python3 || which python)
 CFLAGS		:= -std=c++17 -pedantic -Wall -Wextra -I $(INCLUDEDIR)
 CDEBUG		:= -g
@@ -39,7 +40,7 @@ LIBOBJ		:= $(LIBSRC:.cpp=.o)
 
 # Config parameters
 N		:= 1
-METHOD	:= trimmed
+METHOD	:= vanilla
 
 $(TARGET): main.cpp $(OBJ)
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
