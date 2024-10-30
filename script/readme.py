@@ -1,7 +1,7 @@
 if __name__ == "__main__":
     import subprocess
-    from datetime import datetime as dt
     import sys
+    from datetime import datetime as dt
 
     README_PATH = "../README.md"
     README_GEN_PATH = README_PATH + ".build"
@@ -17,7 +17,10 @@ if __name__ == "__main__":
 
         put("DATE", str(dt.now()))
         put("VERSION", VERSION_TAG)
-        put("AUTHOR", "[Ethan Uppal](https://www.ethanuppal.com)")
+        put(
+            "AUTHOR",
+            "[Ethan Uppal](https://www.ethanuppal.com) and [Utku Melemetci](https://utku.sh)",
+        )
 
         with open(f"{VERSION_MD_PATH}/{VERSION_MAJOR}.md", "r") as md:
             put("VERSIONMD", md.read())

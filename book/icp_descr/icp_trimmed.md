@@ -4,7 +4,7 @@ You can construct a new instance of Trimmed ICP with `icp::ICP::from_method("tri
 
 Key | Description
 --- | ---
-`"overlap_rate"` | A `double` between 0 and 1 for the overlap rate. The  default is 1. 
+`"overlap_rate"` | A `double` between `0.0` and `1.0` for                  * the overlap rate. The default is `1.0`. 
 
 \par Description
 Trimmed ICP is identical to \ref vanilla_icp with the addition of an
@@ -12,8 +12,7 @@ overlap rate parameter, which specifies the percentage of points between the two
 point sets that have correspondences. When the overlap rate is 1, the algorithm
 reduces to vanilla.
 
-1.     **Matching Step**: see \ref vanilla_icp
-    for details.
+1.     **Matching Step**: see \ref vanilla_icp for details.
 
 2.     **Trimming Step**
     
@@ -23,7 +22,11 @@ reduces to vanilla.
     - https://ieeexplore.ieee.org/abstract/document/1047997
 
 
-3.     **Transformation Step**: see \ref vanilla_icp for details.
+3.     **SVD**: see \ref vanilla_icp for details.
+
+4.     **Reflection Handling**: see \ref vanilla_icp for details.
+
+5.     **Transformation Step**: see \ref vanilla_icp for details.
 
 
 Read \ref icp_sources for a list of all resources used in this project.

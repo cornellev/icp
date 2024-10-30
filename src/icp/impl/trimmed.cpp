@@ -81,6 +81,7 @@ namespace icp {
             icp::Vector trimmed_cm = get_centroid(trimmed_current);
             icp::Vector trimmed_b_cm = get_centroid(trimmed_b);
 
+            /* #step SVD: see \ref vanilla_icp for details. */
             Matrix N{};
             for (size_t i = 0; i < new_n; i++) {
                 N += (trimmed_current[i] - trimmed_cm) * (trimmed_b[i] - trimmed_b_cm).transpose();
@@ -91,31 +92,8 @@ namespace icp {
             Matrix V = svd.matrixV();
             Matrix R = V * U.transpose();
 
-            /*
-                #step
-                Reflection Handling
-
-                SVD may return a reflection instead of a rotation. For 2D scans, this case is
-                exceedingly rare because it only happens when our "a" scan is colinear, as far as I
-                can tell (at least in a noiseless case). If this happens in a noisy case and the
-                points aren't somewhat colinear, I don't know of a method to recover a good
-                rotation. So we will just assume little noise and guess that the scan is colinear.
-                The source below claims that the least squares solution is probably useless in a
-                similar case in 3D.
-
-                TODO: This is the 2D translation of what the source does. Can we prove that this
-                actually works?
-
-                Sources:
-                https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
-            */
+            /* #step Reflection Handling: see \ref vanilla_icp for details. */
             if (R.determinant() < 0) {
-                // clearly average angle is a wrong idea lol
-                std::cout << "Reflection" << std::endl;
-                std::cout << "Matrix V: " << V << std::endl;
-                std::cout << "Matrix U: " << U << std::endl;
-                std::cout << "Sing vals: " << svd.singularValues() << std::endl;
-
                 V = V * Eigen::DiagonalMatrix<double, 2>(1, -1);
                 R = V * U.transpose();
             }

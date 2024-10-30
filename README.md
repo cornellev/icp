@@ -3,8 +3,8 @@
 <!-- EDIT README.md.build INSTEAD. -->
 # icp
 
-> Last updated 2024-10-26 16:35:13.873338.  
-> Made by [Ethan Uppal](https://www.ethanuppal.com).
+> Last updated 2024-10-29 20:38:09.763209.  
+> Made by [Ethan Uppal](https://www.ethanuppal.com) and [Utku Melemetci](https://utku.sh).
 
 ## Introduction
 

@@ -212,14 +212,14 @@ int main(int argc, const char** argv) {
         std::exit(1);
     }
 
-    std::vector<icp::Vector> a = {icp::Vector(100, 200), icp::Vector(180, 420),
-        icp::Vector(-100, -200), icp::Vector(-50, -100)};
-    std::vector<icp::Vector> b = {icp::Vector(100, -200), icp::Vector(200, -400),
-        icp::Vector(-100, 200), icp::Vector(-50, 100)};
-    LidarView* view = new LidarView(a, b, method);
+    // std::vector<icp::Vector> a = {icp::Vector(100, 200), icp::Vector(130, 420),
+    //     icp::Vector(-100, -200), icp::Vector(-50, -100)};
+    // std::vector<icp::Vector> b = {icp::Vector(100, -200), icp::Vector(130, -420),
+    //     icp::Vector(-100, 200), icp::Vector(-50, 100)};
+    // LidarView* view = new LidarView(a, b, method);
 
-    launch_gui(view, "test");
-    return 0;
+    // launch_gui(view, "test");
+    // return 0;
 
     if (*read_scan_files) {
         LidarScan source, destination;

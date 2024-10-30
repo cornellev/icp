@@ -67,19 +67,43 @@ namespace icp {
                 }
             }
 
+            /*
+                #step
+                SVD
+
+                We compute the SVD of this magical matrix. A proof that this yields the optimal
+                transform R is in the source below.
+
+                Sources:
+                https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
+            */
             Matrix N{};
             for (size_t i = 0; i < n; i++) {
                 N += (a_current[i] - a_current_cm) * (b[matches[i].pair] - b_cm).transpose();
             }
             auto svd = N.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
             const Matrix U = svd.matrixU();
-            const Matrix V = svd.matrixV();
-            const Matrix R = V * U.transpose();
+            Matrix V = svd.matrixV();
+            Matrix R = V * U.transpose();
 
-            // TODO: tricks to handle this case
+            /*
+                #step
+                Reflection Handling
+
+                SVD may return a reflection instead of a rotation if it's equally good or better.
+                This is exceedingly rare with real data but may happen in very high noise
+                environment with sparse point cloud.
+
+                In the 2D case, we can always recover a reasonable rotation by negating the last
+                column of V. I do not know if this is the optimal rotation among rotations, but
+                we can probably get an answer with more effort.
+
+                Sources:
+                https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
+            */
             if (R.determinant() < 0) {
-                throw std::runtime_error(
-                    "SVD determinant is negative. Got reflection instead of rotation.");
+                V = V * Eigen::DiagonalMatrix<double, 2>(1, -1);
+                R = V * U.transpose();
             }
 
             transform.rotation = R * transform.rotation;
@@ -102,7 +126,7 @@ namespace icp {
 
     static bool static_initialization = []() {
         assert(ICP::register_method("vanilla",
-            [](const ICP::Config& config) -> std::unique_ptr<ICP> {
+            []([[maybe_unused]] const ICP::Config& config) -> std::unique_ptr<ICP> {
                 return std::make_unique<Vanilla>();
             }));
         return true;
