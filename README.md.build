@@ -1,6 +1,7 @@
 # icp
 
 > Last updated {{DATE}}.  
+> Version {{VERSION}}.
 > Made by {{AUTHOR}}.
 
 ## Introduction
@@ -20,6 +21,42 @@ Please see there for information on how to download and how to use the library.
 You can build the documentation yourself locally with `make docs`.
 The main page will be located at `docs/index.html` relative to the project root.
 
-## {{VERSION}} 
+## Versions
 
-{{VERSIONMD}}
+### v1.1.2
+
+Started work on a new implementation (read [this paper](book/icp.pdf)).
+It passes all `make test` tests.
+Here is the performance currently:
+```
+ICP ALGORITHM BENCHMARKING
+=======================================
+* Method name: test1
+* Number of trials: 50
+* Burn-in period: 0
+* Ideal convergence threshold: 20
+* Min cost: 19.4709
+* Max cost: 19.4709
+* Median cost: 19.4709
+* Mean cost: 19.4709
+* Min iterations: 7 (real: 7)
+* Max iterations: 7 (real: 7)
+* Median iterations: 7 (real: 7)
+* Mean iterations: 7 (real: 7)
+* Average time per invocation: 0.00413281s
+```
+
+### v1.1.1
+
+The algorithm runs extremely fast now.
+We only need it to run at 6hz with our current LiDAR.
+
+![](book/asset/img/v1.1.1bench.png)
+
+It also matches quite well.
+Below is the result of running this ICP implementation on two point clouds obtained within the workspace.
+
+![](book/asset/img/v1.1.1result.png)
+
+However, there is still remove for improvement with regard to outlier rejection and other parts of the algorithm (for instance, adopting a point-to-line metric).
+

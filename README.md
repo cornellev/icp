@@ -3,7 +3,8 @@
 <!-- EDIT README.md.build INSTEAD. -->
 # icp
 
-> Last updated 2024-10-29 20:38:09.763209.  
+> Last updated 2024-10-29 21:34:15.790605.  
+> Version v1.2.1.
 > Made by [Ethan Uppal](https://www.ethanuppal.com) and [Utku Melemetci](https://utku.sh).
 
 ## Introduction
@@ -23,7 +24,9 @@ Please see there for information on how to download and how to use the library.
 You can build the documentation yourself locally with `make docs`.
 The main page will be located at `docs/index.html` relative to the project root.
 
-## v1.2.1 
+## Versions
+
+### v1.1.2
 
 Started work on a new implementation (read [this paper](book/icp.pdf)).
 It passes all `make test` tests.
@@ -46,7 +49,7 @@ ICP ALGORITHM BENCHMARKING
 * Average time per invocation: 0.00413281s
 ```
 
-### v1.1.x
+### v1.1.1
 
 The algorithm runs extremely fast now.
 We only need it to run at 6hz with our current LiDAR.

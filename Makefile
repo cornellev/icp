@@ -4,11 +4,10 @@ SRCDIR		:= src
 INCLUDEDIR	:= src
 
 CC			:= $(shell which g++ || which clang++)
-# CC			:= $(shell which clang++)
 PY			:= $(shell which python3 || which python)
 CFLAGS		:= -std=c++17 -pedantic -Wall -Wextra -I $(INCLUDEDIR)
 CDEBUG		:= -g
-CRELEASE	:= -O3 -DRELEASE_BUILD #-fno-fast-math
+CRELEASE	:= -O3 -DRELEASE_BUILD
 TARGET		:= main
 LIBNAME		:= libcevicp.a
 
@@ -46,10 +45,6 @@ $(TARGET): main.cpp $(OBJ)
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 	@make readme
 
-# .PHONY: run
-# run: $(TARGET)
-# 	./$(TARGET)
-
 .PHONY: test
 test: test.cpp $(OBJ)
 	@$(CC) $(CFLAGS) -DTEST -o _temp $^ $(LDFLAGS)
@@ -57,16 +52,12 @@ test: test.cpp $(OBJ)
 	@./_temp
 	@rm -f ./_temp
 
-.PHONY: aux
-aux: $(TARGET) 
-	./$(TARGET) -mvanilla
-
 .PHONY: view
 view: $(TARGET)
 	./$(TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --gui
 
 .PHONY: bench
-bench: $(TARGET) 
+bench: $(TARGET)
 	./$(TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --bench
 
 %.o: %.cpp
@@ -77,15 +68,16 @@ bench: $(TARGET)
 clean:
 	rm -rf $(OBJ) $(TARGET) $(TARGET) $(DEPS) $(shell find . -name "*.dSYM") $(shell find . -name "*.d") docs
 
+# Not building book rn, add these commands to build
+# cd book; \
+  pdflatex icp.tex; \
+  rm *.aux *.log *.out \
+  mv book/icp.pdf docs
 .PHONY: docs 
 docs:
 	@make readme
 	$(PY) script/icp_doc_builder.py src/icp/ book/icp_descr/
-	cd book; \
-		pdflatex icp.tex; \
-		rm *.aux *.log *.out
 	doxygen
-	mv book/icp.pdf docs
 	cp book/desmos.txt docs
 
 .PHONY: cloc
@@ -94,7 +86,7 @@ cloc:
 
 .PHONY: readme
 readme:
-	cd script; $(PY) readme.py `curl https://api.github.com/repos/cornellev/icp/releases/latest | jq .name`
+	cd script; $(PY) readme.py
 
 .PHONY: math
 math:

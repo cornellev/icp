@@ -1,13 +1,14 @@
 if __name__ == "__main__":
-    import subprocess
-    import sys
     from datetime import datetime as dt
+
+    import requests
 
     README_PATH = "../README.md"
     README_GEN_PATH = README_PATH + ".build"
-    VERSION_TAG = sys.argv[1][1:-1]
-    VERSION_MAJOR = VERSION_TAG.split(".")[0]
-    VERSION_MD_PATH = "../book/versions"
+
+    VERSION_TAG = requests.get(
+        "https://api.github.com/repos/cornellev/icp/releases/latest"
+    ).json()["name"]
 
     with open(README_GEN_PATH, "r") as f:
         readme = {"content": f.read()}
@@ -21,9 +22,6 @@ if __name__ == "__main__":
             "AUTHOR",
             "[Ethan Uppal](https://www.ethanuppal.com) and [Utku Melemetci](https://utku.sh)",
         )
-
-        with open(f"{VERSION_MD_PATH}/{VERSION_MAJOR}.md", "r") as md:
-            put("VERSIONMD", md.read())
 
         with open(README_PATH, "w") as f:
             f.write(
