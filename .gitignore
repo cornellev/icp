@@ -12,3 +12,4 @@ docs/
 *.log
 *.fls
 _temp
+*.gz
