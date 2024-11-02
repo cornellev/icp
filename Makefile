@@ -1,72 +1,65 @@
 # Copyright (C) 2023 Ethan Uppal. All rights reserved.
 
+INCLUDEDIR	:= include
+LIBDIR		:= lib
 SRCDIR		:= src
-INCLUDEDIR	:= src
+TESTDIR		:= test
 
 CC			:= $(shell which g++ || which clang++)
 PY			:= $(shell which python3 || which python)
 CFLAGS		:= -std=c++17 -pedantic -Wall -Wextra -I $(INCLUDEDIR)
 CDEBUG		:= -g
 CRELEASE	:= -O3 -DRELEASE_BUILD
-TARGET		:= main
 LIBNAME		:= libcevicp.a
-
-# follow instructions in README to install in /usr/local
-LDFLAGS		:= $(shell sdl2-config --libs) \
-			   /usr/local/lib/libcmdapp.a \
-			   /usr/local/lib/libsdlwrapper.a \
-			   /usr/local/lib/libconfig.a
-CFLAGS		+= $(shell sdl2-config --cflags) \
-			   -I/usr/local/include/cmdapp \
-			   -I/usr/local/include/config \
-			   -I/usr/local/include/sdlwrapper \
-			   -I/usr/local/include/simple_test \
-			   -I/usr/local/include/eigen3
+MAINNAME	:= main
+TESTNAME	:= test
 
 # CFLAGS 		+= $(CRELEASE)
 CFLAGS 		+= $(CDEBUG)
 
-SRC			:= $(shell find $(SRCDIR) -name "*.cpp")
-OBJ			:= $(SRC:.cpp=.o)
-DEPS 		:= $(OBJS:.o=.d) 
-
-
-LIBSRC		:= $(shell find $(SRCDIR)/icp -name "*.cpp" -type f) \
-			   $(shell find $(SRCDIR)/algo -name "*.cpp" -type f)
+LIBSRC		:= $(shell find $(LIBDIR) -name "*.cpp" -type f)
+LIBINCLUDE  := -I/usr/local/include/eigen3
 LIBOBJ		:= $(LIBSRC:.cpp=.o)
+LIBDEPS		:= $(LIBOBJ:.o=.d)
 
--include $(DEPS)
+MAINSRC		:= $(shell find $(SRCDIR) -name "*.cpp" -type f)
+MAININCLUDE := $(shell sdl2-config --cflags) \
+				-I/usr/local/include/eigen3 \
+			   	-I/usr/local/include/cmdapp \
+			   	-I/usr/local/include/config \
+			   	-I/usr/local/include/sdlwrapper
+MAINLD 		:= $(shell sdl2-config --libs) \
+			   	/usr/local/lib/libcmdapp.a \
+			   	/usr/local/lib/libsdlwrapper.a \
+			   	/usr/local/lib/libconfig.a
+MAINOBJ		:= $(MAINSRC:.cpp=.o)
+MAINDEPS	:= $(MAINOBJ:.o=.d)
 
-# Config parameters
-N		:= 1
-METHOD	:= trimmed
+$(LIBNAME): CFLAGS += $(LIBINCLUDE)
+$(MAINNAME): CFLAGS += $(MAININCLUDE)
 
-$(TARGET): main.cpp $(OBJ)
+$(MAINNAME): LDFLAGS += $(MAINLD) 
+
+-include $(LIBDEPS)
+-include $(MAINDEPS)
+
+ifeq ($(shell uname), Darwin)
+AR 		:= /usr/bin/libtool
+AR_OPT 	:= -static
+else
+AR 		:= ar
+AR_OPT 	:= rcs $@ $^
+endif
+
+$(LIBNAME): $(LIBOBJ)
+	$(AR) $(AR_OPT) -o $@ $^
+
+$(MAINNAME): $(MAINOBJ) $(LIBNAME)
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
-	@make readme
-
-.PHONY: test
-test: test.cpp $(OBJ)
-	@$(CC) $(CFLAGS) -DTEST -o _temp $^ $(LDFLAGS)
-	@echo 'Running tests...'
-	@./_temp
-	@rm -f ./_temp
-
-.PHONY: view
-view: $(TARGET)
-	./$(TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --gui
-
-.PHONY: bench
-bench: $(TARGET)
-	./$(TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --bench
 
 %.o: %.cpp
 	@echo 'Compiling $@'
 	$(CC) $(CFLAGS) -MMD -MP $< -c -o $@
-
-.PHONY: clean
-clean:
-	rm -rf $(OBJ) $(TARGET) $(TARGET) $(DEPS) $(shell find . -name "*.dSYM") $(shell find . -name "*.d") docs
 
 # Not building book rn, add these commands to build
 # cd book; \
@@ -91,14 +84,3 @@ readme:
 .PHONY: math
 math:
 	@cd math; $(PY) ./icp_math.py
-
-ifeq ($(shell uname), Darwin)
-AR 		:= /usr/bin/libtool
-AR_OPT 	:= -static
-else
-AR 		:= ar
-AR_OPT 	:= rcs $@ $^
-endif
-
-$(LIBNAME): $(LIBOBJ)
-	$(AR) $(AR_OPT) $^ -o $@

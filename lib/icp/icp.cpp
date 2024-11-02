@@ -4,7 +4,7 @@
  */
 
 #include <numeric>
-#include "icp.h"
+#include "icp/icp.h"
 
 namespace icp {
     static Methods* global;

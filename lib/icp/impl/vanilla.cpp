@@ -5,10 +5,11 @@
 
 #include <cassert>
 #include <cstdlib>
-#include "../icp.h"
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Dense>
+
+#include "icp/icp.h"
 
 /* #name Vanilla */
 
