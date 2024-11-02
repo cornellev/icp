@@ -61,6 +61,10 @@ $(MAINNAME): $(MAINOBJ) $(LIBNAME)
 	@echo 'Compiling $@'
 	$(CC) $(CFLAGS) -MMD -MP $< -c -o $@
 
+.PHONY: clean
+clean:
+	@rm -f $(LIBOBJ) $(LIBDEPS) $(LIBNAME) $(MAINOBJ) $(MAINDEPS) $(MAINNAME)
+
 # Not building book rn, add these commands to build
 # cd book; \
   pdflatex icp.tex; \

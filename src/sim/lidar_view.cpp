@@ -15,14 +15,14 @@
 #define CIRCLE_RADIUS 3
 
 LidarView::LidarView(std::vector<icp::Vector> source, std::vector<icp::Vector> destination,
-    const std::string method, const icp::ICP::Config& config)
+    std::unique_ptr<icp::ICP> icp)
     : source(source),
       destination(destination),
+      icp(std::move(icp)),
       keyboard(false),
       is_iterating(false),
       iterations(0) {
-    icp = icp::ICP::from_method(method, config);
-    icp->begin(source, destination, icp::RBTransform());
+    this->icp->begin(source, destination, icp::RBTransform());
 }
 
 LidarView::~LidarView() noexcept {

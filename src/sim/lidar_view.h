@@ -25,7 +25,7 @@ public:
     /** Constructs a new lidar view visualizing ICP (by method `method`) on
      * the given instance (`source` and `destination`). */
     LidarView(std::vector<icp::Vector> source, std::vector<icp::Vector> destination,
-        const std::string method, const icp::ICP::Config& config = icp::ICP::Config());
+        std::unique_ptr<icp::ICP> icp);
 
     ~LidarView() noexcept override;
     void on_event(const SDL_Event& event) override;
