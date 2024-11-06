@@ -31,6 +31,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: libcevicp.a
+      - name: Install Eigen
+        run: sudo apt-get install libeigen3-dev
+      - name: Install simple-test
+        run: |
+          git clone https://github.com/cornellev/simple-test
+          cd simple-test
+          make install
       - name: Run tests
         run: make test OPT=RELEASE
   bench:
@@ -43,5 +50,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: libcevicp.a
+      - name: Install Eigen
+        run: sudo apt-get install libeigen3-dev
+      - name: Install SDL2
+        run: sudo apt-get install libsdl2-dev
+      - name: Install sdl-wrapper
+        run: |
+          git clone https://github.com/cornellev/sdl-wrapper.git
+          cd sdl-wrapper
+          make install
       - name: Run benchmarks
         run: make bench OPT=RELEASE
