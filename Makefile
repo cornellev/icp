@@ -50,6 +50,9 @@ $(TESTNAME): CFLAGS += -DTEST
 -include $(MAINDEPS)
 -include $(TESTDEPS)
 
+N		:= 1
+METHOD	:= trimmed
+
 ifeq ($(shell uname), Darwin)
 AR 		:= /usr/bin/libtool
 AR_OPT 	:= -static
@@ -66,8 +69,8 @@ $(MAINNAME): $(MAINOBJ) $(LIBNAME)
 
 $(TESTNAME): $(TESTOBJ) $(LIBNAME)
 	@$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
-	@./$@
-	@rm $@
+	@./$(TESTNAME)
+	@rm $(TESTNAME)
 
 %.o: %.cpp
 	@echo 'Compiling $@'
@@ -76,6 +79,11 @@ $(TESTNAME): $(TESTOBJ) $(LIBNAME)
 .PHONY: clean
 clean:
 	@rm -f $(LIBOBJ) $(LIBDEPS) $(LIBNAME) $(MAINOBJ) $(MAINDEPS) $(MAINNAME)
+
+.PHONY: view
+view: $(MAINNAME)
+	./$(MAINNAME) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --gui
+
 
 # Not building book rn, add these commands to build
 # cd book; \
