@@ -65,5 +65,10 @@ jobs:
           git clone https://github.com/cornellev/libcmdapp2.git
           cd libcmdapp2
           sudo make install
+      - name: Install libconfig
+        run: |
+          git clone https://github.com/cornellev/config
+          cd config
+          sudo make install
       - name: Run benchmarks
         run: make bench OPT=RELEASE
