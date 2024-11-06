@@ -37,7 +37,7 @@ jobs:
         run: |
           git clone https://github.com/cornellev/simple-test
           cd simple-test
-          make install
+          sudo make install
       - name: Run tests
         run: make test OPT=RELEASE
   bench:
@@ -58,6 +58,6 @@ jobs:
         run: |
           git clone https://github.com/cornellev/sdl-wrapper.git
           cd sdl-wrapper
-          make install
+          sudo make install
       - name: Run benchmarks
         run: make bench OPT=RELEASE
