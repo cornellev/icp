@@ -3,7 +3,7 @@
 INCLUDEDIR	:= include
 LIBDIR		:= lib
 SRCDIR		:= src
-TESTDIR		:= test
+TESTDIR		:= tests
 
 CC			:= $(shell which g++ || which clang++)
 PY			:= $(shell which python3 || which python)
@@ -21,6 +21,7 @@ LIBSRC		:= $(shell find $(LIBDIR) -name "*.cpp" -type f)
 LIBINCLUDE  := -I/usr/local/include/eigen3
 LIBOBJ		:= $(LIBSRC:.cpp=.o)
 LIBDEPS		:= $(LIBOBJ:.o=.d)
+$(LIBNAME): CFLAGS += $(LIBINCLUDE)
 
 MAINSRC		:= $(shell find $(SRCDIR) -name "*.cpp" -type f)
 MAININCLUDE := $(shell sdl2-config --cflags) \
@@ -34,14 +35,20 @@ MAINLD 		:= $(shell sdl2-config --libs) \
 			   	/usr/local/lib/libconfig.a
 MAINOBJ		:= $(MAINSRC:.cpp=.o)
 MAINDEPS	:= $(MAINOBJ:.o=.d)
-
-$(LIBNAME): CFLAGS += $(LIBINCLUDE)
 $(MAINNAME): CFLAGS += $(MAININCLUDE)
+$(MAINNAME): LDFLAGS += $(MAINLD)
 
-$(MAINNAME): LDFLAGS += $(MAINLD) 
+TESTSRC		:= $(shell find $(TESTDIR) -name "*.cpp" -type f)
+TESTINCLUDE := -I/usr/local/include/eigen3 \
+			   -I/usr/local/include/simple_test
+TESTOBJ		:= $(TESTSRC:.cpp=.o)
+TESTDEPS	:= $(TESTOBJ:.o=.d)
+$(TESTNAME): CFLAGS += $(TESTINCLUDE)
+$(TESTNAME): CFLAGS += -DTEST
 
 -include $(LIBDEPS)
 -include $(MAINDEPS)
+-include $(TESTDEPS)
 
 ifeq ($(shell uname), Darwin)
 AR 		:= /usr/bin/libtool
@@ -56,6 +63,11 @@ $(LIBNAME): $(LIBOBJ)
 
 $(MAINNAME): $(MAINOBJ) $(LIBNAME)
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
+
+$(TESTNAME): $(TESTOBJ) $(LIBNAME)
+	@$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
+	@./$@
+	@rm $@
 
 %.o: %.cpp
 	@echo 'Compiling $@'

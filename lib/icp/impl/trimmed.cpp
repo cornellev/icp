@@ -69,7 +69,8 @@ namespace icp {
         */
         std::sort(matches.begin(), matches.end(),
             [](const auto& a, const auto& b) { return a.sq_dist < b.sq_dist; });
-        size_t new_n = (size_t)(overlap_rate * n);
+        size_t new_n = static_cast<size_t>(overlap_rate * n);
+        new_n = std::max<size_t>(new_n, 1);
 
         // yeah, i know this is inefficient. we'll get back to it later.
         std::vector<icp::Vector> trimmed_current(new_n);

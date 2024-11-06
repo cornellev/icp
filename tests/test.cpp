@@ -13,7 +13,7 @@ extern "C" {
 void test_kdtree(void) {}
 
 void test_icp(const std::string& method) {
-    std::unique_ptr<icp::ICP> icp = icp::ICP::from_method(method);
+    std::unique_ptr<icp::ICP> icp = icp::ICP::from_method(method).value();
 
     {
         std::vector<icp::Vector> a = {icp::Vector(0, 0)};
@@ -75,6 +75,8 @@ void test_icp(const std::string& method) {
 
 void test_main() {
     test_kdtree();
+
+    icp::ICP::register_builtin_methods();
     for (const auto& method: icp::ICP::registered_methods()) {
         std::cout << "testing icp method: " << method << '\n';
         test_icp(method);
