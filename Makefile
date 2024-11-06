@@ -21,14 +21,14 @@ CFLAGS 		+= $(CDEBUG)
 endif
 
 LIBSRC		:= $(shell find $(LIBDIR) -name "*.cpp" -type f)
-LIBINCLUDE  := -I/usr/local/include/eigen3
+LIBINCLUDE  := -I/usr/include/eigen3
 LIBOBJ		:= $(LIBSRC:.cpp=.o)
 LIBDEPS		:= $(LIBOBJ:.o=.d)
 $(LIBNAME): CFLAGS += $(LIBINCLUDE)
 
 MAINSRC		:= $(shell find $(SRCDIR) -name "*.cpp" -type f)
 MAININCLUDE := $(shell sdl2-config --cflags) \
-				-I/usr/local/include/eigen3 \
+				-I/usr/include/eigen3 \
 			   	-I/usr/local/include/cmdapp \
 			   	-I/usr/local/include/config \
 			   	-I/usr/local/include/sdlwrapper
@@ -42,7 +42,7 @@ $(MAINNAME): CFLAGS += $(MAININCLUDE)
 $(MAINNAME): LDFLAGS += $(MAINLD)
 
 TESTSRC		:= $(shell find $(TESTDIR) -name "*.cpp" -type f)
-TESTINCLUDE := -I/usr/local/include/eigen3 \
+TESTINCLUDE := -I/usr/include/eigen3 \
 			   -I/usr/local/include/simple_test
 TESTOBJ		:= $(TESTSRC:.cpp=.o)
 TESTDEPS	:= $(TESTOBJ:.o=.d)
