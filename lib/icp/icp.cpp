@@ -4,9 +4,20 @@
  */
 
 #include <numeric>
-#include "icp.h"
+
+#include "icp/icp.h"
+
+// methods for builtin registration
+#include "icp/impl/vanilla.h"
+#include "icp/impl/trimmed.h"
 
 namespace icp {
+    struct Methods {
+        std::vector<std::string> registered_method_names;
+        std::vector<std::function<std::unique_ptr<ICP>(const ICP::Config&)>>
+            registered_method_constructors;
+    };
+
     static Methods* global;
 
     ICP::ICP() {}
@@ -82,6 +93,13 @@ namespace icp {
         }
     }
 
+    void ICP::register_builtin_methods() {
+        register_method("vanilla",
+            [](const ICP::Config& config) { return std::make_unique<Vanilla>(config); });
+        register_method("trimmed",
+            [](const ICP::Config& config) { return std::make_unique<Trimmed>(config); });
+    }
+
     bool ICP::register_method(std::string name,
         std::function<std::unique_ptr<ICP>(const ICP::Config&)> constructor) {
         ensure_methods_exists();
@@ -95,17 +113,18 @@ namespace icp {
         return global->registered_method_names;
     }
 
-    std::unique_ptr<ICP> ICP::from_method(std::string name, const ICP::Config& config) {
+    std::optional<std::unique_ptr<ICP>> ICP::from_method(std::string name,
+        const ICP::Config& config) {
         ensure_methods_exists();
-        size_t index = std::find(global->registered_method_names.begin(),
-                           global->registered_method_names.end(), name)
-                       - global->registered_method_names.begin();
-        return global->registered_method_constructors[index](config);
-    }
+        auto name_it = std::find(global->registered_method_names.begin(),
+            global->registered_method_names.end(), name);
 
-    bool ICP::is_registered_method(std::string name) {
-        return std::find(global->registered_method_names.begin(),
-                   global->registered_method_names.end(), name)
-               != global->registered_method_names.end();
+        if (name_it == global->registered_method_names.end()) {
+            return {};
+        }
+
+        size_t index = name_it - global->registered_method_names.begin();
+
+        return global->registered_method_constructors[index](config);
     }
 }

@@ -4,7 +4,7 @@
  */
 
 #include <numeric>
-#include "geo.h"
+#include "icp/geo.h"
 
 namespace icp {
     Vector get_centroid(const std::vector<Vector>& points) {

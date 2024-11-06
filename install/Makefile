@@ -1,4 +1,5 @@
 # Copyright (C) 2024 Ethan Uppal.
+# TODO: move to main makefile
 
 LIB		:= /usr/local/lib
 HEADER	:= /usr/local/include

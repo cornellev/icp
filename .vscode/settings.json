@@ -106,6 +106,9 @@
         "stop_token": "cpp",
         "svd": "cpp",
         "core": "cpp",
-        "text_encoding": "cpp"
+        "text_encoding": "cpp",
+        "strstream": "cpp",
+        "source_location": "cpp",
+        "stdfloat": "cpp"
     }
 }

@@ -12,6 +12,8 @@
 #include <functional>
 #include <unordered_map>
 #include <variant>
+#include <optional>
+
 #include "geo.h"
 
 namespace icp {
@@ -57,10 +59,10 @@ namespace icp {
          */
         RBTransform transform;
 
-        /** The source point cloud relative to its centroid. */
+        /** The source point cloud. */
         std::vector<Vector> a;
 
-        /** The destination point cloud relative to its centroid. */
+        /** The destination point cloud. */
         std::vector<Vector> b;
 
         /** Keeps track of the previous cost to ensure that progress is being
@@ -150,6 +152,10 @@ namespace icp {
         /** The current transform. */
         const RBTransform& current_transform() const;
 
+        /** Registers methods built into libcevicp. Must be called before constructing ICP instances
+         * for built-in methods. */
+        static void register_builtin_methods();
+
         /** Registers a new ICP method that can be created with `constructor`,
          * returning `false` if `name` has already been registered. */
         static bool register_method(std::string name,
@@ -166,15 +172,7 @@ namespace icp {
          * @pre `name` is a valid registered method. See
          * ICP::is_registered_method.
          */
-        static std::unique_ptr<ICP> from_method(std::string name, const Config& params = Config());
-
-        /** Whether `name` is a registered ICP method. */
-        static bool is_registered_method(std::string name);
-    };
-
-    struct Methods {
-        std::vector<std::string> registered_method_names;
-        std::vector<std::function<std::unique_ptr<ICP>(const ICP::Config&)>>
-            registered_method_constructors;
+        static std::optional<std::unique_ptr<ICP>> from_method(std::string name,
+            const Config& params = Config());
     };
 }

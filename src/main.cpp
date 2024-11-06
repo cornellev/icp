@@ -10,8 +10,11 @@ extern "C" {
 #include <numeric>
 #include <algorithm>
 #include <sdlwrapper/gui/window.h>
+#include <optional>
 #include "sim/view_config.h"
 #include "sim/lidar_view.h"
+#include "icp/impl/vanilla.h"
+#include "icp/impl/trimmed.h"
 
 struct LidarScan {
     double range_max;
@@ -94,10 +97,10 @@ void launch_gui(LidarView* view, std::string visualized = "LiDAR scans") {
     window.present();
 }
 
-void run_benchmark(const char* method, const LidarScan& source, const LidarScan& destination) {
+void run_benchmark(const char* method, std::unique_ptr<icp::ICP> icp, const LidarScan& source,
+    const LidarScan& destination) {
     std::cout << "ICP ALGORITHM BENCHMARKING\n";
     std::cout << "=======================================\n";
-    std::unique_ptr<icp::ICP> icp = icp::ICP::from_method(method);
 
     constexpr size_t N = 50;
     constexpr size_t burn_in = 0;
@@ -204,13 +207,18 @@ int main(int argc, const char** argv) {
         view_config::use_light_background = true;
     }
 
-    if (!icp::ICP::is_registered_method(method)) {
+    icp::ICP::register_builtin_methods();
+    std::optional<std::unique_ptr<icp::ICP>> icp_opt = icp::ICP::from_method(method);
+
+    if (!icp_opt.has_value()) {
         std::cerr << "error: unknown ICP method '" << method << "'. expected one of:\n";
         for (const std::string& registered_method: icp::ICP::registered_methods()) {
             std::cerr << "* " << registered_method << '\n';
         }
         std::exit(1);
     }
+
+    std::unique_ptr<icp::ICP> icp = std::move(icp_opt.value());
 
     // std::vector<icp::Vector> a = {icp::Vector(100, 200), icp::Vector(130, 420),
     //     icp::Vector(-100, -200), icp::Vector(-50, -100)};
@@ -229,11 +237,11 @@ int main(int argc, const char** argv) {
         if (*use_gui) {
             icp::ICP::Config config;
             config.set("overlap_rate", 0.9);
-            LidarView* view = new LidarView(source.points, destination.points, method, config);
+            LidarView* view = new LidarView(source.points, destination.points, std::move(icp));
 
             launch_gui(view, std::string(f_src) + std::string(" and ") + std::string(f_dst));
         } else if (*do_bench) {
-            run_benchmark(method, source, destination);
+            run_benchmark(method, std::move(icp), source, destination);
         }
     }
 }

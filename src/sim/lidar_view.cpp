@@ -15,14 +15,14 @@
 #define CIRCLE_RADIUS 3
 
 LidarView::LidarView(std::vector<icp::Vector> source, std::vector<icp::Vector> destination,
-    const std::string method, const icp::ICP::Config& config)
+    std::unique_ptr<icp::ICP> icp)
     : source(source),
       destination(destination),
+      icp(std::move(icp)),
       keyboard(false),
       is_iterating(false),
       iterations(0) {
-    icp = icp::ICP::from_method(method, config);
-    icp->begin(source, destination, icp::RBTransform());
+    this->icp->begin(source, destination, icp::RBTransform());
 }
 
 LidarView::~LidarView() noexcept {
@@ -57,7 +57,8 @@ void LidarView::on_event(const SDL_Event& event) {
     }
 }
 
-void LidarView::draw(SDL_Renderer* renderer, const SDL_Rect* frame, double dtime) {
+void LidarView::draw(SDL_Renderer* renderer, [[maybe_unused]] const SDL_Rect* frame,
+    [[maybe_unused]] double dtime) {
     if (view_config::use_light_background) {
         SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
     } else {
