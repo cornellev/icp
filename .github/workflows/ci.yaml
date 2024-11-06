@@ -59,5 +59,10 @@ jobs:
           git clone https://github.com/cornellev/sdl-wrapper.git
           cd sdl-wrapper
           sudo make install
+      - name: Install libcmdapp2
+        run: |
+          git clone https://github.com/cornellev/libcmdapp2.git
+          cd libcmdapp2
+          sudo make install
       - name: Run benchmarks
         run: make bench OPT=RELEASE
