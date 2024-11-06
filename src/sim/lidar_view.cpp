@@ -57,7 +57,8 @@ void LidarView::on_event(const SDL_Event& event) {
     }
 }
 
-void LidarView::draw(SDL_Renderer* renderer, const SDL_Rect* frame, double dtime) {
+void LidarView::draw(SDL_Renderer* renderer, [[maybe_unused]] const SDL_Rect* frame,
+    [[maybe_unused]] double dtime) {
     if (view_config::use_light_background) {
         SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
     } else {
