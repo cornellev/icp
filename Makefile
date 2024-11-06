@@ -14,8 +14,11 @@ LIBNAME		:= libcevicp.a
 MAINNAME	:= main
 TESTNAME	:= test
 
-# CFLAGS 		+= $(CRELEASE)
+ifeq ($(OPT), RELEASE)
+CFLAGS 		+= $(CRELEASE)
+else
 CFLAGS 		+= $(CDEBUG)
+endif
 
 LIBSRC		:= $(shell find $(LIBDIR) -name "*.cpp" -type f)
 LIBINCLUDE  := -I/usr/local/include/eigen3
