@@ -84,6 +84,9 @@ clean:
 view: $(MAINNAME)
 	./$(MAINNAME) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --gui
 
+.PHONY: bench
+bench: $(MAINNAME)
+	./$(MAINNAME) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --bench
 
 # Not building book rn, add these commands to build
 # cd book; \
