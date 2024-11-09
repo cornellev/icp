@@ -67,14 +67,14 @@ namespace icp {
         std::sort(matches.begin(), matches.end(),
             [](const auto& a, const auto& b) { return a.cost < b.cost; });
         size_t new_n = static_cast<size_t>(overlap_rate * n);
-        new_n = std::max<size_t>(new_n, 1);
+        new_n = std::max<size_t>(new_n, 1);  // TODO: bad for scans with 0 points
 
         // yeah, i know this is inefficient. we'll get back to it later.
         std::vector<icp::Vector> trimmed_current(new_n);
         std::vector<icp::Vector> trimmed_b(new_n);
         for (size_t i = 0; i < new_n; i++) {
             trimmed_current[i] = a_current[matches[i].point];
-            trimmed_b[i] = b[matches[i].point];
+            trimmed_b[i] = b[matches[i].pair];
         }
 
         icp::Vector trimmed_cm = get_centroid(trimmed_current);

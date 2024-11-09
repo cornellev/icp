@@ -9,11 +9,13 @@ namespace icp {
         : ICP(),
           symmetric_neighbors(symmetric_neighbors),
           feature_weight(feature_weight),
-          neighbor_weight(1 - feature_weight) {}
+          neighbor_weight(1 - feature_weight) {
+        std::cout << "Feature weight: " << feature_weight << std::endl;
+    }
 
     FeatureAware::FeatureAware(const Config& config)
-        : FeatureAware(config.get<double>("feature_weight", 1.0),
-              config.get<int>("symmetric_neighbors", 5)) {}
+        : FeatureAware(config.get<double>("feature_weight", 0.7),
+              config.get<int>("symmetric_neighbors", 10)) {}
 
     FeatureAware::~FeatureAware() {}
 
@@ -26,6 +28,8 @@ namespace icp {
 
         compute_features(a, get_centroid(a), a_features);
         compute_features(b, b_cm, b_features);
+
+        norm_feature_dists = compute_norm_dists(a_features, b_features);
     }
 
     void FeatureAware::iterate() {
@@ -38,14 +42,15 @@ namespace icp {
 
         auto a_current_cm = get_centroid(a_current);
 
-        /* TODO #step Matching Step: */
+        /* TODO: write smth #step Matching Step: */
+        Eigen::MatrixXd norm_dists = compute_norm_dists(a_current, b);
+
         for (size_t i = 0; i < n; i++) {
             matches[i].point = i;
             matches[i].cost = std::numeric_limits<double>::infinity();
             for (size_t j = 0; j < m; j++) {
-                // Point-to-point matching
-                double dist = (b[j] - a_current[i]).norm();
-                double feature_dist = (b_features[j] - a_features[i]).norm();
+                double dist = norm_dists(i, j);
+                double feature_dist = norm_feature_dists(i, j);
                 double cost = neighbor_weight * dist + feature_weight * feature_dist;
 
                 if (cost < matches[i].cost) {
@@ -55,12 +60,30 @@ namespace icp {
             }
         }
 
-        // TODO normalize features
+        /*
+            #step
+            Trimming Step: see \ref trimmed for details.
+        */
+        std::sort(matches.begin(), matches.end(),
+            [](const auto& a, const auto& b) { return a.cost < b.cost; });
+        size_t new_n = static_cast<size_t>(0.7 * n);
+        new_n = std::max<size_t>(new_n, 1);  // TODO: bad for scans with 0 points
+
+        // yeah, i know this is inefficient. we'll get back to it later.
+        std::vector<icp::Vector> trimmed_current(new_n);
+        std::vector<icp::Vector> trimmed_b(new_n);
+        for (size_t i = 0; i < new_n; i++) {
+            trimmed_current[i] = a_current[matches[i].point];
+            trimmed_b[i] = b[matches[i].pair];
+        }
+
+        icp::Vector trimmed_cm = get_centroid(trimmed_current);
+        icp::Vector trimmed_b_cm = get_centroid(trimmed_b);
 
         /* #step SVD: see \ref vanilla_icp for details. */
         Matrix N = Matrix::Zero();
-        for (size_t i = 0; i < n; i++) {
-            N += (a_current[i] - a_current_cm) * (b[matches[i].pair] - b_cm).transpose();
+        for (size_t i = 0; i < new_n; i++) {
+            N += (trimmed_current[i] - trimmed_cm) * (trimmed_b[i] - trimmed_b_cm).transpose();
         }
 
         auto svd = N.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
@@ -77,7 +100,7 @@ namespace icp {
         transform.rotation = R * transform.rotation;
 
         /* #step Transformation Step: see \ref vanilla_icp for details. */
-        transform.translation += b_cm - R * a_current_cm;
+        transform.translation += trimmed_b_cm - R * trimmed_cm;
     }
 
     void FeatureAware::compute_features(const std::vector<Vector>& points, Vector cm,
