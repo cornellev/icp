@@ -46,13 +46,11 @@ namespace icp {
      */
     class ICP {
     protected:
-        // TODO: make this more general to allow for point-to-line
-        /** A point-to-point matching between `point` and `pair` at a distance
-         * of `sqrt(sq_dist)`.  */
+        /** A matching between `point` and `pair` at (arbitrary) cost `cost`.  */
         struct Match {
             size_t point;
             size_t pair;
-            double sq_dist;
+            double cost;
         };
 
         /** The current point cloud transformation that is being optimized.

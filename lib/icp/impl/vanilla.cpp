@@ -22,10 +22,7 @@ namespace icp {
     Vanilla::~Vanilla() {}
 
     void Vanilla::setup() {
-        if (a_current.size() < a.size()) {
-            a_current.resize(a.size());
-        }
-
+        a_current.resize(a.size());
         b_cm = get_centroid(b);
     }
 
@@ -53,13 +50,13 @@ namespace icp {
             -> use k-d tree
          */
         for (size_t i = 0; i < n; i++) {
-            matches[i].sq_dist = std::numeric_limits<double>::infinity();
+            matches[i].cost = std::numeric_limits<double>::infinity();
             for (size_t j = 0; j < m; j++) {
                 // Point-to-point matching
                 double dist_ij = (b[j] - a_current[i]).squaredNorm();
 
-                if (dist_ij < matches[i].sq_dist) {
-                    matches[i].sq_dist = dist_ij;
+                if (dist_ij < matches[i].cost) {
+                    matches[i].cost = dist_ij;
                     matches[i].pair = j;
                 }
             }
