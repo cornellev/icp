@@ -53,7 +53,7 @@ $(TESTNAME): CFLAGS += -DTEST
 -include $(MAINDEPS)
 -include $(TESTDEPS)
 
-N		:= 1
+N		:= 3
 METHOD	:= feature_aware
 
 ifeq ($(shell uname), Darwin)
