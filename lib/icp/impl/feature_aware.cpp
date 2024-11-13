@@ -40,8 +40,6 @@ namespace icp {
             a_current[i] = transform.apply_to(a[i]);
         }
 
-        auto a_current_cm = get_centroid(a_current);
-
         /* TODO: write smth #step Matching Step: */
         Eigen::MatrixXd norm_dists = compute_norm_dists(a_current, b);
 

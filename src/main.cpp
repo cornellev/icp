@@ -204,7 +204,7 @@ int main(int argc, const char** argv) {
     Log.is_enabled = *enable_log;
     parse_config(config_file, set_config_param, NULL);
     if (*basic_mode) {
-        view_config::use_light_background = true;
+        view_config::use_light_mode = true;
     }
 
     icp::ICP::register_builtin_methods();

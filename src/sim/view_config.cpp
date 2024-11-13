@@ -13,5 +13,5 @@ namespace view_config {
     double x_displace = 100;
     double y_displace = 50;
 
-    bool use_light_background = false;
+    bool use_light_mode = false;
 }
