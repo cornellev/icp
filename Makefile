@@ -26,6 +26,10 @@ LIBOBJ		:= $(LIBSRC:.cpp=.o)
 LIBDEPS		:= $(LIBOBJ:.o=.d)
 $(LIBNAME): CFLAGS += $(LIBINCLUDE)
 
+LIBINSTALL 		:= /usr/local/lib
+HEADERINSTALL	:= /usr/local/include
+INSTALLNAME		:= cev_icp
+
 MAINSRC		:= $(shell find $(SRCDIR) -name "*.cpp" -type f)
 MAININCLUDE := $(shell sdl2-config --cflags) \
 				-I/usr/include/eigen3 \
@@ -90,6 +94,17 @@ view: $(MAINNAME)
 .PHONY: bench
 bench: $(MAINNAME)
 	./$(MAINNAME) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --bench
+
+.PHONY: install
+install: $(LIBNAME)
+	mkdir -p $(LIBINSTALL)
+	mkdir -p $(HEADERINSTALL)/$(INSTALLNAME)
+	mv $(LIBNAME) $(LIBINSTALL)
+	cp -r $(INCLUDEDIR)/* $(HEADERINSTALL)/$(INSTALLNAME)
+
+.PHONY: uninstall
+uninstall:
+	rm -r $(LIBINSTALL)/$(LIBNAME) $(HEADERINSTALL)/$(INSTALLNAME)
 
 # Not building book rn, add these commands to build
 # cd book; \
