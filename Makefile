@@ -99,7 +99,7 @@ bench: $(MAINNAME)
 install: $(LIBNAME)
 	mkdir -p $(LIBINSTALL)
 	mkdir -p $(HEADERINSTALL)/$(INSTALLNAME)
-	mv $(LIBNAME) $(LIBINSTALL)
+	cp $(LIBNAME) $(LIBINSTALL)
 	cp -r $(INCLUDEDIR)/* $(HEADERINSTALL)/$(INSTALLNAME)
 
 .PHONY: uninstall
