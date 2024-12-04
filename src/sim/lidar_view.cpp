@@ -59,10 +59,10 @@ void LidarView::on_event(const SDL_Event& event) {
 
 void LidarView::draw(SDL_Renderer* renderer, [[maybe_unused]] const SDL_Rect* frame,
     [[maybe_unused]] double dtime) {
-    if (view_config::use_light_background) {
-        SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+    if (view_config::use_light_mode) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
     } else {
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     }
     SDL_RenderClear(renderer);
 
@@ -80,12 +80,12 @@ void LidarView::draw(SDL_Renderer* renderer, [[maybe_unused]] const SDL_Rect* fr
     }
 
     icp::Vector a_cm = icp->current_transform().apply_to(icp::get_centroid(source));
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 10);
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_DrawCircle(renderer, a_cm.x() + view_config::x_displace, a_cm.y() + view_config::y_displace,
         20);
 
     icp::Vector b_cm = icp::get_centroid(destination);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 10);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
     SDL_DrawCircle(renderer, b_cm.x() + view_config::x_displace, b_cm.y() + view_config::y_displace,
         20);
 

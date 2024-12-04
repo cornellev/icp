@@ -24,14 +24,11 @@ namespace icp {
 
     Trimmed::Trimmed(double overlap_rate): ICP(), overlap_rate(overlap_rate) {}
     Trimmed::Trimmed(const Config& config)
-        : ICP(), overlap_rate(config.get<double>("overlap_rate", 0.7)) {}
+        : ICP(), overlap_rate(config.get<double>("overlap_rate", 0.9)) {}
     Trimmed::~Trimmed() {}
 
     void Trimmed::setup() {
-        if (a_current.size() < a.size()) {
-            a_current.resize(a.size());
-        }
-
+        a_current.resize(a.size());
         b_cm = get_centroid(b);
     }
 
@@ -46,13 +43,13 @@ namespace icp {
         /* #step Matching Step: see \ref vanilla_icp for details. */
         for (size_t i = 0; i < n; i++) {
             matches[i].point = i;
-            matches[i].sq_dist = std::numeric_limits<double>::infinity();
+            matches[i].cost = std::numeric_limits<double>::infinity();
             for (size_t j = 0; j < m; j++) {
                 // Point-to-point matching
                 double dist_ij = (b[j] - a_current[i]).squaredNorm();
 
-                if (dist_ij < matches[i].sq_dist) {
-                    matches[i].sq_dist = dist_ij;
+                if (dist_ij < matches[i].cost) {
+                    matches[i].cost = dist_ij;
                     matches[i].pair = j;
                 }
             }
@@ -68,16 +65,16 @@ namespace icp {
             https://ieeexplore.ieee.org/abstract/document/1047997
         */
         std::sort(matches.begin(), matches.end(),
-            [](const auto& a, const auto& b) { return a.sq_dist < b.sq_dist; });
+            [](const auto& a, const auto& b) { return a.cost < b.cost; });
         size_t new_n = static_cast<size_t>(overlap_rate * n);
-        new_n = std::max<size_t>(new_n, 1);
+        new_n = std::max<size_t>(new_n, 1);  // TODO: bad for scans with 0 points
 
         // yeah, i know this is inefficient. we'll get back to it later.
         std::vector<icp::Vector> trimmed_current(new_n);
         std::vector<icp::Vector> trimmed_b(new_n);
         for (size_t i = 0; i < new_n; i++) {
             trimmed_current[i] = a_current[matches[i].point];
-            trimmed_b[i] = b[matches[i].point];
+            trimmed_b[i] = b[matches[i].pair];
         }
 
         icp::Vector trimmed_cm = get_centroid(trimmed_current);

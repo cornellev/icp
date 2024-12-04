@@ -10,6 +10,7 @@
 // methods for builtin registration
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
+#include "icp/impl/feature_aware.h"
 
 namespace icp {
     struct Methods {
@@ -37,10 +38,7 @@ namespace icp {
         current_cost = std::numeric_limits<double>::infinity();
 
         // Ensure arrays are the right size
-        const size_t n = this->a.size();
-        if (matches.size() < n) {
-            matches.resize(n);
-        }
+        matches.resize(this->a.size());
 
         // Per-instance customization routine
         setup();
@@ -49,7 +47,7 @@ namespace icp {
     double ICP::calculate_cost() const {
         double sum_squares{};
         for (auto& match: matches) {
-            sum_squares += match.sq_dist;
+            sum_squares += match.cost;
         }
         return std::sqrt(sum_squares / a.size());
     }
@@ -98,6 +96,8 @@ namespace icp {
             [](const ICP::Config& config) { return std::make_unique<Vanilla>(config); });
         register_method("trimmed",
             [](const ICP::Config& config) { return std::make_unique<Trimmed>(config); });
+        register_method("feature_aware",
+            [](const ICP::Config& config) { return std::make_unique<FeatureAware>(config); });
     }
 
     bool ICP::register_method(std::string name,

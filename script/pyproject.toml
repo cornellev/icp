@@ -1,0 +1,10 @@
+[project]
+name = "script"
+version = "0.1.0"
+description = "ICP scripts"
+requires-python = ">=3.12"
+dependencies = [
+    "bagpy>=0.5",
+    "matplotlib>=3.9.2",
+    "pyqt5>=5.15.11",
+]

@@ -12,5 +12,5 @@ namespace view_config {
     extern double x_displace;
     extern double y_displace;
 
-    extern bool use_light_background;
+    extern bool use_light_mode;
 }
