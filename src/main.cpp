@@ -117,10 +117,10 @@ void run_benchmark(const char* method, std::unique_ptr<icp::ICP> icp, const Lida
     const auto start = std::chrono::high_resolution_clock::now();
 
     for (size_t i = 0; i < N; i++) {
-        icp->begin(source.points, destination.points, icp::RBTransform());
-        icp::ICP::ConvergenceReport result = icp->converge(burn_in, convergence_threshold);
-        final_costs.push_back(result.final_cost);
-        iteration_counts.push_back(result.iteration_count);
+        // icp->begin(source.points, destination.points, icp::RBTransform());
+        // icp::ICP::ConvergenceState result = icp->converge(burn_in, convergence_threshold);
+        // final_costs.push_back(result.final_cost);
+        // iteration_counts.push_back(result.iteration_count);
     }
     const auto end = std::chrono::high_resolution_clock::now();
 
@@ -220,12 +220,16 @@ int main(int argc, const char** argv) {
 
     std::unique_ptr<icp::ICP> icp = std::move(icp_opt.value());
 
-    // std::vector<icp::Vector> a = {icp::Vector(100, 200), icp::Vector(130, 420),
-    //     icp::Vector(-100, -200), icp::Vector(-50, -100)};
-    // std::vector<icp::Vector> b = {icp::Vector(100, -200), icp::Vector(130, -420),
-    //     icp::Vector(-100, 200), icp::Vector(-50, 100)};
-    // LidarView* view = new LidarView(a, b, method);
-
+    // std::vector<icp::Vector> a = {icp::Vector(0, 0), icp::Vector(100, 100)};
+    // std::vector<icp::Vector> b = {};
+    // double angle = (double)8 * M_PI / 180.0;
+    // icp::Vector center = icp::get_centroid(a);
+    // icp::Matrix rotation_matrix{
+    //     {std::cos(angle), -std::sin(angle)}, {std::sin(angle), std::cos(angle)}};
+    // for (const auto& point: a) {
+    //     b.push_back(rotation_matrix * (point - center) + center);
+    // }
+    // LidarView* view = new LidarView(a, b, std::move(icp));
     // launch_gui(view, "test");
     // return 0;
 

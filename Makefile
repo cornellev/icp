@@ -58,7 +58,7 @@ $(TESTNAME): CFLAGS += -DTEST
 -include $(TESTDEPS)
 
 N		:= 3
-METHOD	:= feature_aware
+METHOD	:= vanilla
 
 ifeq ($(shell uname), Darwin)
 AR 		:= /usr/bin/libtool

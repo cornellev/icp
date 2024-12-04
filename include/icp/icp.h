@@ -53,8 +53,7 @@ namespace icp {
             double cost;
         };
 
-        /** The current point cloud transformation that is being optimized.
-         */
+        /** The current point cloud transformation that is being optimized. */
         RBTransform transform;
 
         /** The source point cloud. */
@@ -62,13 +61,6 @@ namespace icp {
 
         /** The destination point cloud. */
         std::vector<Vector> b;
-
-        /** Keeps track of the previous cost to ensure that progress is being
-         * made. @see ICP::current_cost. */
-        double previous_cost;
-
-        /** The RMS (root mean square) cost of the current transformation. */
-        double current_cost;
 
         /** The pairing of each point in `a` to its closest in `b`. */
         std::vector<Match> matches;
@@ -128,8 +120,8 @@ namespace icp {
         /** The current transform. */
         const RBTransform& current_transform() const;
 
-        /** Registers methods built into libcevicp. Must be called before constructing ICP instances
-         * for built-in methods. */
+        /** Registers methods built into `libcevicp`. Must be called before constructing ICP
+         * instances for built-in methods. */
         static void register_builtin_methods();
 
         /** Registers a new ICP method that can be created with `constructor`,

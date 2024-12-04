@@ -1,20 +1,20 @@
 #pragma once
 
 #include <optional>
-#include "icp/icp.h"
+#include "icp.h"
 
 namespace icp {
     class ICPDriver {
     public:
         /** The result of running `ICPDriver::converge`. */
-        struct ConvergenceReport {
-            /** The least cost achieved. */
-            double final_cost;
+        struct ConvergenceState {
+            /** The cost achieved. */
+            double cost;
 
             /** The number of iterations performed. */
             size_t iteration_count;
 
-            /** The final transform. */
+            /** The transform. */
             RBTransform transform;
         };
 
@@ -31,13 +31,15 @@ namespace icp {
          * @param a The source point cloud.
          * @param b The destination point cloud.
          * @param t The initial guess for the transformation.
-         * @return ConvergenceReport
+         * @return ConvergenceState
          */
-        ConvergenceReport converge(const std::vector<Vector>& a, const std::vector<Vector>& b,
+        ConvergenceState converge(const std::vector<Vector>& a, const std::vector<Vector>& b,
             RBTransform t);
 
         /**
          * @brief Sets the minimum number of iterations to run.
+         *
+         * @note Increases in cost cause immediate termination.
          *
          * @param min_iterations The minimum number of iterations to run.
          */
@@ -61,8 +63,10 @@ namespace icp {
         // TODO: fix docs to use math once doxygen is fixed
         /**
          * @brief Sets the relative cost tolerance. `converge` will return when the cost
-         * changes by less than this fraction of the current cost, i.e. when |delta cost| / |cost| <
-         * relative_cost_tolerance.
+         * changes by less than this fraction of the current cost, i.e. when |`current_cost` -
+         * `prev_cost`| / < `relative_cost_tolerance`.
+         *
+         * @note Increases in cost cause immediate termination.
          *
          * @param relative_cost_tolerance The relative cost tolerance.
          */
@@ -70,29 +74,31 @@ namespace icp {
 
         /**
          * @brief Set the absolute cost tolerance. `converge` will return when the cost changes by
-         * less than this amount, i.e. when |delta cost| < absolute_cost_tolerance.
+         * less than this amount, i.e. when |`current_cost` - `prev_cost`|  <
+         * `absolute_cost_tolerance`.
+         *
+         * @note Increases in cost cause immediate termination.
          *
          * @param absolute_cost_tolerance The absolute cost tolerance.
          */
         void set_absolute_cost_tolerance(double absolute_cost_tolerance);
 
         /**
-         * @brief Sets the angle tolerance in radians. `converge` will return when the change in
-         * rotation is less than angle_tolerance.
+         * @brief Set the transform tolerance. `converge` will return when both the angle and
+         * translation tolerances are met.
          *
-         * @param angle_tolerance The angle tolerance in radians.
+         * @param angle_tolerance The angle tolerance in radians. The tolerance is met when the
+         * angle of rotation between the current and previous transformation around the axis of
+         * rotation is less than `angle_tolerance`.
+         * @param translation_tolerance The translation tolerance in scan units. The tolerance is
+         * met when the change in translation is less than `translation_tolerance`.
          */
-        void set_angle_tolerance(double angle_tolerance);
-
-        /**
-         * @brief Set the translation tolerance in scan units. `converge` will return when the
-         * change in translation is less than translation_tolerance.
-         *
-         * @param translation_tolerance The translation tolerance in scan units.
-         */
-        void set_translation_tolerance(double translation_tolerance);
+        void set_transform_tolerance(double angle_tolerance, double translation_tolerance);
 
     private:
+        bool should_terminate(ConvergenceState current_state,
+            std::optional<ConvergenceState> last_state);
+
         std::unique_ptr<ICP> icp_;
 
         std::optional<uint64_t> min_iterations_;
