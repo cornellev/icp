@@ -78,16 +78,6 @@ namespace icp {
         virtual void setup();
 
     public:
-        /** The result of running `ICP::converge`. */
-        struct ConvergenceReport {
-            /** The least cost achieved. */
-            double final_cost;
-
-            /** The number of iterations performed, including the burn-in
-             * period. */
-            size_t iteration_count;
-        };
-
         /** Configuration for ICP instances. */
         class Config {
             using Param = std::variant<int, double, std::string>;
@@ -134,18 +124,6 @@ namespace icp {
          * `O(a.size())` where `a` is the source point cloud.
          */
         double calculate_cost() const;
-
-        /**
-         * Perform ICP for the point clouds `a` and `b` provided with ICP::begin
-         * until the cost is below `convergence_threshold` or until no progress
-         * is being made. At least `burn_in` iterations will be performed. Start
-         * with zero burn-in, and slowly increase if convergence requirements
-         * are not met.
-         *
-         * @returns Information about the convergence.
-         * @pre ICP::begin must have been invoked.
-         */
-        ConvergenceReport converge(size_t burn_in, double convergence_threshold);
 
         /** The current transform. */
         const RBTransform& current_transform() const;
