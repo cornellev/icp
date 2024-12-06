@@ -104,9 +104,13 @@ Read the documentation of the specific implementations for more information
 (sorted alphabetically):
 
 <!-- ICP_DOCS_BUILDER EDIT MARKER START -->
-\ref icp_feature_aware
-\ref icp_trimmed
-\ref icp_vanilla
+- \ref feature_aware_icp (TODO)
+- \ref trimmed_icp (Trimmed ICP is identical to \ref vanilla_icp with the addition of an
+overlap rate parameter, which specifies the percentage of points between the two
+point sets that have correspondences. When the overlap rate is 1, the algorithm
+reduces to vanilla.)
+- \ref vanilla_icp (The vanilla algorithm for ICP will match the point-cloud centers
+exactly and then iterate until an optimal rotation has been found.)
 <!-- ICP_DOCS_BUILDER EDIT MARKER END -->
 
 Optionally, read \ref write_icp_instance to use your own ICP implementations.

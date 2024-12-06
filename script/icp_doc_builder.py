@@ -109,9 +109,8 @@ class ICPDocumentationBuilder:
                 self.all_sources.update(sources)
                 if kind == "#name":
                     method_name = self.registration_names[class_name]
-                    md_file.write(
-                        f"\\page {comment_text.lower()}_icp {comment_text} ICP\n"
-                    )
+                    doxygen_ref = f"{comment_text.lower()}_icp".replace("-", "_")
+                    md_file.write(f"\\page {doxygen_ref} {comment_text} ICP\n")
                     conf_pattern = r'/\*\s*#conf\s+"([^"]*)"\s+(.*?)\*/'
                     confs = re.findall(conf_pattern, contents, re.DOTALL)
                     if not confs:
@@ -145,6 +144,7 @@ class ICPDocumentationBuilder:
                             md_file.write(f"    - {source}\n")
                         md_file.write("\n")
                 elif kind == "#desc":
+                    icp_description = comment_text
                     md_file.write(f"\n\\par Description\n{comment_text}\n")
                     made_description = True
             md_file.write(
@@ -153,7 +153,7 @@ class ICPDocumentationBuilder:
             md_file.write(
                 f"\nThis page was automatically generated from {file} with {os.path.basename(__file__)}."
             )
-        return md_filename[:-3]
+        return doxygen_ref, icp_description
 
     def update_main(self, doxygen_refs):
         with open(self.main_file, "r") as file:
@@ -169,7 +169,12 @@ class ICPDocumentationBuilder:
                 new_content = (
                     content[: start_index + len(start_marker) + 1]
                     + "\n".join(
-                        sorted([f"\\ref {doxygen_ref}" for doxygen_ref in doxygen_refs])
+                        sorted(
+                            [
+                                f"- \\ref {doxygen_ref} ({icp_description})"
+                                for (doxygen_ref, icp_description) in doxygen_refs
+                            ]
+                        )
                     )
                     + "\n"
                     + content[end_index:]
@@ -192,9 +197,10 @@ class ICPDocumentationBuilder:
             for file in files:
                 if file.endswith(".cpp"):
                     with open(os.path.join(root, file), "r") as f:
-                        doxygen_ref = self.extract(file, f.read())
-                        if doxygen_ref:
-                            doxygen_refs.append(doxygen_ref)
+                        result = self.extract(file, f.read())
+                        if result:
+                            doxygen_ref, icp_description = result
+                            doxygen_refs.append((doxygen_ref, icp_description))
         self.update_main(doxygen_refs)
         os.makedirs(self.out_dir + "/extra", exist_ok=True)
         with open(self.out_dir + "/extra/sources.md", "w") as md_file:

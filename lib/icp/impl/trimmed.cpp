@@ -17,7 +17,7 @@
 
 /* #desc Trimmed ICP is identical to \ref vanilla_icp with the addition of an
 overlap rate parameter, which specifies the percentage of points between the two
-point sets that have correspondences. When the overlap rate is 1, the algorithm
+point sets that have correspondences. When the overlap rate is `1`, the algorithm
 reduces to vanilla. */
 
 namespace icp {
