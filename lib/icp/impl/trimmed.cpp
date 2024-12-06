@@ -23,8 +23,12 @@ reduces to vanilla. */
 namespace icp {
 
     Trimmed::Trimmed(double overlap_rate): ICP(), overlap_rate(overlap_rate) {}
+
+    /* #conf "overlap_rate" A `double` between `0.0` and `1.0` for
+     * the overlap rate. The default is `1.0`. */
     Trimmed::Trimmed(const Config& config)
         : ICP(), overlap_rate(config.get<double>("overlap_rate", 0.9)) {}
+
     Trimmed::~Trimmed() {}
 
     void Trimmed::setup() {

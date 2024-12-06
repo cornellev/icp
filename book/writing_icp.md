@@ -29,6 +29,9 @@ Optionally, the class can override:
 
 \section static_init_sec Static Initialization
 
+TODO: update -- we do this in icp.cpp now and the documentation builder will
+automatically search there.
+
 The static initialization is required so that users can instantiate your ICP instance.
 Define
 
@@ -46,9 +49,22 @@ where `"name_of_instance"` is the name of your ICP implementation and `NameOfCla
 \section icp_dpc_sec Documentation
 
 The script icp_doc_builder.py will automatically generate documentation for your ICP instances as markdown files and place them in a desired directory. The invocation format is:
+
 ```shell
-python3 icp_doc_builder.py dir/where/your/icps/are/ dir/where/markdown/should/go/
+python3 icp_doc_builder.py dir/where/your/icps/are/ dir/where/markdown/should/go/ where/main/file/is.md
 ```
+
+Notably, `where/main/file/is.md` should contain two lines of the form
+
+```md
+<!-- ICP_DOCS_BUILDER EDIT MARKER START -->
+...
+<!-- ICP_DOCS_BUILDER EDIT MARKER END -->
+```
+
+the contents between which markers will be automatically updated by the
+documentation builder.
+
 If the file name is `foo_bar.cpp`, then the Doxygen page reference (from which you can refer to from other pages) will be be `foo_bar_icp Foo_bar`. Information about the file should be encoded in special block comments of the following format.
 
 ```cpp
@@ -62,7 +78,8 @@ Supported commands are described below.
 - The name of the instance should be given by `/* #name Name of Instance */`.
 - An overview of the algorithm should be provided by `/* #desc Overview of algorithm. */`. This description will be rendered as Doxygen source, so you can use markdown and Doxygen commands such as `\ref`.
 - If your instance uses icp::ICP::Config parameters, document them as `/* #conf "name_of_param" This is a sentence. This is another sentence describing the parameter. */`. This description will be rendered as Doxygen source.
-- Every major step your instance takes should be documented by 
+- Every major step your instance takes should be documented by
+
     ```cpp
     /*
         #step My Step: brief description
@@ -76,6 +93,7 @@ Supported commands are described below.
         https://www.example.com
     */
     ```
+
     The `: brief description` section is optional, as are the detailed explanation and sources sections.
     These descriptions will be rendered as Doxygen source.
 
