@@ -24,10 +24,12 @@ class ICPDocumentationBuilder:
         The directory to search for source files.
     out_dir : str
         The directory to write the output markdown files.
+    main_file : str
+        The main documentation file.
     all_sources : set
         A set of all sources found in the source files.
     registration_names : dict
-        Associates each ICP type name with its registration name
+        Associates each ICP type name with its registration name.
 
     Methods
     -------
@@ -37,7 +39,7 @@ class ICPDocumentationBuilder:
         Searches for source files in the search directory and extracts their documentation.
     """
 
-    def __init__(self, search_dir, out_dir):
+    def __init__(self, search_dir, out_dir, main_file):
         """
         Constructs a new ICPDocumentationBuilder.
 
@@ -47,9 +49,12 @@ class ICPDocumentationBuilder:
             The directory to search for source files.
         out_dir : str
             The directory to write the output markdown files.
+        main_file : str
+            A path to the main markdown file.
         """
         self.search_dir = search_dir
         self.out_dir = out_dir
+        self.main_file = main_file
         self.all_sources = set()
         self.registration_names = dict()
 
@@ -148,6 +153,30 @@ class ICPDocumentationBuilder:
             md_file.write(
                 f"\nThis page was automatically generated from {file} with {os.path.basename(__file__)}."
             )
+        return md_filename[:-3]
+
+    def update_main(self, doxygen_refs):
+        with open(self.main_file, "r") as file:
+            content = file.read()
+
+            start_marker = "<!-- ICP_DOCS_BUILDER EDIT MARKER START -->"
+            end_marker = "<!-- ICP_DOCS_BUILDER EDIT MARKER END -->"
+
+            start_index = content.find(start_marker)
+            end_index = content.find(end_marker)
+
+            if start_index != -1 and end_index != -1:
+                new_content = (
+                    content[: start_index + len(start_marker) + 1]
+                    + "\n".join(
+                        sorted([f"\\ref {doxygen_ref}" for doxygen_ref in doxygen_refs])
+                    )
+                    + "\n"
+                    + content[end_index:]
+                )
+
+                with open(self.main_file, "w") as file:
+                    file.write(new_content)
 
     def build(self):
         """
@@ -158,11 +187,15 @@ class ICPDocumentationBuilder:
                 if file.endswith(".cpp"):
                     with open(os.path.join(root, file), "r") as f:
                         self.get_registration_names(f.read())
+        doxygen_refs = []
         for root, _, files in os.walk(self.search_dir):
             for file in files:
                 if file.endswith(".cpp"):
                     with open(os.path.join(root, file), "r") as f:
-                        self.extract(file, f.read())
+                        doxygen_ref = self.extract(file, f.read())
+                        if doxygen_ref:
+                            doxygen_refs.append(doxygen_ref)
+        self.update_main(doxygen_refs)
         os.makedirs(self.out_dir + "/extra", exist_ok=True)
         with open(self.out_dir + "/extra/sources.md", "w") as md_file:
             md_file.write("\\page icp_sources ICP Sources\n\n")
@@ -174,8 +207,10 @@ class ICPDocumentationBuilder:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print(f"usage: python3 {os.path.basename(__file__)} search_dir out_dir")
+    if len(sys.argv) != 4:
+        print(
+            f"usage: python3 {os.path.basename(__file__)} search_dir out_dir main_file"
+        )
         sys.exit(1)
-    doc_builder = ICPDocumentationBuilder(sys.argv[1], sys.argv[2])
+    doc_builder = ICPDocumentationBuilder(sys.argv[1], sys.argv[2], sys.argv[3])
     doc_builder.build()

@@ -114,7 +114,7 @@ uninstall:
 .PHONY: docs 
 docs:
 	@make readme
-	$(PY) script/icp_doc_builder.py src/icp/ book/icp_descr/
+	$(PY) script/icp_doc_builder.py src/icp/ book/icp_descr/ book/main.md
 	doxygen
 	cp book/desmos.txt docs
 

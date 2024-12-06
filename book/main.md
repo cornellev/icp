@@ -25,9 +25,9 @@ Please read [this document](icp.pdf) to learn more about the math.
     <tr>
         <td style="text-align:left; vertical-align:top"><b>Contents</b></td>
         <td style="text-align:left; vertical-align:top">
-            \ref overview_sec <br> 
-            \ref feature_sec <br> 
-            \ref install_sec <br> 
+            \ref overview_sec <br>
+            \ref feature_sec <br>
+            \ref install_sec <br>
             \ref usage_sec <br>
         </td>
     </tr>
@@ -35,9 +35,9 @@ Please read [this document](icp.pdf) to learn more about the math.
 
 \section feature_sec Features
 
-- ICP library for integration with robotics systems and other use cases 
+- ICP library for integration with robotics systems and other use cases
 - Interactive (graphical) visualization of point clouds
-    - You can supply custom point clouds in a config file using fields from [`sensor_msgs::LaserScan`](http://docs.ros.org/en/api/sensor_msgs/html/msg/LaserScan.html).
+  - You can supply custom point clouds in a config file using fields from [`sensor_msgs::LaserScan`](http://docs.ros.org/en/api/sensor_msgs/html/msg/LaserScan.html).
 
 \section install_sec Install
 
@@ -81,13 +81,16 @@ cd config
 sudo make install
 cd ..
 ```
+
 If you encounter any errors in this process, please open an issue on the corresponding repositories, and I will try to resolve it as soon as possible.
 
 Finally, you can clone the icp repository.
+
 ```shell
 git clone https://github.com/cornellev/icp.git
 cd icp
 ```
+
 You should run `make test` to make sure everything has been setup correctly for the library.
 
 \section usage_sec Usage
@@ -97,10 +100,14 @@ You should run `make test` to make sure everything has been setup correctly for 
 Follow the instructions in the [INSTALL.md](https://github.com/cornellev/icp/blob/main/INSTALL.md) document to install locally.
 The library contains tested implementations of different ICP algorithms.
 Common to all of them is the icp::ICP interface, the documentation for which describes how to construct and use these implementations.
-Read the documentation of the specific implementations for more information:
+Read the documentation of the specific implementations for more information
+(sorted alphabetically):
 
-- \ref vanilla_icp
-- \ref trimmed_icp
+<!-- ICP_DOCS_BUILDER EDIT MARKER START -->
+\ref icp_feature_aware
+\ref icp_trimmed
+\ref icp_vanilla
+<!-- ICP_DOCS_BUILDER EDIT MARKER END -->
 
 Optionally, read \ref write_icp_instance to use your own ICP implementations.
 
@@ -121,8 +128,10 @@ make
 You can benchmark with `make bench`; by default, this will pass `-mvanilla`.
 
 The program itself can be built with
+
 ```shell
 make
 ```
+
 which will create an executable named `main` in the working directory.
 You can query `./main -h` and `./main -v` for usage and versioning information.
