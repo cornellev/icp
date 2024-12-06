@@ -124,7 +124,7 @@ cloc:
 
 .PHONY: readme
 readme:
-	cd script; $(PY) readme.py
+	cd script; uv venv; source .venv/bin/activate; uv sync; python3 readme.py; deactivate
 
 .PHONY: math
 math:

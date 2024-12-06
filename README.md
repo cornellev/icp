@@ -3,8 +3,8 @@
 <!-- EDIT README.md.build INSTEAD. -->
 # icp
 
-> Last updated 2024-10-29 21:34:15.790605.  
-> Version v1.2.1.
+> Last updated 2024-12-06 13:38:06.415124.  
+> Version v1.3.0.
 > Made by [Ethan Uppal](https://www.ethanuppal.com) and [Utku Melemetci](https://utku.sh).
 
 ## Introduction
@@ -25,6 +25,14 @@ You can build the documentation yourself locally with `make docs`.
 The main page will be located at `docs/index.html` relative to the project root.
 
 ## Versions
+
+### v1.2.0
+- Various bug fixes, including finding and fixing undefined behavior
+- Rewrite of vanilla and trimmed ICP
+- Feature-aware ICP method to improve convergence in structured scenarios
+- New `ICPDriver` to make specifying convergence criteria easier
+- Improved tests
+- Improved build pipeline and CI
 
 ### v1.1.2
 

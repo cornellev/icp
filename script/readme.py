@@ -3,12 +3,16 @@ if __name__ == "__main__":
 
     import requests
 
+    print("Generating README.md...")
+
     README_PATH = "../README.md"
     README_GEN_PATH = README_PATH + ".build"
 
     VERSION_TAG = requests.get(
         "https://api.github.com/repos/cornellev/icp/releases/latest"
     ).json()["name"]
+
+    print(f"Latest version according to GitHub is {VERSION_TAG}")
 
     with open(README_GEN_PATH, "r") as f:
         readme = {"content": f.read()}
