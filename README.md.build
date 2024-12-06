@@ -23,7 +23,7 @@ The main page will be located at `docs/index.html` relative to the project root.
 
 ## Versions
 
-### v1.2.0
+### v1.3.0
 - Various bug fixes, including finding and fixing undefined behavior
 - Rewrite of vanilla and trimmed ICP
 - Feature-aware ICP method to improve convergence in structured scenarios
