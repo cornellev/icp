@@ -8,12 +8,12 @@ extern "C" {
 #include "icp/icp_driver.h"
 
 #define BURN_IN 0
-#define TRANS_EPS 2
-#define RAD_EPS ((double)(1e-1))
+#define TRANS_EPS 0.5
+#define RAD_EPS ((double)(0.01))
 
 void test_kdtree(void) {}
 
-void test_icp(const std::string& method, const icp::ICP::Config& config) {
+void test_icp_generic(const std::string& method, const icp::ICP::Config& config) {
     std::unique_ptr<icp::ICP> icp = icp::ICP::from_method(method, config).value();
     icp::ICPDriver driver(std::move(icp));
     driver.set_min_iterations(BURN_IN);
@@ -79,5 +79,16 @@ void test_main() {
 
     icp::ICP::register_builtin_methods();
 
-    test_icp("vanilla", icp::ICP::Config());
+    test_icp_generic("vanilla", icp::ICP::Config());
+
+    icp::ICP::Config trimmed_config;
+    // fails with lower overlap rates on these super small examples
+    trimmed_config.set("overlap_rate", 1.0);
+    test_icp_generic("trimmed", trimmed_config);
+
+    icp::ICP::Config feature_config;
+    feature_config.set("overlap_rate", 1.0);
+    feature_config.set("feature_weight", 0.7);
+    feature_config.set("symmetric_neighbors", 1);
+    test_icp_generic("feature_aware", feature_config);
 }

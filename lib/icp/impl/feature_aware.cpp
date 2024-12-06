@@ -5,16 +5,16 @@
 #include "icp/impl/feature_aware.h"
 
 namespace icp {
-    FeatureAware::FeatureAware(double feature_weight, int symmetric_neighbors)
+    FeatureAware::FeatureAware(double overlap_rate, double feature_weight, int symmetric_neighbors)
         : ICP(),
+          overlap_rate(overlap_rate),
           symmetric_neighbors(symmetric_neighbors),
           feature_weight(feature_weight),
-          neighbor_weight(1 - feature_weight) {
-        std::cout << "Feature weight: " << feature_weight << std::endl;
-    }
+          neighbor_weight(1 - feature_weight) {}
 
     FeatureAware::FeatureAware(const Config& config)
-        : FeatureAware(config.get<double>("feature_weight", 0.7),
+        : FeatureAware(config.get<double>("overlap_rate", 0.9),
+              config.get<double>("feature_weight", 0.7),
               config.get<int>("symmetric_neighbors", 10)) {}
 
     FeatureAware::~FeatureAware() {}
@@ -64,7 +64,7 @@ namespace icp {
         */
         std::sort(matches.begin(), matches.end(),
             [](const auto& a, const auto& b) { return a.cost < b.cost; });
-        size_t new_n = static_cast<size_t>(0.7 * n);
+        size_t new_n = static_cast<size_t>(overlap_rate * n);
         new_n = std::max<size_t>(new_n, 1);  // TODO: bad for scans with 0 points
 
         // yeah, i know this is inefficient. we'll get back to it later.
