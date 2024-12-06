@@ -49,7 +49,7 @@ First, download and install the dependencies.
 | Dependency                                                     | Library Location (at which)      | Header Location (under which)    |
 | -------------------------------------------------------------- | -------------------------------- | -------------------------------- |
 | [eigen3](http://eigen.tuxfamily.org/index.php?title=Main_Page) | N/A                              | `/usr/include/eigen3/`           |
-| [SDL2](https://www.libsdl.org)                                 | `$(sdl2-config --cflags)`        | `$(sdl2-config --libs)`          |
+| [SDL2](https://www.libsdl.org)                                 | `$(sdl2-config --libs)`          | `$(sdl2-config --cflags)`        |
 | My [SDL2 wrapper](https://github.com/cornellev/sdl-wrapper)    | `/usr/local/lib/libsdlwrapper.a` | `/usr/local/include/sdlwrapper/` |
 | [libcmdapp2](https://ethanuppal.com/libcmdapp2/)               | `/usr/local/lib/libcmdapp.a`     | `/usr/local/include/cmdapp`      |
 | [libconfig](https://github.com/ethanuppal/config)              | `/usr/local/lib/libconfig.a`     | `/usr/local/include/config`      |
