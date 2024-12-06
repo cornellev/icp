@@ -212,5 +212,8 @@ if __name__ == "__main__":
             f"usage: python3 {os.path.basename(__file__)} search_dir out_dir main_file"
         )
         sys.exit(1)
+
+    os.makedirs(sys.argv[2], exist_ok=True)
+
     doc_builder = ICPDocumentationBuilder(sys.argv[1], sys.argv[2], sys.argv[3])
     doc_builder.build()
