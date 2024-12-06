@@ -2,6 +2,10 @@
 #include <Eigen/SVD>
 #include <Eigen/Dense>
 
+/* #name Feature-Aware */
+
+/* #desc TODO */
+
 #include "icp/impl/feature_aware.h"
 
 namespace icp {

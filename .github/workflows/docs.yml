@@ -25,7 +25,7 @@ jobs:
           $(which python3 || which python) script/icp_doc_builder.py src/icp/ book/icp_descr/
           doxygen
           cp book/desmos.txt docs
-          rm -rf book .vscode src math script install ex_data Doxyfile .clang-format AUTHOR.md INSTALL.md main.cpp Makefile README.md README.md.build sim.conf test lib view.conf tests .github .gitignore
+          rm -rf book .vscode src math script install ex_data Doxyfile .clang-format AUTHOR.md INSTALL.md main.cpp Makefile README.md README.md.build sim.conf test lib include view.conf tests .github .gitignore
           ls docs
 
       - name: Push to docs branch
