@@ -24,11 +24,12 @@ namespace icp {
     void Vanilla::setup() {
         a_current.resize(a.size());
         b_cm = get_centroid(b);
+
+        compute_matches();
     }
 
     void Vanilla::iterate() {
         const size_t n = a.size();
-        const size_t m = b.size();
 
         for (size_t i = 0; i < n; i++) {
             a_current[i] = transform.apply_to(a[i]);
@@ -49,18 +50,7 @@ namespace icp {
             https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
             -> use k-d tree
          */
-        for (size_t i = 0; i < n; i++) {
-            matches[i].cost = std::numeric_limits<double>::infinity();
-            for (size_t j = 0; j < m; j++) {
-                // Point-to-point matching
-                double dist_ij = (b[j] - a_current[i]).squaredNorm();
-
-                if (dist_ij < matches[i].cost) {
-                    matches[i].cost = dist_ij;
-                    matches[i].pair = j;
-                }
-            }
-        }
+        compute_matches();
 
         /*
             #step
@@ -116,5 +106,23 @@ namespace icp {
             https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
          */
         transform.translation += b_cm - R * a_current_cm;
+    }
+}
+
+void icp::Vanilla::compute_matches() {
+    const size_t n = a.size();
+    const size_t m = b.size();
+
+    for (size_t i = 0; i < n; i++) {
+        matches[i].cost = std::numeric_limits<double>::infinity();
+        for (size_t j = 0; j < m; j++) {
+            // Point-to-point matching
+            double dist_ij = (b[j] - a_current[i]).squaredNorm();
+
+            if (dist_ij < matches[i].cost) {
+                matches[i].cost = dist_ij;
+                matches[i].pair = j;
+            }
+        }
     }
 }

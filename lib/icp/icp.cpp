@@ -33,10 +33,6 @@ namespace icp {
         this->a = a;
         this->b = b;
 
-        // Cost is infinite initially
-        previous_cost = std::numeric_limits<double>::infinity();
-        current_cost = std::numeric_limits<double>::infinity();
-
         // Ensure arrays are the right size
         matches.resize(this->a.size());
 
@@ -50,35 +46,6 @@ namespace icp {
             sum_squares += match.cost;
         }
         return std::sqrt(sum_squares / a.size());
-    }
-
-    ICP::ConvergenceReport ICP::converge(size_t burn_in, double convergence_threshold) {
-        ConvergenceReport result{};
-
-        // Repeat until convergence
-        while (current_cost > convergence_threshold || current_cost == INFINITY
-               || result.iteration_count < burn_in) {
-            // Store previous iteration results
-            previous_cost = current_cost;
-            RBTransform previous_transform = transform;
-
-            iterate();
-
-            // If cost rose, revert to previous transformation/cost and
-            // exit
-            current_cost = calculate_cost();
-            if (current_cost >= previous_cost && result.iteration_count > burn_in) {
-                transform = previous_transform;
-                current_cost = previous_cost;
-                break;
-            }
-
-            result.iteration_count++;
-        }
-
-        result.final_cost = current_cost;
-
-        return result;
     }
 
     const RBTransform& ICP::current_transform() const {

@@ -34,8 +34,8 @@ namespace icp {
      * perform the following steps.
      *
      * 1. Call `icp->begin(a, b, initial_guess)`.
-     * 2. Call either `icp->converge(convergence_threshold)` or repeatedly
-     * `icp->iterate()`.
+     * 2. Repeatedly call `icp->iterate()` until convergence. `ICPDriver` can also be used to
+     * specify convergence conditions.
      *
      * If these steps are not followed as described here, the behavior is
      * undefined.
@@ -53,8 +53,7 @@ namespace icp {
             double cost;
         };
 
-        /** The current point cloud transformation that is being optimized.
-         */
+        /** The current point cloud transformation that is being optimized. */
         RBTransform transform;
 
         /** The source point cloud. */
@@ -63,31 +62,19 @@ namespace icp {
         /** The destination point cloud. */
         std::vector<Vector> b;
 
-        /** Keeps track of the previous cost to ensure that progress is being
-         * made. @see ICP::current_cost. */
-        double previous_cost;
-
-        /** The RMS (root mean square) cost of the current transformation. */
-        double current_cost;
-
         /** The pairing of each point in `a` to its closest in `b`. */
         std::vector<Match> matches;
 
         ICP();
 
-        virtual void setup();
+        /**
+         * @brief Per-method setup code.
+         *
+         * @post For implementers: must fill `matches` with match data for the initial point clouds.
+         */
+        virtual void setup() = 0;
 
     public:
-        /** The result of running `ICP::converge`. */
-        struct ConvergenceReport {
-            /** The least cost achieved. */
-            double final_cost;
-
-            /** The number of iterations performed, including the burn-in
-             * period. */
-            size_t iteration_count;
-        };
-
         /** Configuration for ICP instances. */
         class Config {
             using Param = std::variant<int, double, std::string>;
@@ -118,13 +105,15 @@ namespace icp {
         virtual ~ICP() = default;
 
         /** Begins the ICP process for point clouds `a` and `b` with an initial
-         * guess for the transform `t`. */
+         * guess for the transform `t`.*/
         void begin(const std::vector<Vector>& a, const std::vector<Vector>& b, RBTransform t);
 
         /** Perform one iteration of ICP for the point clouds `a` and `b`
          * provided with ICP::begin.
          *
-         * @pre ICP::begin must have been invoked. */
+         * @pre ICP::begin must have been invoked.
+         * @post For implementers: must fill `matches` with newest match data.
+         */
         virtual void iterate() = 0;
 
         /**
@@ -135,23 +124,11 @@ namespace icp {
          */
         double calculate_cost() const;
 
-        /**
-         * Perform ICP for the point clouds `a` and `b` provided with ICP::begin
-         * until the cost is below `convergence_threshold` or until no progress
-         * is being made. At least `burn_in` iterations will be performed. Start
-         * with zero burn-in, and slowly increase if convergence requirements
-         * are not met.
-         *
-         * @returns Information about the convergence.
-         * @pre ICP::begin must have been invoked.
-         */
-        ConvergenceReport converge(size_t burn_in, double convergence_threshold);
-
         /** The current transform. */
         const RBTransform& current_transform() const;
 
-        /** Registers methods built into libcevicp. Must be called before constructing ICP instances
-         * for built-in methods. */
+        /** Registers methods built into `libcevicp`. Must be called before constructing ICP
+         * instances for built-in methods. */
         static void register_builtin_methods();
 
         /** Registers a new ICP method that can be created with `constructor`,

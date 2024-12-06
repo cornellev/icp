@@ -10,7 +10,7 @@ namespace icp {
         using FeatureVector = Eigen::VectorXd;
 
     public:
-        FeatureAware(double feature_weight, int symmetric_neighbors);
+        FeatureAware(double overlap_rate, double feature_weight, int symmetric_neighbors);
         FeatureAware(const Config& config);
         ~FeatureAware();
 
@@ -18,6 +18,8 @@ namespace icp {
         void iterate() override;
 
     private:
+        void compute_matches();
+
         void compute_features(const std::vector<icp::Vector>& points, Vector cm,
             std::vector<FeatureVector>& features);
 
@@ -49,6 +51,7 @@ namespace icp {
 
         Eigen::MatrixXd norm_feature_dists;
 
+        double overlap_rate;
         int symmetric_neighbors;
         double feature_weight;
         double neighbor_weight;
