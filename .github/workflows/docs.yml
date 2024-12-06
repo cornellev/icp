@@ -22,7 +22,7 @@ jobs:
       - name: Build documentation
         run: |
           sudo apt-get install doxygen
-          $(which python3 || which python) script/icp_doc_builder.py src/icp/ book/icp_descr/ book/main.md
+          $(which python3 || which python) script/icp_doc_builder.py lib/icp/ book/icp_descr/ book/main.md
           ls book/icp_descr
           cat book/icp_descr/icp_vanilla.md
           doxygen
