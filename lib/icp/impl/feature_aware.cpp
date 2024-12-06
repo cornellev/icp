@@ -16,6 +16,10 @@ namespace icp {
           feature_weight(feature_weight),
           neighbor_weight(1 - feature_weight) {}
 
+    /* #conf "overlap_rate" A `double` between `0.0` and `1.0` for
+     * the overlap rate. The default is `1.0`. */
+    /* #conf "feature_weight" A `double` with default value `0.7`. */
+    /* #conf "symmetric_neighbors" An `int` with default value `10`. */
     FeatureAware::FeatureAware(const Config& config)
         : FeatureAware(config.get<double>("overlap_rate", 0.9),
               config.get<double>("feature_weight", 0.7),
@@ -45,7 +49,7 @@ namespace icp {
             a_current[i] = transform.apply_to(a[i]);
         }
 
-        /* TODO: write smth #step Matching Step: */
+        /* #step  TODO: write smth Matching Step: */
         compute_matches();
 
         /*

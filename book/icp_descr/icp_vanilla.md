@@ -32,7 +32,7 @@ exactly and then iterate until an optimal rotation has been found.
     
     In the 2D case, we can always recover a reasonable rotation by negating the last
     column of V. I do not know if this is the optimal rotation among rotations, but
-    we can probably get an answer with more effort.
+    we can probably get an answer to that question with more effort.
     
     Sources:  
     - https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965

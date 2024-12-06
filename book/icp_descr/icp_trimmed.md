@@ -4,7 +4,7 @@ You can construct a new instance of Trimmed ICP with `icp::ICP::from_method("tri
 
 Key | Description
 --- | ---
-`"overlap_rate"` | A `double` between `0.0` and `1.0` for                  * the overlap rate. The default is `1.0`. 
+`"overlap_rate"` | A `double` between `0.0` and `1.0` for      * the overlap rate. The default is `1.0`. 
 
 \par Description
 Trimmed ICP is identical to \ref vanilla_icp with the addition of an
