@@ -13,7 +13,8 @@
                 "ex_data/scan1/second.conf",
                 "--method",
                 "vanilla",
-                "--gui"
+                // "--gui",
+                "--bench"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

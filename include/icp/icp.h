@@ -34,8 +34,8 @@ namespace icp {
      * perform the following steps.
      *
      * 1. Call `icp->begin(a, b, initial_guess)`.
-     * 2. Call either `icp->converge(convergence_threshold)` or repeatedly
-     * `icp->iterate()`.
+     * 2. Repeatedly call `icp->iterate()` until convergence. `ICPDriver` can also be used to
+     * specify convergence conditions.
      *
      * If these steps are not followed as described here, the behavior is
      * undefined.
@@ -67,7 +67,12 @@ namespace icp {
 
         ICP();
 
-        virtual void setup();
+        /**
+         * @brief Per-method setup code.
+         *
+         * @post For implementers: must fill `matches` with match data for the initial point clouds.
+         */
+        virtual void setup() = 0;
 
     public:
         /** Configuration for ICP instances. */
@@ -100,13 +105,15 @@ namespace icp {
         virtual ~ICP() = default;
 
         /** Begins the ICP process for point clouds `a` and `b` with an initial
-         * guess for the transform `t`. */
+         * guess for the transform `t`.*/
         void begin(const std::vector<Vector>& a, const std::vector<Vector>& b, RBTransform t);
 
         /** Perform one iteration of ICP for the point clouds `a` and `b`
          * provided with ICP::begin.
          *
-         * @pre ICP::begin must have been invoked. */
+         * @pre ICP::begin must have been invoked.
+         * @post For implementers: must fill `matches` with newest match data.
+         */
         virtual void iterate() = 0;
 
         /**

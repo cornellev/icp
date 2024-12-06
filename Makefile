@@ -58,7 +58,7 @@ $(TESTNAME): CFLAGS += -DTEST
 -include $(TESTDEPS)
 
 N		:= 3
-METHOD	:= vanilla
+METHOD	:= feature_aware
 
 ifeq ($(shell uname), Darwin)
 AR 		:= /usr/bin/libtool
@@ -85,7 +85,7 @@ $(TESTNAME): $(TESTOBJ) $(LIBNAME)
 
 .PHONY: clean
 clean:
-	@rm -f $(LIBOBJ) $(LIBDEPS) $(LIBNAME) $(MAINOBJ) $(MAINDEPS) $(MAINNAME)
+	@rm -f $(LIBOBJ) $(LIBDEPS) $(LIBNAME) $(MAINOBJ) $(MAINDEPS) $(MAINNAME) $(TESTOBJ) $(TESTDEPS) $(TESTNAME)
 
 .PHONY: view
 view: $(MAINNAME)

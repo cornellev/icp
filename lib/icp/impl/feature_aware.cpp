@@ -30,33 +30,19 @@ namespace icp {
         compute_features(b, b_cm, b_features);
 
         norm_feature_dists = compute_norm_dists(a_features, b_features);
+
+        compute_matches();
     }
 
     void FeatureAware::iterate() {
         const size_t n = a.size();
-        const size_t m = b.size();
 
         for (size_t i = 0; i < n; i++) {
             a_current[i] = transform.apply_to(a[i]);
         }
 
         /* TODO: write smth #step Matching Step: */
-        Eigen::MatrixXd norm_dists = compute_norm_dists(a_current, b);
-
-        for (size_t i = 0; i < n; i++) {
-            matches[i].point = i;
-            matches[i].cost = std::numeric_limits<double>::infinity();
-            for (size_t j = 0; j < m; j++) {
-                double dist = norm_dists(i, j);
-                double feature_dist = norm_feature_dists(i, j);
-                double cost = neighbor_weight * dist + feature_weight * feature_dist;
-
-                if (cost < matches[i].cost) {
-                    matches[i].cost = cost;
-                    matches[i].pair = j;
-                }
-            }
-        }
+        compute_matches();
 
         /*
             #step
@@ -101,6 +87,28 @@ namespace icp {
         transform.translation += trimmed_b_cm - R * trimmed_cm;
     }
 
+    void FeatureAware::compute_matches() {
+        const size_t n = a.size();
+        const size_t m = b.size();
+
+        Eigen::MatrixXd norm_dists = compute_norm_dists(a_current, b);
+
+        for (size_t i = 0; i < n; i++) {
+            matches[i].point = i;
+            matches[i].cost = std::numeric_limits<double>::infinity();
+            for (size_t j = 0; j < m; j++) {
+                double dist = norm_dists(i, j);
+                double feature_dist = norm_feature_dists(i, j);
+                double cost = neighbor_weight * dist + feature_weight * feature_dist;
+
+                if (cost < matches[i].cost) {
+                    matches[i].cost = cost;
+                    matches[i].pair = j;
+                }
+            }
+        }
+    }
+
     void FeatureAware::compute_features(const std::vector<Vector>& points, Vector cm,
         std::vector<FeatureVector>& features) {
         for (size_t i = 0; i < points.size(); i++) {
@@ -127,4 +135,4 @@ namespace icp {
             features[i] = feature;
         }
     }
-}
+}  // namespace icp

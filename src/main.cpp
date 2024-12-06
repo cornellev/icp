@@ -15,6 +15,7 @@ extern "C" {
 #include "sim/lidar_view.h"
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
+#include "icp/driver.h"
 
 struct LidarScan {
     double range_max;
@@ -104,12 +105,17 @@ void run_benchmark(const char* method, std::unique_ptr<icp::ICP> icp, const Lida
 
     constexpr size_t N = 50;
     constexpr size_t burn_in = 0;
-    constexpr double convergence_threshold = 20.0;
+    constexpr double angle_tol = 0.1 * M_PI / 180;
+    constexpr double trans_tol = 0.1;
 
     std::cout << "* Method name: " << method << '\n';
     std::cout << "* Number of trials: " << N << '\n';
     std::cout << "* Burn-in period: " << burn_in << '\n';
-    std::cout << "* Ideal convergence threshold: " << convergence_threshold << '\n';
+    std::cout << "* Angle tolerance: " << angle_tol << " rad\n";
+    std::cout << "* Translation tolerance: " << trans_tol << '\n';
+
+    icp::ICPDriver driver(std::move(icp));
+    driver.set_transform_tolerance(0.1 * M_PI / 180, 0.1);
 
     std::vector<double> final_costs;
     std::vector<size_t> iteration_counts;
@@ -117,10 +123,9 @@ void run_benchmark(const char* method, std::unique_ptr<icp::ICP> icp, const Lida
     const auto start = std::chrono::high_resolution_clock::now();
 
     for (size_t i = 0; i < N; i++) {
-        // icp->begin(source.points, destination.points, icp::RBTransform());
-        // icp::ICP::ConvergenceState result = icp->converge(burn_in, convergence_threshold);
-        // final_costs.push_back(result.final_cost);
-        // iteration_counts.push_back(result.iteration_count);
+        auto result = driver.converge(source.points, destination.points, icp::RBTransform());
+        final_costs.push_back(result.cost);
+        iteration_counts.push_back(result.iteration_count);
     }
     const auto end = std::chrono::high_resolution_clock::now();
 
@@ -153,6 +158,8 @@ void run_benchmark(const char* method, std::unique_ptr<icp::ICP> icp, const Lida
               << "* Mean iterations: " << mean_iterations
               << " (real: " << (mean_iterations - burn_in) << ")\n";
     std::cout << "* Average time per invocation: " << (diff.count() / N) << "s\n";
+    std::cout << "* Average time per iteration: " << ((diff.count() / N) / mean_iterations)
+              << "s\n";
 }
 
 int main(int argc, const char** argv) {

@@ -15,6 +15,8 @@ namespace icp {
         void iterate() override;
 
     private:
+        void compute_matches();
+
         double overlap_rate;
         std::vector<icp::Vector> a_current;
         icp::Vector b_cm;

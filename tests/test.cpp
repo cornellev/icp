@@ -5,7 +5,7 @@ extern "C" {
 }
 
 #include "icp/icp.h"
-#include "icp/icp_driver.h"
+#include "icp/driver.h"
 
 #define BURN_IN 0
 #define TRANS_EPS 0.5

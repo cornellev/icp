@@ -39,8 +39,6 @@ namespace icp {
         /**
          * @brief Sets the minimum number of iterations to run.
          *
-         * @note Increases in cost cause immediate termination.
-         *
          * @param min_iterations The minimum number of iterations to run.
          */
         void set_min_iterations(uint64_t min_iterations);
@@ -66,8 +64,6 @@ namespace icp {
          * changes by less than this fraction of the current cost, i.e. when |`current_cost` -
          * `prev_cost`| / < `relative_cost_tolerance`.
          *
-         * @note Increases in cost cause immediate termination.
-         *
          * @param relative_cost_tolerance The relative cost tolerance.
          */
         void set_relative_cost_tolerance(double relative_cost_tolerance);
@@ -76,8 +72,6 @@ namespace icp {
          * @brief Set the absolute cost tolerance. `converge` will return when the cost changes by
          * less than this amount, i.e. when |`current_cost` - `prev_cost`|  <
          * `absolute_cost_tolerance`.
-         *
-         * @note Increases in cost cause immediate termination.
          *
          * @param absolute_cost_tolerance The absolute cost tolerance.
          */

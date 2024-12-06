@@ -18,6 +18,8 @@ namespace icp {
         void iterate() override;
 
     private:
+        void compute_matches();
+
         void compute_features(const std::vector<icp::Vector>& points, Vector cm,
             std::vector<FeatureVector>& features);
 

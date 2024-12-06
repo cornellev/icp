@@ -30,30 +30,19 @@ namespace icp {
     void Trimmed::setup() {
         a_current.resize(a.size());
         b_cm = get_centroid(b);
+
+        compute_matches();
     }
 
     void Trimmed::iterate() {
         const size_t n = a.size();
-        const size_t m = b.size();
 
         for (size_t i = 0; i < n; i++) {
             a_current[i] = transform.apply_to(a[i]);
         }
 
         /* #step Matching Step: see \ref vanilla_icp for details. */
-        for (size_t i = 0; i < n; i++) {
-            matches[i].point = i;
-            matches[i].cost = std::numeric_limits<double>::infinity();
-            for (size_t j = 0; j < m; j++) {
-                // Point-to-point matching
-                double dist_ij = (b[j] - a_current[i]).squaredNorm();
-
-                if (dist_ij < matches[i].cost) {
-                    matches[i].cost = dist_ij;
-                    matches[i].pair = j;
-                }
-            }
-        }
+        compute_matches();
 
         /*
             #step
@@ -101,5 +90,24 @@ namespace icp {
 
         /* #step Transformation Step: see \ref vanilla_icp for details. */
         transform.translation += trimmed_b_cm - R * trimmed_cm;
+    }
+
+    void Trimmed::compute_matches() {
+        const size_t n = a.size();
+        const size_t m = b.size();
+
+        for (size_t i = 0; i < n; i++) {
+            matches[i].point = i;
+            matches[i].cost = std::numeric_limits<double>::infinity();
+            for (size_t j = 0; j < m; j++) {
+                // Point-to-point matching
+                double dist_ij = (b[j] - a_current[i]).squaredNorm();
+
+                if (dist_ij < matches[i].cost) {
+                    matches[i].cost = dist_ij;
+                    matches[i].pair = j;
+                }
+            }
+        }
     }
 }

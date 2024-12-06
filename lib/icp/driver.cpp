@@ -1,4 +1,4 @@
-#include "icp/icp_driver.h"
+#include "icp/driver.h"
 #include <limits>
 
 namespace icp {
@@ -30,6 +30,7 @@ namespace icp {
 
     bool ICPDriver::should_terminate(ConvergenceState current_state,
         std::optional<ConvergenceState> last_state) {
+        // absolute conditions based only on current state
         if (stop_cost_ && current_state.cost < stop_cost_.value()) {
             return true;
         }
@@ -42,15 +43,13 @@ namespace icp {
             return true;
         }
 
+        // end if we don't have a last state
         if (!last_state) {
             return false;
         }
 
+        // relative conditions based on progress
         double delta_cost = current_state.cost - last_state.value().cost;
-        if (delta_cost > 0) {
-            return true;
-        }
-
         if (absolute_cost_tolerance_ && std::abs(delta_cost) < absolute_cost_tolerance_.value()) {
             return true;
         }

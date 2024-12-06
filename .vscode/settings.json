@@ -109,6 +109,7 @@
         "text_encoding": "cpp",
         "strstream": "cpp",
         "source_location": "cpp",
-        "stdfloat": "cpp"
+        "stdfloat": "cpp",
+        "dense": "cpp"
     }
 }
