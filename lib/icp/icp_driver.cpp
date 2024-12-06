@@ -48,7 +48,7 @@ namespace icp {
 
         double delta_cost = current_state.cost - last_state.value().cost;
         if (delta_cost > 0) {
-            // return true;
+            return true;
         }
 
         if (absolute_cost_tolerance_ && std::abs(delta_cost) < absolute_cost_tolerance_.value()) {
