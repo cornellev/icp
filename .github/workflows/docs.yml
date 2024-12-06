@@ -22,7 +22,7 @@ jobs:
       - name: Build documentation
         run: |
           sudo apt-get install doxygen
-          $(which python3 || which python) script/icp_doc_builder.py src/icp/ book/icp_descr/
+          $(which python3 || which python) script/icp_doc_builder.py src/icp/ book/icp_descr/ book/main.md
           doxygen
           cp book/desmos.txt docs
           rm -rf book .vscode src math script install ex_data Doxyfile .clang-format AUTHOR.md INSTALL.md main.cpp Makefile README.md README.md.build sim.conf test lib include view.conf tests .github .gitignore
