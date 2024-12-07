@@ -1,83 +1,81 @@
 # Copyright (C) 2023 Ethan Uppal. All rights reserved.
+INCLUDE_DIR := include
+LIB_DIR := lib
+SRC_DIR := src
+TEST_DIR := tests
 
-INCLUDEDIR	:= include
-LIBDIR		:= lib
-SRCDIR		:= src
-TESTDIR		:= tests
-
-CC			:= $(shell which g++ || which clang++)
-PY			:= $(shell which python3 || which python)
-CFLAGS		:= -std=c++17 -pedantic -Wall -Wextra -I $(INCLUDEDIR)
-CDEBUG		:= -g
-CRELEASE	:= -O3 -DRELEASE_BUILD
-LIBNAME		:= libcevicp.a
-MAINNAME	:= main
-TESTNAME	:= test
+CC := $(shell which g++ || which clang++)
+CFLAGS := -std=c++17 -pedantic -Wall -Wextra -I $(INCLUDE_DIR)
+CDEBUG := -g
+CRELEASE := -O3 -DRELEASE_BUILD
+LIB_NAME := libcevicp.a
+MAIN_NAME := main
+TEST_NAME := test
 
 ifeq ($(OPT), RELEASE)
-CFLAGS 		+= $(CRELEASE)
+CFLAGS += $(CRELEASE)
 else
-CFLAGS 		+= $(CDEBUG)
+CFLAGS += $(CDEBUG)
 endif
 
-LIBSRC		:= $(shell find $(LIBDIR) -name "*.cpp" -type f)
-LIBINCLUDE  := -I/usr/include/eigen3
-LIBOBJ		:= $(LIBSRC:.cpp=.o)
-LIBDEPS		:= $(LIBOBJ:.o=.d)
-$(LIBNAME): CFLAGS += $(LIBINCLUDE)
+LIB_SRC := $(shell find $(LIB_DIR) -name "*.cpp" -type f)
+LIB_INCLUDE := -I/usr/include/eigen3
+LIB_OBJ := $(LIB_SRC:.cpp=.o)
+LIB_DEPS := $(LIB_OBJ:.o=.d)
+$(LIB_NAME): CFLAGS += $(LIB_INCLUDE)
 
-LIBINSTALL 		:= /usr/local/lib
-HEADERINSTALL	:= /usr/local/include
-INSTALLNAME		:= cev_icp
+LIB_INSTALL := /usr/local/lib
+HEADER_INSTALL := /usr/local/include
+INSTALL_NAME := cev_icp
 
-MAINSRC		:= $(shell find $(SRCDIR) -name "*.cpp" -type f)
-MAININCLUDE := $(shell sdl2-config --cflags) \
+MAIN_SRC := $(shell find $(SRC_DIR) -name "*.cpp" -type f)
+MAIN_INCLUDE := $(shell sdl2-config --cflags) \
 				-I/usr/include/eigen3 \
-			   	-I/usr/local/include/cmdapp \
-			   	-I/usr/local/include/config \
-			   	-I/usr/local/include/sdlwrapper
-MAINLD 		:= $(shell sdl2-config --libs) \
-			   	/usr/local/lib/libcmdapp.a \
-			   	/usr/local/lib/libsdlwrapper.a \
-			   	/usr/local/lib/libconfig.a
-MAINOBJ		:= $(MAINSRC:.cpp=.o)
-MAINDEPS	:= $(MAINOBJ:.o=.d)
-$(MAINNAME): CFLAGS += $(MAININCLUDE)
-$(MAINNAME): LDFLAGS += $(MAINLD)
+				-I/usr/local/include/cmdapp \
+				-I/usr/local/include/config \
+				-I/usr/local/include/sdlwrapper
+MAIN_LD := $(shell sdl2-config --libs) \
+			/usr/local/lib/libcmdapp.a \
+			/usr/local/lib/libsdlwrapper.a \
+			/usr/local/lib/libconfig.a
+MAIN_OBJ := $(MAIN_SRC:.cpp=.o)
+MAIN_DEPS := $(MAIN_OBJ:.o=.d)
+$(MAIN_NAME): CFLAGS += $(MAIN_INCLUDE)
+$(MAIN_NAME): LDFLAGS += $(MAIN_LD)
 
-TESTSRC		:= $(shell find $(TESTDIR) -name "*.cpp" -type f)
-TESTINCLUDE := -I/usr/include/eigen3 \
-			   -I/usr/local/include/simple_test
-TESTOBJ		:= $(TESTSRC:.cpp=.o)
-TESTDEPS	:= $(TESTOBJ:.o=.d)
-$(TESTNAME): CFLAGS += $(TESTINCLUDE)
-$(TESTNAME): CFLAGS += -DTEST
+TEST_SRC := $(shell find $(TEST_DIR) -name "*.cpp" -type f)
+TEST_INCLUDE := -I/usr/include/eigen3 \
+				-I/usr/local/include/simple_test
+TEST_OBJ := $(TEST_SRC:.cpp=.o)
+TEST_DEPS := $(TEST_OBJ:.o=.d)
+$(TEST_NAME): CFLAGS += $(TEST_INCLUDE)
+$(TEST_NAME): CFLAGS += -DTEST
 
--include $(LIBDEPS)
--include $(MAINDEPS)
--include $(TESTDEPS)
+-include $(LIB_DEPS)
+-include $(MAIN_DEPS)
+-include $(TEST_DEPS)
 
-N		:= 3
-METHOD	:= feature_aware
+N := 3
+METHOD := feature_aware
 
 ifeq ($(shell uname), Darwin)
-AR 		:= /usr/bin/libtool
-AR_OPT 	:= -static
+AR := /usr/bin/libtool
+AR_OPT := -static
 else
-AR 		:= ar
-AR_OPT 	:= rcs $@ $^
+AR := ar
+AR_OPT := rcs $@ $^
 endif
 
-$(LIBNAME): $(LIBOBJ)
+$(LIB_NAME): $(LIB_OBJ)
 	$(AR) $(AR_OPT) -o $@ $^
 
-$(MAINNAME): $(MAINOBJ) $(LIBNAME)
+$(MAIN_NAME): $(MAIN_OBJ) $(LIB_NAME)
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
-$(TESTNAME): $(TESTOBJ) $(LIBNAME)
+$(TEST_NAME): $(TEST_OBJ) $(LIB_NAME)
 	@$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
-	@./$(TESTNAME)
-	@rm $(TESTNAME)
+	@./$(TEST_NAME)
+	@rm $(TEST_NAME)
 
 %.o: %.cpp
 	@echo 'Compiling $@'
@@ -85,47 +83,50 @@ $(TESTNAME): $(TESTOBJ) $(LIBNAME)
 
 .PHONY: clean
 clean:
-	@rm -f $(LIBOBJ) $(LIBDEPS) $(LIBNAME) $(MAINOBJ) $(MAINDEPS) $(MAINNAME) $(TESTOBJ) $(TESTDEPS) $(TESTNAME)
+	@rm -f $(LIB_OBJ) $(LIB_DEPS) $(LIB_NAME) $(MAIN_OBJ) $(MAIN_DEPS) $(MAIN_NAME) $(TEST_OBJ) $(TEST_DEPS) $(TEST_NAME)
 
 .PHONY: view
-view: $(MAINNAME)
-	./$(MAINNAME) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --gui
+view: $(MAIN_NAME)
+	./$(MAIN_NAME) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --gui
 
 .PHONY: bench
-bench: $(MAINNAME)
-	./$(MAINNAME) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --bench
+bench: $(MAIN_NAME)
+	./$(MAIN_NAME) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --bench
 
 .PHONY: install
-install: $(LIBNAME)
-	mkdir -p $(LIBINSTALL)
-	mkdir -p $(HEADERINSTALL)/$(INSTALLNAME)
-	cp $(LIBNAME) $(LIBINSTALL)
-	cp -r $(INCLUDEDIR)/* $(HEADERINSTALL)/$(INSTALLNAME)
+install: $(LIB_NAME)
+	mkdir -p $(LIB_INSTALL)
+	mkdir -p $(HEADER_INSTALL)/$(INSTALL_NAME)
+	cp $(LIB_NAME) $(LIB_INSTALL)
+	cp -r $(INCLUDE_DIR)/* $(HEADER_INSTALL)/$(INSTALL_NAME)
 
 .PHONY: uninstall
 uninstall:
-	rm -r $(LIBINSTALL)/$(LIBNAME) $(HEADERINSTALL)/$(INSTALLNAME)
+	rm -r $(LIB_INSTALL)/$(LIB_NAME) $(HEADER_INSTALL)/$(INSTALL_NAME)
 
 # Not building book rn, add these commands to build
 # cd book; \
   pdflatex icp.tex; \
   rm *.aux *.log *.out \
   mv book/icp.pdf docs
+
+SCRIPT_DIR := script
+RUN_SCRIPT := cd $(SCRIPT_DIR); uv venv; source .venv/bin/activate; uv sync; python3
+
 .PHONY: docs 
 docs:
 	@make readme
-	$(PY) script/icp_doc_builder.py src/icp/ book/icp_descr/ book/main.md
+	$(RUN_SCRIPT) icp_doc_builder.py ../lib/icp ../book/icp_descr/ ../book/main.md
 	doxygen
-	cp book/desmos.txt docs
 
 .PHONY: cloc
 cloc:
-	cloc . --include-lang=c++,"c/c++ header" --by-file
+	cloc $(INCLUDE_DIR) $(LIB_DIR) $(SRC_DIR) --include-lang=c++,"c/c++ header" --by-file
 
 .PHONY: readme
 readme:
-	cd script; uv venv; source .venv/bin/activate; uv sync; python3 readme.py; deactivate
+	$(RUN_SCRIPT) readme.py
 
 .PHONY: math
 math:
-	@cd math; $(PY) ./icp_math.py
+	$(RUN_SCRIPT) icp_math.py
