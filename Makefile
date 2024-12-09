@@ -104,12 +104,6 @@ install: $(LIB_NAME)
 uninstall:
 	rm -r $(LIB_INSTALL)/$(LIB_NAME) $(HEADER_INSTALL)/$(INSTALL_NAME)
 
-# Not building book rn, add these commands to build
-# cd book; \
-  pdflatex icp.tex; \
-  rm *.aux *.log *.out \
-  mv book/icp.pdf docs
-
 SCRIPT_DIR := script
 RUN_SCRIPT := cd $(SCRIPT_DIR); uv venv; source .venv/bin/activate; uv sync; python3
 
