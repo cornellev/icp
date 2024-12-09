@@ -1,7 +1,7 @@
 // Copyright (C) 2024 Ethan Uppal. All rights reserved.
 
 #include <cassert>
-#include <iostream>
+  #include <iostream>
 extern "C" {
 #include <cmdapp/cmdapp.h>
 #include <config/config.h>
