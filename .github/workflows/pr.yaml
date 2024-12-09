@@ -1,0 +1,18 @@
+# https://github.com/satellytes/commitlint-pr-title
+name: PR Style
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+    branches: [main]
+
+jobs:
+  title-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: manually install any commitlint presets that we extend from
+        run: npm install --no-save @commitlint/config-conventional
+
+      - uses: satellytes/commitlint-pr-title@v1
