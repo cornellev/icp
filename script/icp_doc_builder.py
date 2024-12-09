@@ -123,13 +123,11 @@ class ICPDocumentationBuilder:
                         )
                         md_file.write("\nKey | Description\n--- | ---\n")
                         for key, descr in confs:
-                            print(descr)
                             descr_lines = descr.split("\n")
                             cleaned_lines = [
                                 line.strip().removeprefix("*") for line in descr_lines
                             ]
                             descr = " ".join(cleaned_lines)
-                            print(descr)
                             md_file.write(f'`"{key}"` | {descr}\n')
                 elif kind == "#step":
                     if not made_description:
