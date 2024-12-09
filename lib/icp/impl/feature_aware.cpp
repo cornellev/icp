@@ -20,8 +20,10 @@ namespace icp {
 
     /* #conf "overlap_rate" A `double` between `0.0` and `1.0` for the overlap rate. The default is
      * `1.0`. */
-    /* #conf "feature_weight" A `double` with default value `0.7`. */
-    /* #conf "symmetric_neighbors" An `int` with default value `10`. */
+    /* #conf "feature_weight" A `double` between `0.0` and `1.0` with default value `0.7`. Decides
+     * how much to weight feature cost versus point-to-point cost. */
+    /* #conf "symmetric_neighbors" An `int` with default value `10`. Decides how many neighbors to
+     * use on each side of a point when constructing the feature vector. */
     FeatureAware::FeatureAware(const Config& config)
         : FeatureAware(config.get<double>("overlap_rate", 0.9),
               config.get<double>("feature_weight", 0.7),
