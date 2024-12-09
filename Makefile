@@ -104,28 +104,17 @@ install: $(LIB_NAME)
 uninstall:
 	rm -r $(LIB_INSTALL)/$(LIB_NAME) $(HEADER_INSTALL)/$(INSTALL_NAME)
 
-# Not building book rn, add these commands to build
-# cd book; \
-  pdflatex icp.tex; \
-  rm *.aux *.log *.out \
-  mv book/icp.pdf docs
-
 SCRIPT_DIR := script
 RUN_SCRIPT := cd $(SCRIPT_DIR); uv venv; source .venv/bin/activate; uv sync; python3
 
 .PHONY: docs 
 docs:
-	@make readme
 	$(RUN_SCRIPT) icp_doc_builder.py ../lib/icp ../book/icp_descr/ ../book/main.md
 	doxygen
 
 .PHONY: cloc
 cloc:
 	cloc $(INCLUDE_DIR) $(LIB_DIR) $(SRC_DIR) --include-lang=c++,"c/c++ header" --by-file
-
-.PHONY: readme
-readme:
-	$(RUN_SCRIPT) readme.py
 
 .PHONY: math
 math:

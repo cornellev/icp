@@ -4,55 +4,26 @@ on:
     branches: ["main"]
   workflow_dispatch:
 permissions:
-  contents: write
   pages: write
-  id-token: write
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  prepare-docs:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: "main"
-
-      - name: Build documentation
+      - name: Install dependencies
         run: |
           sudo apt-get install doxygen
+      - name: Build documentation
+        run: |
           $(which python3 || which python) script/icp_doc_builder.py lib/icp/ book/icp_descr/ book/main.md
-          ls book/icp_descr
-          cat book/icp_descr/icp_vanilla.md
           doxygen
           cp book/desmos.txt docs
-          rm -rf book .vscode src math script install ex_data Doxyfile .clang-format AUTHOR.md INSTALL.md main.cpp Makefile README.md README.md.build sim.conf test lib include view.conf tests .github .gitignore
-          ls docs
-
-      - name: Push to docs branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git fetch
-          git checkout -b docs
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .
-          git commit -m "Deploy documentation from latest commit to main"
-          git branch
-          git push origin docs -f
-
-  deploy:
-    needs: prepare-docs
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: "docs"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -4,6 +4,10 @@
 #include "icp.h"
 
 namespace icp {
+
+    /**
+     * @brief Driver for running ICP to convergence.
+     */
     class ICPDriver {
     public:
         /** The result of running `ICPDriver::converge`. */
