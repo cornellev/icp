@@ -4,7 +4,9 @@
 
 /* #name Feature-Aware */
 
-/* #desc TODO */
+/* #desc Builds on top of \ref trimmed_icp. In addition to matching points based on a point-to-point
+distance criteria, matches them based on a local "feature vector."
+*/
 
 #include "icp/impl/feature_aware.h"
 
@@ -16,8 +18,8 @@ namespace icp {
           feature_weight(feature_weight),
           neighbor_weight(1 - feature_weight) {}
 
-    /* #conf "overlap_rate" A `double` between `0.0` and `1.0` for
-     * the overlap rate. The default is `1.0`. */
+    /* #conf "overlap_rate" A `double` between `0.0` and `1.0` for the overlap rate. The default is
+     * `1.0`. */
     /* #conf "feature_weight" A `double` with default value `0.7`. */
     /* #conf "symmetric_neighbors" An `int` with default value `10`. */
     FeatureAware::FeatureAware(const Config& config)
@@ -49,12 +51,27 @@ namespace icp {
             a_current[i] = transform.apply_to(a[i]);
         }
 
-        /* #step  TODO: write smth Matching Step: */
+        /*
+            #step
+            Matching Step:
+
+            Matches are computed based on a weighted average of the point-to-point cost metric and
+           the feature cost metric (with weight `feature_weight` given to the feature vector
+           cost metric).
+
+            The feature vector for each point is computed as follows. Let \f$ p_i \f$ be the i-th
+           point in the scan, ordered by angle from the scan origin (LiDAR center), and let \f$ c
+           \f$ be the centroid of the scan. Then, we can define \f$ q_i = p_i - c \f$. Also, let \f$
+           n \f$ be the number of `symmetric_neighbors`. The feature vector for \f$ p_k \f$ is then
+           \f$ f_k = \begin{bmatrix} |q_{k - n}| - |q_k| & \ldots & |q_{k - 1}| - |q_k| & |q_{k+1}|
+           - |q_k| & \ldots & |q_{k + n}| - |q_k| \end{bmatrix} \f$. The feature cost metric between
+           two feature vectors \f$ f_a \f$ and \f$ f_b \f$ is simply \f$ |f_a - f_b| \f$.
+         */
         compute_matches();
 
         /*
             #step
-            Trimming Step: see \ref trimmed for details.
+            Trimming Step: see \ref trimmed_icp for details.
         */
         std::sort(matches.begin(), matches.end(),
             [](const auto& a, const auto& b) { return a.cost < b.cost; });
@@ -143,4 +160,4 @@ namespace icp {
             features[i] = feature;
         }
     }
-}  // namespace icp
+}

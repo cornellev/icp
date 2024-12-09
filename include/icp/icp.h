@@ -19,7 +19,8 @@
 namespace icp {
     /**
      * Interface for iterative closest points.
-     * You should interact with ICP instances through this API only.
+     * Generally, you should interact with ICP instances through this interface or `ICPDriver`,
+     * though interacting with implementations directly isn't explicitly disallowed.
      * Read \ref write_icp_instance for additional information.
      *
      * \par Example
@@ -145,7 +146,7 @@ namespace icp {
          * `config`.
          *
          * @pre `name` is a valid registered method. See
-         * ICP::is_registered_method.
+         * ICP::registered_methods.
          */
         static std::optional<std::unique_ptr<ICP>> from_method(std::string name,
             const Config& params = Config());

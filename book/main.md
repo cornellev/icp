@@ -104,7 +104,8 @@ Read the documentation of the specific implementations for more information
 (sorted alphabetically):
 
 <!-- ICP_DOCS_BUILDER EDIT MARKER START -->
-- \ref feature_aware_icp (TODO)
+- \ref feature_aware_icp (Builds on top of \ref trimmed_icp. In addition to matching points based on a point-to-point
+distance criteria, matches them based on a local "feature vector.")
 - \ref trimmed_icp (Trimmed ICP is identical to \ref vanilla_icp with the addition of an
 overlap rate parameter, which specifies the percentage of points between the two
 point sets that have correspondences. When the overlap rate is `1`, the algorithm
