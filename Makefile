@@ -115,17 +115,12 @@ RUN_SCRIPT := cd $(SCRIPT_DIR); uv venv; source .venv/bin/activate; uv sync; pyt
 
 .PHONY: docs 
 docs:
-	@make readme
 	$(RUN_SCRIPT) icp_doc_builder.py ../lib/icp ../book/icp_descr/ ../book/main.md
 	doxygen
 
 .PHONY: cloc
 cloc:
 	cloc $(INCLUDE_DIR) $(LIB_DIR) $(SRC_DIR) --include-lang=c++,"c/c++ header" --by-file
-
-.PHONY: readme
-readme:
-	$(RUN_SCRIPT) readme.py
 
 .PHONY: math
 math:
