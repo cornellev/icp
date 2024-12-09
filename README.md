@@ -1,8 +1,8 @@
 # icp
 
 ![CI Badge](https://github.com/cornellev/icp/actions/workflows/ci.yaml/badge.svg)
+![Code Style Badge](https://github.com/cornellev/icp/actions/workflows/lint.yaml/badge.svg)
 ![Docs Badge](https://github.com/cornellev/icp/actions/workflows/docs.yaml/badge.svg)
-![PR Style Badge](https://github.com/cornellev/icp/actions/workflows/pr.yaml/badge.svg)
 
 ## Introduction
 
