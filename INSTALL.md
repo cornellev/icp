@@ -14,9 +14,10 @@ If not, please read the instructions at [cornellev.github.io/icp/](https://corne
     ```sh
     sudo make install INSTALL_PREFIX=/usr/local
     ```
-    which will install the library in `/usr/local/lib` and the headers in `/usr/local/include/cevicp`.
+    which will install the library to `/usr/local/lib/libcevicp.a` and the headers in `/usr/local/include/cev_icp`.
 2.  Run `sudo make uninstall` to remove the library.
     You can similarly pass the `INSTALL_PREFIX` variable, but it must be the same as where you installed.
+    Note that uninstalling may leave some remanant directory structure. 
 
 ## Local Installation (Static)
 

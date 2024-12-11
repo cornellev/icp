@@ -8,8 +8,9 @@ N := 1
 METHOD := vanilla
 
 OPT := Debug
-INSTALL_PREFIX := /usr/local
-CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=$(OPT) -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX)
+LIB_INSTALL := /usr/local/lib
+HEADER_INSTALL := /usr/local/include
+CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=$(OPT) -DCMAKE_INSTALL_LIBDIR=$(LIB_INSTALL) -DCMAKE_INSTALL_INCLUDEDIR=$(HEADER_INSTALL)
 
 MAKE_FLAGS := -j $(shell nproc)
 
@@ -50,8 +51,8 @@ clean: configure
 	cmake --build $(BUILD_DIR) --target clean
 
 .PHONY: install
-install: configure
-	cmake --build $(BUILD_DIR) --target install
+install: configure $(LIB_TARGET)
+	cmake --install $(BUILD_DIR)
 
 .PHONY: uninstall
 uninstall: configure
