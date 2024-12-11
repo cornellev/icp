@@ -1,6 +1,5 @@
 // Copyright (C) 2024 Ethan Uppal. All rights reserved.
 
-#include <cassert>
 #include <iostream>
 extern "C" {
 #include <cmdapp/cmdapp.h>
@@ -80,6 +79,12 @@ void parse_config(const char* path, conf_parse_handler_t handler, void* user_dat
     }
 
     fclose(file);
+}
+
+void assert_opt(bool* opt_result) {
+    if (!opt_result) {
+        std::exit(1);
+    }
 }
 
 void launch_gui(LidarView* view, std::string visualized = "LiDAR scans") {
@@ -188,18 +193,19 @@ int main(int argc, const char** argv) {
     const char* config_file = "view.conf";
     const char* method = "vanilla";
 
-    assert(do_bench = ca_opt('b', "bench", "&SD", NULL,
-               "benchmarks an ICP method (see -m). must pass -S/-D"));
-    assert(read_scan_files = ca_opt('S', "src", ".FILE&D", &f_src, "source scan (pass with -D)"));
-    assert(use_gui = ca_opt('g', "gui", "!@b", NULL, "visualizes ICP"));
-    assert(ca_opt('D', "dst", ".FILE&S", &f_dst, "destination scan (pass with -S)"));
-    assert(ca_opt('c', "config", ".FILE", &config_file,
+    assert_opt(do_bench = ca_opt('b', "bench", "&SD", NULL,
+                   "benchmarks an ICP method (see -m). must pass -S/-D"));
+    assert_opt(read_scan_files = ca_opt('S', "src", ".FILE&D", &f_src,
+                   "source scan (pass with -D)"));
+    assert_opt(use_gui = ca_opt('g', "gui", "!@b", NULL, "visualizes ICP"));
+    assert_opt(ca_opt('D', "dst", ".FILE&S", &f_dst, "destination scan (pass with -S)"));
+    assert_opt(ca_opt('c', "config", ".FILE", &config_file,
         "selects a configuration file (default: view.conf)"));
-    assert(ca_opt('m', "method", ".METHOD", &method, "selects an ICP method"));
-    assert(basic_mode = ca_long_opt("basic-mode", "", NULL, "uses a ligher gui background"));
-    assert(enable_log = ca_opt('l', "log", "", NULL, "enables debug logging"));
-    assert(ca_opt('h', "help", "<h", NULL, "prints this info"));
-    assert(ca_opt('v', "version", "<v", NULL, "prints version info"));
+    assert_opt(ca_opt('m', "method", ".METHOD", &method, "selects an ICP method"));
+    assert_opt(basic_mode = ca_long_opt("basic-mode", "", NULL, "uses a ligher gui background"));
+    assert_opt(enable_log = ca_opt('l', "log", "", NULL, "enables debug logging"));
+    assert_opt(ca_opt('h', "help", "<h", NULL, "prints this info"));
+    assert_opt(ca_opt('v', "version", "<v", NULL, "prints version info"));
 
     if (argc == 1) {
         ca_print_help();

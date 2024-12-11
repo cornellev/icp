@@ -39,9 +39,9 @@ add_executable(main ${MAIN_SOURCES})
 target_link_libraries(main 
   cevicp
   SDL2::SDL2
-  cmdapp
-  sdlwrapper
-  config
+  libcmdapp.a
+  libsdlwrapper.a
+  libconfig.a
 )
 target_include_directories(main 
   PRIVATE 
