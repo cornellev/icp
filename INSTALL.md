@@ -17,12 +17,12 @@ If not, please read the instructions at [cornellev.github.io/icp/](https://corne
     The library `libcevicp.a` will be located at `LIB_INSTALL`.
     The header files will be accessible from `HEADER_INSTALL/cev_icp`, e.g., `HEADER_INSTALL/cev_icp/icp/icp.h`.
 2.  Run `sudo make uninstall` to remove the library.
-    You can similarly pass the `INSTALL_PREFIX` variable, but it must be the same as where you installed.
+    You can similarly pass the `LIB_INSTALL` and `HEADER_INSTALL`, but they must be the same as where you installed.
     Note that uninstalling may leave some remanant directory structure. 
 
 ## Local Installation (Static)
 
-Follow the same instructions as above, but supply `INSTALL_PREFIX` to be the desired local path.
+Follow the same instructions as above, but supply `LIB_INSTALL` and `HEADER_INSTALL` to be the desired local paths.
 
 ## Git Submodule
 
