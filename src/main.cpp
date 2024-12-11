@@ -178,13 +178,13 @@ int main(int argc, const char** argv) {
     ca_synopsis("-S FILE -D FILE [-l]");
     ca_synopsis("-b METHOD [-l]");
 
-    bool* use_gui;
-    bool* do_bench;
-    bool* enable_log;
-    bool* read_scan_files;
-    bool* basic_mode;  // for gbody people
-    const char* f_src;
-    const char* f_dst;
+    bool* use_gui = NULL;
+    bool* do_bench = NULL;
+    bool* enable_log = NULL;
+    bool* read_scan_files = NULL;
+    bool* basic_mode = NULL;  // for gbody people
+    const char* f_src = NULL;
+    const char* f_dst = NULL;
     const char* config_file = "view.conf";
     const char* method = "vanilla";
 
