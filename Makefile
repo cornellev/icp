@@ -1,108 +1,62 @@
 # Copyright (C) 2023 Ethan Uppal. All rights reserved.
-INCLUDE_DIR := include
-LIB_DIR := lib
-SRC_DIR := src
-TEST_DIR := tests
+BUILD_DIR := build
+LIB_TARGET := cevicp
+MAIN_TARGET := main
+TEST_TARGET := test_suite
 
-CC := $(shell which g++ || which clang++)
-CFLAGS := -std=c++17 -pedantic -Wall -Wextra -I $(INCLUDE_DIR)
-CDEBUG := -g
-CRELEASE := -O3 -DRELEASE_BUILD
-LIB_NAME := libcevicp.a
-MAIN_NAME := main
-TEST_NAME := test
+N := 1
+METHOD := vanilla
 
-ifeq ($(OPT), RELEASE)
-CFLAGS += $(CRELEASE)
-else
-CFLAGS += $(CDEBUG)
-endif
-
-LIB_SRC := $(shell find $(LIB_DIR) -name "*.cpp" -type f)
-LIB_INCLUDE := -I/usr/include/eigen3
-LIB_OBJ := $(LIB_SRC:.cpp=.o)
-LIB_DEPS := $(LIB_OBJ:.o=.d)
-$(LIB_NAME): CFLAGS += $(LIB_INCLUDE)
-
+OPT := Debug
 LIB_INSTALL := /usr/local/lib
 HEADER_INSTALL := /usr/local/include
-INSTALL_NAME := cev_icp
+CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=$(OPT) -DCMAKE_INSTALL_LIBDIR=$(LIB_INSTALL) -DCMAKE_INSTALL_INCLUDEDIR=$(HEADER_INSTALL)
 
-MAIN_SRC := $(shell find $(SRC_DIR) -name "*.cpp" -type f)
-MAIN_INCLUDE := $(shell sdl2-config --cflags) \
-				-I/usr/include/eigen3 \
-				-I/usr/local/include/cmdapp \
-				-I/usr/local/include/config \
-				-I/usr/local/include/sdlwrapper
-MAIN_LD := $(shell sdl2-config --libs) \
-			/usr/local/lib/libcmdapp.a \
-			/usr/local/lib/libsdlwrapper.a \
-			/usr/local/lib/libconfig.a
-MAIN_OBJ := $(MAIN_SRC:.cpp=.o)
-MAIN_DEPS := $(MAIN_OBJ:.o=.d)
-$(MAIN_NAME): CFLAGS += $(MAIN_INCLUDE)
-$(MAIN_NAME): LDFLAGS += $(MAIN_LD)
+MAKE_FLAGS := -j $(shell nproc)
 
-TEST_SRC := $(shell find $(TEST_DIR) -name "*.cpp" -type f)
-TEST_INCLUDE := -I/usr/include/eigen3 \
-				-I/usr/local/include/simple_test
-TEST_OBJ := $(TEST_SRC:.cpp=.o)
-TEST_DEPS := $(TEST_OBJ:.o=.d)
-$(TEST_NAME): CFLAGS += $(TEST_INCLUDE)
-$(TEST_NAME): CFLAGS += -DTEST
+.PHONY: build_all
+build_all: configure
+	cmake --build $(BUILD_DIR) -- $(MAKE_FLAGS)
 
--include $(LIB_DEPS)
--include $(MAIN_DEPS)
--include $(TEST_DEPS)
+.PHONY: configure
+configure:
+	cmake -S . -B $(BUILD_DIR) $(CMAKE_FLAGS)
 
-N := 3
-METHOD := feature_aware
+.PHONY: $(LIB_TARGET)
+$(LIB_TARGET): configure
+	cmake --build $(BUILD_DIR) --target $(LIB_TARGET) -- $(MAKE_FLAGS)
 
-ifeq ($(shell uname), Darwin)
-AR := /usr/bin/libtool
-AR_OPT := -static
-else
-AR := ar
-AR_OPT := rcs $@ $^
-endif
+.PHONY: $(MAIN_TARGET)
+$(MAIN_TARGET): configure
+	cmake --build $(BUILD_DIR) --target $(MAIN_TARGET) -- $(MAKE_FLAGS)
 
-$(LIB_NAME): $(LIB_OBJ)
-	$(AR) $(AR_OPT) -o $@ $^
-
-$(MAIN_NAME): $(MAIN_OBJ) $(LIB_NAME)
-	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
-
-$(TEST_NAME): $(TEST_OBJ) $(LIB_NAME)
-	@$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
-	@./$(TEST_NAME)
-	@rm $(TEST_NAME)
-
-%.o: %.cpp
-	@echo 'Compiling $@'
-	$(CC) $(CFLAGS) -MMD -MP $< -c -o $@
-
-.PHONY: clean
-clean:
-	@rm -f $(LIB_OBJ) $(LIB_DEPS) $(LIB_NAME) $(MAIN_OBJ) $(MAIN_DEPS) $(MAIN_NAME) $(TEST_OBJ) $(TEST_DEPS) $(TEST_NAME)
+.PHONY: $(TEST_TARGET)
+$(TEST_TARGET): configure
+	cmake --build $(BUILD_DIR) --target $(TEST_TARGET) -- $(MAKE_FLAGS)
+	
+.PHONY: test
+test: $(TEST_TARGET)
+	./$(BUILD_DIR)/$(TEST_TARGET)
 
 .PHONY: view
-view: $(MAIN_NAME)
-	./$(MAIN_NAME) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --gui
-
+view: $(MAIN_TARGET)
+	./$(BUILD_DIR)/$(MAIN_TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --gui
+	
 .PHONY: bench
-bench: $(MAIN_NAME)
-	./$(MAIN_NAME) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --bench
+bench: $(MAIN_TARGET)
+	./$(BUILD_DIR)/$(MAIN_TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --bench
+
+.PHONY: clean
+clean: configure
+	cmake --build $(BUILD_DIR) --target clean
 
 .PHONY: install
-install: $(LIB_NAME)
-	mkdir -p $(LIB_INSTALL)
-	mkdir -p $(HEADER_INSTALL)/$(INSTALL_NAME)
-	cp $(LIB_NAME) $(LIB_INSTALL)
-	cp -r $(INCLUDE_DIR)/* $(HEADER_INSTALL)/$(INSTALL_NAME)
+install: configure $(LIB_TARGET)
+	cmake --install $(BUILD_DIR)
 
 .PHONY: uninstall
-uninstall:
-	rm -r $(LIB_INSTALL)/$(LIB_NAME) $(HEADER_INSTALL)/$(INSTALL_NAME)
+uninstall: configure
+	cmake --build $(BUILD_DIR) --target uninstall
 
 SCRIPT_DIR := script
 RUN_SCRIPT := cd $(SCRIPT_DIR); uv venv; source .venv/bin/activate; uv sync; python3
