@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <chrono>
 #include "icp.h"
 
 namespace icp {
@@ -30,7 +31,8 @@ namespace icp {
         ICPDriver(std::unique_ptr<ICP> icp);
 
         /**
-         * @brief Runs ICP to convergence based on the termination conditions set.
+         * @brief Runs ICP to convergence based on the termination conditions set. If no conditions
+         * are set, ICP will run indefinitely. This is rarely desirable.
          *
          * @param a The source point cloud.
          * @param b The destination point cloud.
@@ -41,7 +43,8 @@ namespace icp {
             RBTransform t);
 
         /**
-         * @brief Sets the minimum number of iterations to run.
+         * @brief Sets the minimum number of iterations to run. This number of iterations will
+         * always be performed.
          *
          * @param min_iterations The minimum number of iterations to run.
          */
@@ -93,6 +96,14 @@ namespace icp {
          */
         void set_transform_tolerance(double angle_tolerance, double translation_tolerance);
 
+        /**
+         * @brief Set the time limit for `converge`. Note that `coverge` may take slightly longer
+         * than this time (up to 1 iteration time) to return.
+         *
+         * @param time_limit The time limit.
+         */
+        void set_time_limit(std::chrono::duration<double> time_limit);
+
     private:
         bool should_terminate(ConvergenceState current_state,
             std::optional<ConvergenceState> last_state);
@@ -106,5 +117,8 @@ namespace icp {
         std::optional<double> absolute_cost_tolerance_;
         std::optional<double> angle_tolerance_rad_;
         std::optional<double> translation_tolerance_;
+        std::optional<std::chrono::duration<double>> time_limit_;
+
+        std::chrono::time_point<std::chrono::steady_clock> start_time_;
     };
 }
