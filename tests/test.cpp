@@ -6,6 +6,7 @@ extern "C" {
 
 #include "icp/icp.h"
 #include "icp/driver.h"
+#include <chrono>
 
 #define BURN_IN 0
 #define TRANS_EPS 0.5
