@@ -4,6 +4,11 @@ project(cevicp CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(CI "CI build" OFF)
+if(CI)
+  set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+endif()
+
 # Add compile options
 add_compile_options(-Wall -Wextra -pedantic)
 

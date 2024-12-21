@@ -39,8 +39,8 @@ jobs:
           cd simple-test
           sudo make install
       - name: Build all
-        run: make OPT=Release
+        run: make OPT=Release CI=ON
       - name: Run tests
-        run: make test OPT=Release
+        run: make test OPT=Release CI=ON
       - name: Run benchmarks
-        run: make bench OPT=Release
+        run: make bench OPT=Release CI=ON
