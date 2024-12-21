@@ -10,8 +10,8 @@ extern "C" {
 #include <algorithm>
 #include <sdlwrapper/gui/window.h>
 #include <optional>
-#include "sim/view_config.h"
-#include "sim/lidar_view.h"
+#include "view_config.h"
+#include "lidar_view.h"
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
 #include "icp/driver.h"

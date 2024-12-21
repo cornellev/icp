@@ -60,6 +60,9 @@ install: configure $(LIB_TARGET)
 uninstall: configure
 	cmake --build $(BUILD_DIR) --target uninstall
 
+INCLUDE_DIR := include
+LIB_DIR := lib
+VIS_DIR := vis
 SCRIPT_DIR := script
 RUN_SCRIPT := cd $(SCRIPT_DIR); uv venv; source .venv/bin/activate; uv sync; python3
 
@@ -70,7 +73,7 @@ docs:
 
 .PHONY: cloc
 cloc:
-	cloc $(INCLUDE_DIR) $(LIB_DIR) $(SRC_DIR) --include-lang=c++,"c/c++ header" --by-file
+	cloc $(INCLUDE_DIR) $(LIB_DIR) $(VIS_DIR) --include-lang=c++,"c/c++ header" --by-file
 
 .PHONY: math
 math:

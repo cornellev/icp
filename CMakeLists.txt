@@ -36,9 +36,9 @@ target_include_directories(cevicp
 
 # Main executable
 set(MAIN_SOURCES
-  src/main.cpp
-  src/sim/lidar_view.cpp
-  src/sim/view_config.cpp
+  vis/main.cpp
+  vis/lidar_view.cpp
+  vis/view_config.cpp
 )
 add_executable(main ${MAIN_SOURCES})
 target_link_libraries(main 
@@ -51,6 +51,7 @@ target_link_libraries(main
 target_include_directories(main 
   PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/vis
     ${EIGEN3_INCLUDE_DIRS}
     /usr/local/include/cmdapp
     /usr/local/include/config
