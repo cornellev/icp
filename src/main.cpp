@@ -27,7 +27,7 @@ struct LidarScan {
     std::vector<icp::Vector> points;
 };
 
-void set_config_param(const char* var, const char* data, void* user_data) {
+void set_config_param(const char* var, const char* data, [[maybe_unused]] void* user_data) {
     if (strcmp(var, "x_displace") == 0) {
         view_config::x_displace = std::stod(data);
     } else if (strcmp(var, "y_displace") == 0) {
