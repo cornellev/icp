@@ -39,6 +39,7 @@ set(MAIN_SOURCES
   vis/main.cpp
   vis/lidar_view.cpp
   vis/view_config.cpp
+  common/parse_scan.cpp
 )
 add_executable(main ${MAIN_SOURCES})
 target_link_libraries(main 
@@ -52,6 +53,7 @@ target_include_directories(main
   PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/vis
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
     ${EIGEN3_INCLUDE_DIRS}
     /usr/local/include/cmdapp
     /usr/local/include/config

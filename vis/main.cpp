@@ -15,17 +15,7 @@ extern "C" {
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
 #include "icp/driver.h"
-
-struct LidarScan {
-    double range_max;
-    double range_min;
-    double angle_min;
-    double angle_max;
-    double angle_increment;
-
-    /** Units: centimeters */
-    std::vector<icp::Vector> points;
-};
+#include "parse_scan.h"
 
 void set_config_param(const char* var, const char* data, [[maybe_unused]] void* user_data) {
     if (strcmp(var, "x_displace") == 0) {
@@ -39,41 +29,14 @@ void set_config_param(const char* var, const char* data, [[maybe_unused]] void* 
     }
 }
 
-void parse_lidar_scan(const char* var, const char* data, void* user_data) {
-    LidarScan* scan = static_cast<LidarScan*>(user_data);
-    if (strcmp(var, "range_min") == 0) {
-        scan->range_min = strtod(data, NULL);
-    } else if (strcmp(var, "range_max") == 0) {
-        scan->range_max = strtod(data, NULL);
-    } else if (strcmp(var, "angle_max") == 0) {
-        scan->angle_max = strtod(data, NULL);
-        Log << "scan->angle_max = " << scan->angle_max << '\n';
-    } else if (strcmp(var, "angle_min") == 0) {
-        scan->angle_min = strtod(data, NULL);
-        Log << "scan->angle_min = " << scan->angle_min << '\n';
-    } else if (strcmp(var, "angle_increment") == 0) {
-        scan->angle_increment = strtod(data, NULL);
-    } else if (isdigit(var[0])) {
-        long index = strtol(var, NULL, 10);
-        double angle = scan->angle_min + index * scan->angle_increment;
-        double range = strtod(data, NULL);
-        if (range >= scan->range_min && range <= scan->range_max) {
-            scan->points.push_back(icp::Vector(100 * range * std::cos(angle),
-                100 * range * std::sin(angle)));
-            // auto last = scan->points.back();
-            // std::cerr << last.x() << ',' << last.y() << '\n';
-        }
-    }
-}
-
-void parse_config(const char* path, conf_parse_handler_t handler, void* user_data) {
+void parse_config(const char* path) {
     FILE* file = fopen(path, "r");
     if (!file) {
         perror("parse_config: fopen");
         std::exit(1);
     }
 
-    if (conf_parse_file(file, handler, user_data) != 0) {
+    if (conf_parse_file(file, set_config_param, nullptr) != 0) {
         perror("parse_config: conf_parse_file");
         std::exit(1);
     }
@@ -103,70 +66,6 @@ void launch_gui(LidarView* view, std::string visualized = "LiDAR scans") {
     window.present();
 }
 
-void run_benchmark(const char* method, std::unique_ptr<icp::ICP> icp, const LidarScan& source,
-    const LidarScan& destination) {
-    std::cout << "ICP ALGORITHM BENCHMARKING\n";
-    std::cout << "=======================================\n";
-
-    constexpr size_t N = 50;
-    constexpr size_t burn_in = 0;
-    constexpr double angle_tol = 0.1 * M_PI / 180;
-    constexpr double trans_tol = 0.1;
-
-    std::cout << "* Method name: " << method << '\n';
-    std::cout << "* Number of trials: " << N << '\n';
-    std::cout << "* Burn-in period: " << burn_in << '\n';
-    std::cout << "* Angle tolerance: " << angle_tol << " rad\n";
-    std::cout << "* Translation tolerance: " << trans_tol << '\n';
-
-    icp::ICPDriver driver(std::move(icp));
-    driver.set_transform_tolerance(0.1 * M_PI / 180, 0.1);
-
-    std::vector<double> final_costs;
-    std::vector<size_t> iteration_counts;
-
-    const auto start = std::chrono::high_resolution_clock::now();
-
-    for (size_t i = 0; i < N; i++) {
-        auto result = driver.converge(source.points, destination.points, icp::RBTransform());
-        final_costs.push_back(result.cost);
-        iteration_counts.push_back(result.iteration_count);
-    }
-    const auto end = std::chrono::high_resolution_clock::now();
-
-    const std::chrono::duration<double> diff = end - start;
-
-    double min_cost = final_costs.front();
-    double max_cost = final_costs.back();
-    double median_cost = final_costs[final_costs.size() / 2];
-    double mean_cost = std::accumulate(final_costs.begin(), final_costs.end(), 0.0)
-                       / final_costs.size();
-
-    std::sort(iteration_counts.begin(), iteration_counts.end());
-
-    size_t min_iterations = iteration_counts.front();
-    size_t max_iterations = iteration_counts.back();
-    size_t median_iterations = iteration_counts[iteration_counts.size() / 2];
-    double mean_iterations = std::accumulate(iteration_counts.begin(), iteration_counts.end(), 0.0)
-                             / iteration_counts.size();
-
-    std::cout << "* Min cost: " << min_cost << "\n"
-              << "* Max cost: " << max_cost << "\n"
-              << "* Median cost: " << median_cost << "\n"
-              << "* Mean cost: " << mean_cost << "\n";
-    std::cout << "* Min iterations: " << min_iterations << " (real: " << (min_iterations - burn_in)
-              << ")\n"
-              << "* Max iterations: " << max_iterations << " (real: " << (max_iterations - burn_in)
-              << ")\n"
-              << "* Median iterations: " << median_iterations
-              << " (real: " << (median_iterations - burn_in) << ")\n"
-              << "* Mean iterations: " << mean_iterations
-              << " (real: " << (mean_iterations - burn_in) << ")\n";
-    std::cout << "* Average time per invocation: " << (diff.count() / N) << "s\n";
-    std::cout << "* Average time per iteration: " << ((diff.count() / N) / mean_iterations)
-              << "s\n";
-}
-
 int main(int argc, const char** argv) {
     if (ca_init(argc, argv) != 0) {
         perror("ca_init");
@@ -183,8 +82,6 @@ int main(int argc, const char** argv) {
     ca_synopsis("-S FILE -D FILE [-l]");
     ca_synopsis("-b METHOD [-l]");
 
-    bool* use_gui = NULL;
-    bool* do_bench = NULL;
     bool* enable_log = NULL;
     bool* read_scan_files = NULL;
     bool* basic_mode = NULL;  // for gbody people
@@ -193,11 +90,8 @@ int main(int argc, const char** argv) {
     const char* config_file = "view.conf";
     const char* method = "vanilla";
 
-    assert_opt(do_bench = ca_opt('b', "bench", "&SD", NULL,
-                   "benchmarks an ICP method (see -m). must pass -S/-D"));
     assert_opt(read_scan_files = ca_opt('S', "src", ".FILE&D", &f_src,
                    "source scan (pass with -D)"));
-    assert_opt(use_gui = ca_opt('g', "gui", "!@b", NULL, "visualizes ICP"));
     assert_opt(ca_opt('D', "dst", ".FILE&S", &f_dst, "destination scan (pass with -S)"));
     assert_opt(ca_opt('c', "config", ".FILE", &config_file,
         "selects a configuration file (default: view.conf)"));
@@ -215,7 +109,7 @@ int main(int argc, const char** argv) {
     }
 
     Log.is_enabled = *enable_log;
-    parse_config(config_file, set_config_param, NULL);
+    parse_config(config_file);
     if (*basic_mode) {
         view_config::use_light_mode = true;
     }
@@ -246,18 +140,13 @@ int main(int argc, const char** argv) {
     // return 0;
 
     if (*read_scan_files) {
-        LidarScan source, destination;
-        parse_config(f_src, parse_lidar_scan, &source);
-        parse_config(f_dst, parse_lidar_scan, &destination);
+        LidarScan source = parse_lidar_scan(f_src);
+        LidarScan destination = parse_lidar_scan(f_dst);
 
-        if (*use_gui) {
-            icp::ICP::Config config;
-            config.set("overlap_rate", 0.9);
-            LidarView* view = new LidarView(source.points, destination.points, std::move(icp));
+        icp::ICP::Config config;
+        config.set("overlap_rate", 0.9);
+        LidarView* view = new LidarView(source.points, destination.points, std::move(icp));
 
-            launch_gui(view, std::string(f_src) + std::string(" and ") + std::string(f_dst));
-        } else if (*do_bench) {
-            run_benchmark(method, std::move(icp), source, destination);
-        }
+        launch_gui(view, std::string(f_src) + std::string(" and ") + std::string(f_dst));
     }
 }

@@ -42,7 +42,7 @@ test: $(TEST_TARGET)
 
 .PHONY: view
 view: $(MAIN_TARGET)
-	./$(BUILD_DIR)/$(MAIN_TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --gui
+	./$(BUILD_DIR)/$(MAIN_TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD)
 	
 .PHONY: bench
 bench: $(MAIN_TARGET)
