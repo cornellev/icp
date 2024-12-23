@@ -23,8 +23,8 @@ void parse_scan_var(const char* var, const char* data, void* user_data) {
     }
 }
 
-LidarScan parse_lidar_scan(const char* path) {
-    FILE* file = fopen(path, "r");
+LidarScan parse_lidar_scan(std::string path) {
+    FILE* file = fopen(path.c_str(), "r");
     if (!file) {
         perror("parse_config: fopen");
         std::exit(1);

@@ -3,6 +3,7 @@ BUILD_DIR := build
 LIB_TARGET := cevicp
 MAIN_TARGET := main
 TEST_TARGET := test_suite
+BENCH_TARGET := bench_suite
 
 N := 1
 METHOD := vanilla
@@ -35,6 +36,10 @@ $(MAIN_TARGET): configure
 .PHONY: $(TEST_TARGET)
 $(TEST_TARGET): configure
 	cmake --build $(BUILD_DIR) --target $(TEST_TARGET) -- $(MAKE_FLAGS)
+
+.PHONY: $(BENCH_TARGET)
+$(BENCH_TARGET): configure
+	cmake --build $(BUILD_DIR) --target $(BENCH_TARGET) -- $(MAKE_FLAGS)
 	
 .PHONY: test
 test: $(TEST_TARGET)
@@ -45,8 +50,8 @@ view: $(MAIN_TARGET)
 	./$(BUILD_DIR)/$(MAIN_TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD)
 	
 .PHONY: bench
-bench: $(MAIN_TARGET)
-	./$(BUILD_DIR)/$(MAIN_TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --bench
+bench: $(BENCH_TARGET)
+	./$(BUILD_DIR)/$(BENCH_TARGET)
 
 .PHONY: clean
 clean: configure

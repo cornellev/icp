@@ -14,4 +14,4 @@ struct LidarScan {
     std::vector<icp::Vector> points;
 };
 
-LidarScan parse_lidar_scan(const char* path);
+LidarScan parse_lidar_scan(std::string path);

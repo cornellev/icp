@@ -72,6 +72,19 @@ target_include_directories(test_suite
 )
 target_compile_definitions(test_suite PRIVATE TEST)
 
+set(BENCH_SOURCES bench/bench.cpp common/parse_scan.cpp)
+add_executable(bench_suite ${BENCH_SOURCES})
+target_link_libraries(bench_suite
+  cevicp
+  libconfig.a
+)
+target_include_directories(bench_suite
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
+    /usr/local/include/config
+)
+
 # Debug/Release configuration
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
   target_compile_definitions(cevicp PRIVATE RELEASE_BUILD)
