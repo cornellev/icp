@@ -36,9 +36,10 @@ target_include_directories(cevicp
 
 # Main executable
 set(MAIN_SOURCES
-  src/main.cpp
-  src/sim/lidar_view.cpp
-  src/sim/view_config.cpp
+  vis/main.cpp
+  vis/lidar_view.cpp
+  vis/view_config.cpp
+  common/parse_scan.cpp
 )
 add_executable(main ${MAIN_SOURCES})
 target_link_libraries(main 
@@ -51,6 +52,8 @@ target_link_libraries(main
 target_include_directories(main 
   PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/vis
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
     ${EIGEN3_INCLUDE_DIRS}
     /usr/local/include/cmdapp
     /usr/local/include/config
@@ -68,6 +71,19 @@ target_include_directories(test_suite
     /usr/local/include/simple_test
 )
 target_compile_definitions(test_suite PRIVATE TEST)
+
+set(BENCH_SOURCES bench/bench.cpp common/parse_scan.cpp)
+add_executable(bench_suite ${BENCH_SOURCES})
+target_link_libraries(bench_suite
+  cevicp
+  libconfig.a
+)
+target_include_directories(bench_suite
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
+    /usr/local/include/config
+)
 
 # Debug/Release configuration
 if(CMAKE_BUILD_TYPE STREQUAL "Release")

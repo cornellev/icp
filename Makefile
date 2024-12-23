@@ -3,6 +3,7 @@ BUILD_DIR := build
 LIB_TARGET := cevicp
 MAIN_TARGET := main
 TEST_TARGET := test_suite
+BENCH_TARGET := bench_suite
 
 N := 1
 METHOD := vanilla
@@ -35,6 +36,10 @@ $(MAIN_TARGET): configure
 .PHONY: $(TEST_TARGET)
 $(TEST_TARGET): configure
 	cmake --build $(BUILD_DIR) --target $(TEST_TARGET) -- $(MAKE_FLAGS)
+
+.PHONY: $(BENCH_TARGET)
+$(BENCH_TARGET): configure
+	cmake --build $(BUILD_DIR) --target $(BENCH_TARGET) -- $(MAKE_FLAGS)
 	
 .PHONY: test
 test: $(TEST_TARGET)
@@ -42,11 +47,11 @@ test: $(TEST_TARGET)
 
 .PHONY: view
 view: $(MAIN_TARGET)
-	./$(BUILD_DIR)/$(MAIN_TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --gui
+	./$(BUILD_DIR)/$(MAIN_TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD)
 	
 .PHONY: bench
-bench: $(MAIN_TARGET)
-	./$(BUILD_DIR)/$(MAIN_TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD) --bench
+bench: $(BENCH_TARGET)
+	./$(BUILD_DIR)/$(BENCH_TARGET)
 
 .PHONY: clean
 clean: configure
@@ -60,6 +65,9 @@ install: configure $(LIB_TARGET)
 uninstall: configure
 	cmake --build $(BUILD_DIR) --target uninstall
 
+INCLUDE_DIR := include
+LIB_DIR := lib
+VIS_DIR := vis
 SCRIPT_DIR := script
 RUN_SCRIPT := cd $(SCRIPT_DIR); uv venv; source .venv/bin/activate; uv sync; python3
 
@@ -70,7 +78,7 @@ docs:
 
 .PHONY: cloc
 cloc:
-	cloc $(INCLUDE_DIR) $(LIB_DIR) $(SRC_DIR) --include-lang=c++,"c/c++ header" --by-file
+	cloc $(INCLUDE_DIR) $(LIB_DIR) $(VIS_DIR) --include-lang=c++,"c/c++ header" --by-file
 
 .PHONY: math
 math:
