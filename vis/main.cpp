@@ -220,7 +220,6 @@ int main(int argc, const char** argv) {
         view_config::use_light_mode = true;
     }
 
-    icp::ICP::register_builtin_methods();
     std::optional<std::unique_ptr<icp::ICP>> icp_opt = icp::ICP::from_method(method);
 
     if (!icp_opt.has_value()) {

@@ -128,14 +128,13 @@ namespace icp {
         /** The current transform. */
         const RBTransform& current_transform() const;
 
-        /** Registers methods built into `libcevicp`. Must be called before constructing ICP
-         * instances for built-in methods. */
-        static void register_builtin_methods();
-
         /** Registers a new ICP method that can be created with `constructor`,
          * returning `false` if `name` has already been registered. */
         static bool register_method(std::string name,
             std::function<std::unique_ptr<ICP>(const Config&)> constructor);
+
+        /** Returns `true` if the ICP method `name` is registered. */
+        static bool is_method_registered(std::string name);
 
         /** Returns a current list of the names of currently registered ICP
          * methods. */
@@ -150,5 +149,23 @@ namespace icp {
          */
         static std::optional<std::unique_ptr<ICP>> from_method(std::string name,
             const Config& params = Config());
+
+    private:
+        struct Methods {
+            std::vector<std::string> registered_method_names;
+            std::vector<std::function<std::unique_ptr<ICP>(const ICP::Config&)>>
+                registered_method_constructors;
+        };
+
+        static Methods global;
+        static bool builtins_registered;
+
+        /** Registers methods built into `libcevicp`. Called automatically such that builtins will
+         * always appear registered to users. */
+        static void ensure_builtins_registered();
+
+        /** Internal method registration that doesn't do any checks. */
+        static void register_method_internal(std::string name,
+            std::function<std::unique_ptr<ICP>(const Config&)> constructor);
     };
 }

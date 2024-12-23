@@ -78,8 +78,6 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
 void test_main() {
     test_kdtree();
 
-    icp::ICP::register_builtin_methods();
-
     test_icp_generic("vanilla", icp::ICP::Config());
 
     icp::ICP::Config trimmed_config;
