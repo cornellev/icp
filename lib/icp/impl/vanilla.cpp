@@ -12,6 +12,7 @@
 #include "icp/impl/vanilla.h"
 
 /* #name Vanilla */
+/* #register vanilla */
 
 /* #desc The vanilla algorithm for ICP will match the point-cloud centers
 exactly and then iterate until an optimal rotation has been found. */

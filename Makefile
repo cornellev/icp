@@ -73,7 +73,7 @@ RUN_SCRIPT := cd $(SCRIPT_DIR); uv venv; source .venv/bin/activate; uv sync; pyt
 
 .PHONY: docs 
 docs:
-	$(RUN_SCRIPT) icp_doc_builder.py ../lib/icp ../book/icp_descr/ ../book/main.md
+	$(RUN_SCRIPT) icp_doc_builder.py ../$(LIB_DIR)/icp ../book/icp_descr/ ../book/main.md
 	doxygen
 
 .PHONY: cloc
