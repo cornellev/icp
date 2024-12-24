@@ -3,6 +3,7 @@
 #include <Eigen/Dense>
 
 /* #name Feature-Aware */
+/* #register feature_aware */
 
 /* #desc Builds on top of \ref trimmed_icp. In addition to matching points based on a point-to-point
 distance criteria, matches them based on a local "feature vector."

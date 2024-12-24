@@ -11,9 +11,8 @@
 
 #include "icp/impl/trimmed.h"
 
-// TODO: should these docs be moved to the headers?
-
 /* #name Trimmed */
+/* #register trimmed */
 
 /* #desc Trimmed ICP is identical to \ref vanilla_icp with the addition of an
 overlap rate parameter, which specifies the percentage of points between the two

@@ -56,14 +56,6 @@ class ICPDocumentationBuilder:
         self.out_dir = out_dir
         self.main_file = main_file
         self.all_sources = set()
-        self.registration_names = dict()
-
-    def get_registration_names(self, contents):
-        pattern = r'register_method\(\s*"([^"]+)"\s*,\s*\[.*?\(const\s+ICP::Config&\s+config\).*?\{\s*return\s+std::make_unique<([^>]+)>'
-        matches = re.findall(pattern, contents, re.DOTALL)
-        for method_name, class_name in matches:
-            self.registration_names[class_name] = method_name
-        pass
 
     def extract(self, file, contents):
         """
@@ -77,20 +69,11 @@ class ICPDocumentationBuilder:
             The contents of the file.
         """
 
-        def extract_class_name(contents):
-            pattern = r"(\w+)::(\1)\("
-            for line in contents.split("\n"):
-                match = re.search(pattern, line)
-                if match:
-                    return match.group(1)
-            return None
-
         pattern = r"/\*\s*(#step|#name|#desc)(.*?)\*/"
         comments = re.findall(pattern, contents, re.DOTALL)
         if not comments:
             return
         md_filename = "icp_" + change_extension(file, "md")
-        class_name = extract_class_name(contents)
         made_description = False
         with open(self.out_dir + "/" + md_filename, "w") as md_file:
             step_cnt = 1
@@ -108,18 +91,24 @@ class ICPDocumentationBuilder:
                 )
                 self.all_sources.update(sources)
                 if kind == "#name":
-                    method_name = self.registration_names[class_name]
                     doxygen_ref = f"{comment_text.lower()}_icp".replace("-", "_")
                     md_file.write(f"\\page {doxygen_ref} {comment_text} ICP\n")
+
+                    register_pattern = r"/\*\s*#register(.*?)\*/"
+                    registers = re.findall(register_pattern, contents, re.DOTALL)
+                    assert len(registers) == 1
+                    register_name = registers[0].strip()
+
                     conf_pattern = r'/\*\s*#conf\s+"([^"]*)"\s+(.*?)\*/'
                     confs = re.findall(conf_pattern, contents, re.DOTALL)
+
                     if not confs:
                         md_file.write(
-                            f'\\par Usage\nYou can construct a new instance of {comment_text} ICP with `icp::ICP::from_method("{method_name}")`.'
+                            f'\\par Usage\nYou can construct a new instance of {comment_text} ICP with `icp::ICP::from_method("{register_name}")`.'
                         )
                     else:
                         md_file.write(
-                            f'\\par Usage\nYou can construct a new instance of {comment_text} ICP with `icp::ICP::from_method("{method_name}", config)`. Supply the following parameters to `config` (via icp::ICP::Config::set):\n'
+                            f'\\par Usage\nYou can construct a new instance of {comment_text} ICP with `icp::ICP::from_method("{register_name}", config)`. Supply the following parameters to `config` (via icp::ICP::Config::set):\n'
                         )
                         md_file.write("\nKey | Description\n--- | ---\n")
                         for key, descr in confs:
@@ -191,11 +180,6 @@ class ICPDocumentationBuilder:
         """
         Searches for source files in the search directory and extracts their documentation.
         """
-        for root, _, files in os.walk(self.search_dir):
-            for file in files:
-                if file.endswith(".cpp"):
-                    with open(os.path.join(root, file), "r") as f:
-                        self.get_registration_names(f.read())
         doxygen_refs = []
         for root, _, files in os.walk(self.search_dir):
             for file in files:
