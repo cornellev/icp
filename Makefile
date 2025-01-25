@@ -30,7 +30,7 @@ INSTALL_NAME := cev_icp
 
 MAIN_SRC := $(shell find $(SRC_DIR) -name "*.cpp" -type f)
 MAIN_INCLUDE := $(shell sdl2-config --cflags) \
-				-I/usr/include/eigen3 \
+				-I/opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3 \
 				-I/usr/local/include/cmdapp \
 				-I/usr/local/include/config \
 				-I/usr/local/include/sdlwrapper
@@ -44,7 +44,7 @@ $(MAIN_NAME): CFLAGS += $(MAIN_INCLUDE)
 $(MAIN_NAME): LDFLAGS += $(MAIN_LD)
 
 TEST_SRC := $(shell find $(TEST_DIR) -name "*.cpp" -type f)
-TEST_INCLUDE := -I/usr/include/eigen3 \
+TEST_INCLUDE := -I/opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3 \
 				-I/usr/local/include/simple_test
 TEST_OBJ := $(TEST_SRC:.cpp=.o)
 TEST_DEPS := $(TEST_OBJ:.o=.d)
@@ -56,7 +56,7 @@ $(TEST_NAME): CFLAGS += -DTEST
 -include $(TEST_DEPS)
 
 N := 3
-METHOD := feature_aware
+METHOD := trimmed
 
 ifeq ($(shell uname), Darwin)
 AR := /usr/bin/libtool

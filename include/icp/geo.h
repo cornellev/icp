@@ -31,6 +31,11 @@ namespace icp {
         Vector apply_to(Vector v) const {
             return rotation * v + translation;
         }
+        RBTransform compose(const RBTransform& other) const {
+            Eigen::Matrix2d new_rotation = this->rotation * other.rotation;
+            Eigen::Vector2d new_translation = this->rotation * other.translation + this->translation;
+            return RBTransform(new_translation, new_rotation);
+        }
 
         std::string to_string() const {
             std::stringstream stream;

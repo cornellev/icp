@@ -22,8 +22,12 @@ namespace icp {
     Vanilla::~Vanilla() {}
 
     void Vanilla::setup() {
-        a_current.resize(a.size());
+        a_current.resize(a.size());//make function in icp
         b_cm = get_centroid(b);
+
+        for (size_t i = 0; i < a.size(); i++) {
+            a_current[i] = transform.apply_to(a[i]);
+        }
 
         compute_matches();
     }
@@ -91,7 +95,7 @@ namespace icp {
             R = V * U.transpose();
         }
 
-        transform.rotation = R * transform.rotation;
+        //transform.rotation = R * transform.rotation;
 
         /*
             #step
@@ -105,23 +109,28 @@ namespace icp {
             https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
             https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
          */
-        transform.translation += b_cm - R * a_current_cm;
+        //transform.translation = R * transform.translation + b_cm - R * a_current_cm;
+
+        Vector translation_update = b_cm - R * a_current_cm;
+        RBTransform update_transform(translation_update, R);
+        transform = transform.compose(update_transform);
     }
-}
 
-void icp::Vanilla::compute_matches() {
-    const size_t n = a.size();
-    const size_t m = b.size();
+    void Vanilla::compute_matches() {
+        const size_t n = a.size();
+        const size_t m = b.size();
 
-    for (size_t i = 0; i < n; i++) {
-        matches[i].cost = std::numeric_limits<double>::infinity();
-        for (size_t j = 0; j < m; j++) {
-            // Point-to-point matching
-            double dist_ij = (b[j] - a_current[i]).squaredNorm();
+        for (size_t i = 0; i < n; i++) {
+            matches[i].point = i;
+            matches[i].cost = std::numeric_limits<double>::infinity();
+            for (size_t j = 0; j < m; j++) {
+                // Point-to-point matching
+                double dist_ij = (b[j] - a_current[i]).squaredNorm();
 
-            if (dist_ij < matches[i].cost) {
-                matches[i].cost = dist_ij;
-                matches[i].pair = j;
+                if (dist_ij < matches[i].cost) {
+                    matches[i].cost = dist_ij;
+                    matches[i].pair = j;
+                }
             }
         }
     }

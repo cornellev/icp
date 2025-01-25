@@ -92,7 +92,7 @@ namespace icp {
         transform.rotation = R * transform.rotation;
 
         /* #step Transformation Step: see \ref vanilla_icp for details. */
-        transform.translation += trimmed_b_cm - R * trimmed_cm;
+        transform.translation = R * transform.translation + trimmed_b_cm - R * trimmed_cm;
     }
 
     void FeatureAware::compute_matches() {
