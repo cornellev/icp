@@ -52,4 +52,8 @@ jobs:
       - name: Run benchmarks
         run: |
           otool -L ./build/bench_suite
+          otool -L ./build/main
+          echo $LIBRARY_PATH
+          echo $LD_LIBRARY_PATH
+          echo $DYLD_LIBRARY_PATH
           make bench OPT=Release CI=ON
