@@ -52,10 +52,7 @@ jobs:
         run: make test OPT=Release CI=ON
       - name: Run benchmarks
         run: |
-          xcode-select --install
-          otool -L ./build/bench_suite
-          otool -L ./build/main
           echo $LIBRARY_PATH
           echo $LD_LIBRARY_PATH
           echo $DYLD_LIBRARY_PATH
-          make bench OPT=Release CI=ON
+          DYLD_LIBRARY_PATH=/usr/local/lib make bench OPT=Release CI=ON
