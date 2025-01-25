@@ -16,6 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: apt update
+        if: ${{ contains(matrix.os, 'ubuntu') }}
         run: sudo apt-get update
       - name: Install Eigen
         run: ${{ contains(matrix.os, 'macos') && 'brew install eigen'|| 'sudo apt-get install libeigen3-dev' }}
