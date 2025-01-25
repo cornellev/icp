@@ -43,16 +43,10 @@ jobs:
           cd simple-test
           sudo make install
       - name: Build all
-        run: |
-          export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-          make OPT=Release CI=ON
+        run: make OPT=Release CI=ON
       - name: Run tests
-        run: |
-          export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-          make test OPT=Release CI=ON
+        run: make test OPT=Release CI=ON
       - name: Run benchmarks
         run: |
-          export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-          echo $LD_LIBRARY_PATH
-          ls /usr/local/lib
           make bench OPT=Release CI=ON
+          ldd ./build/bench_suite
