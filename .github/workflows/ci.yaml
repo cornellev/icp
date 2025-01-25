@@ -51,6 +51,7 @@ jobs:
         run: make test OPT=Release CI=ON
       - name: Run benchmarks
         run: |
+          xcode-select --install
           otool -L ./build/bench_suite
           otool -L ./build/main
           echo $LIBRARY_PATH
