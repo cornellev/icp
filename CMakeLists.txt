@@ -6,13 +6,14 @@ set(PROJECT_VERSION 1.3.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Add compile options
+add_compile_options(-Wall -Wextra -pedantic)
+
 option(CI "CI build" OFF)
 if(CI)
   set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+  add_compile_options(-Wno-error=unused-function)
 endif()
-
-# Add compile options
-add_compile_options(-Wall -Wextra -pedantic)
 
 # Find dependencies
 find_package(Eigen3 REQUIRED)
