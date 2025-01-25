@@ -20,6 +20,7 @@ find_package(Eigen3 REQUIRED)
 find_package(SDL2 REQUIRED)
 
 include_directories(/usr/local/include)
+link_directories(/usr/local/lib)
 
 # Library target
 set(LIB_SOURCES
