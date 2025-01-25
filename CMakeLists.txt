@@ -57,9 +57,11 @@ add_executable(main ${MAIN_SOURCES})
 target_link_libraries(main 
   cevicp
   SDL2::SDL2
-  libcmdapp.a
-  libsdlwrapper.a
-  libconfig.a
+  -Wl,-Bstatic
+  libcmdapp
+  libsdlwrapper
+  libconfig
+  -Wl,-Bdynamic
 )
 target_include_directories(main 
   PRIVATE 
@@ -88,7 +90,9 @@ set(BENCH_SOURCES bench/bench.cpp common/parse_scan.cpp)
 add_executable(bench_suite ${BENCH_SOURCES})
 target_link_libraries(bench_suite
   cevicp
-  libconfig.a
+  -Wl,-Bstatic
+  libconfig
+  -Wl,-Bdynamic
 )
 target_include_directories(bench_suite
   PRIVATE
