@@ -48,5 +48,7 @@ jobs:
         run: make test OPT=Release CI=ON
       - name: Run benchmarks
         run: |
-          ldd ./build/bench_suite
+          export DYLD_PRINT_LIBRARIES=1
+          export DYLD_PRINT_LIBRARIES_POST_LAUNCH=1
+          export DYLD_PRINT_RPATHS=1
           make bench OPT=Release CI=ON
