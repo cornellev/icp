@@ -8,16 +8,19 @@ on:
 
 jobs:
   build_test_bench:
-    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-22.04-arm, macos-latest, macos-13]
+    runs-on: ${{matrix.os}}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: apt update
         run: sudo apt-get update
       - name: Install Eigen
-        run: sudo apt-get install libeigen3-dev
+        run: ${{ contains(matrix.os, 'macos') && 'brew install eigen'|| 'sudo apt-get install libeigen3-dev' }}
       - name: Install SDL2
-        run: sudo apt-get install libsdl2-dev
+        run: ${{ contains(matrix.os, 'macos') && 'brew install SDL2'|| 'sudo apt-get install libsdl2-dev' }}
       - name: Install sdl-wrapper
         run: |
           git clone https://github.com/cornellev/sdl-wrapper.git

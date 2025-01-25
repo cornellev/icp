@@ -18,6 +18,8 @@ add_compile_options(-Wall -Wextra -pedantic)
 find_package(Eigen3 REQUIRED)
 find_package(SDL2 REQUIRED)
 
+include_directories(/usr/local/include)
+
 # Library target
 set(LIB_SOURCES
   lib/algo/kdtree.cpp
@@ -85,7 +87,6 @@ target_include_directories(bench_suite
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/common
-    /usr/local/include/config
 )
 
 # Debug/Release configuration
@@ -97,47 +98,49 @@ else()
 endif()
 
 # Installation
-include(CMakePackageConfigHelpers)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/cevicp)
+if (TARGET install)
+  include(CMakePackageConfigHelpers)
+  set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/cevicp)
 
-# Generate the CevIcpConfigVersion.cmake file
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfigVersion.cmake
-  VERSION ${PROJECT_VERSION}
-  COMPATIBILITY AnyNewerVersion
-)
+  # Generate the CevIcpConfigVersion.cmake file
+  write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+  )
 
-# Generate the CevIcpConfig.cmake file
-configure_package_config_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/CevIcpConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfig.cmake
-  INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
-)
+  # Generate the CevIcpConfig.cmake file
+  configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/CevIcpConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfig.cmake
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
+  )
 
-# Install the targets and export them
-install(TARGETS cevicp
-  EXPORT CevIcpTargets
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
-install(EXPORT CevIcpTargets
-  FILE CevIcpTargets.cmake
-  NAMESPACE CEV::
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
+  # Install the targets and export them
+  install(TARGETS cevicp
+    EXPORT CevIcpTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+  install(EXPORT CevIcpTargets
+    FILE CevIcpTargets.cmake
+    NAMESPACE CEV::
+    DESTINATION ${INSTALL_CONFIGDIR}
+  )
 
-# Install headers
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cev_icp
-  FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-)
+  # Install headers
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cev_icp
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+  )
 
-# Install configuration files
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfig.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfigVersion.cmake
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
+  # Install configuration files
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfigVersion.cmake
+    DESTINATION ${INSTALL_CONFIGDIR}
+  )
+endif()
 
 # Per https://gitlab.kitware.com/cmake/community/-/wikis/FAQ#can-i-do-make-uninstall-with-cmake
 # uninstall target
