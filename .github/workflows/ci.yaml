@@ -20,7 +20,7 @@ jobs:
         run: sudo apt-get update
       - name: brew update
         if: ${{ contains(matrix.os, 'macos') }}
-        run: brew update && brew upgrade
+        run: brew update
       - name: Install Eigen
         run: ${{ contains(matrix.os, 'macos') && 'brew install eigen'|| 'sudo apt-get install libeigen3-dev' }}
       - name: Install SDL2

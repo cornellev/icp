@@ -12,7 +12,8 @@ add_compile_options(-Wall -Wextra -pedantic)
 option(CI "CI build" OFF)
 if(CI)
   set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
-  add_compile_options(-Wno-error=unused-function)
+  # simple_test, eigen
+  add_compile_options(-Wno-error=unused-function -Wno-error=class-memaccess)
 endif()
 
 # Find dependencies
