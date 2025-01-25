@@ -15,6 +15,7 @@ _temp
 *.gz
 book/icp_descr
 build/
+.cache/
 .vscode/*
 !.vscode/launch.json
 !.vscode/tasks.json

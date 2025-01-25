@@ -43,7 +43,9 @@ jobs:
           cd simple-test
           sudo make install
       - name: Build all
-        run: make OPT=Release CI=ON
+        run: |
+          ls /usr/local/include
+          make OPT=Release CI=ON
       - name: Run tests
         run: make test OPT=Release CI=ON
       - name: Run benchmarks
