@@ -5,7 +5,6 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <random>
 #include <sdlwrapper/util/logger.h>
 #include <sdlwrapper/util/keyboard.h>
 #include <sdlwrapper/geo/midpoint.h>
@@ -23,10 +22,6 @@ LidarView::LidarView(std::vector<icp::Vector> source, std::vector<icp::Vector> d
       is_iterating(false),
       iterations(0) {
     this->icp->begin(source, destination, icp::RBTransform());
-}
-
-LidarView::~LidarView() noexcept {
-    icp.release();
 }
 
 void LidarView::step() {
