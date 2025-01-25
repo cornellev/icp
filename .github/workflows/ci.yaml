@@ -53,4 +53,5 @@ jobs:
       - name: Run benchmarks
         run: |
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+          echo $LD_LIBRARY_PATH
           make bench OPT=Release CI=ON
