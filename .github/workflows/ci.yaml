@@ -51,4 +51,4 @@ jobs:
       - name: Run tests
         run: make test OPT=Release CI=ON
       - name: Run benchmarks
-        run: LIBRARY_PATH=/usr/local/lib make bench OPT=Release CI=ON
+        run: DYLD_LIBRARY_PATH=/usr/local/lib make bench OPT=Release CI=ON
