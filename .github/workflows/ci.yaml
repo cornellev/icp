@@ -48,5 +48,5 @@ jobs:
         run: make test OPT=Release CI=ON
       - name: Run benchmarks
         run: |
-          make bench OPT=Release CI=ON
           ldd ./build/bench_suite
+          make bench OPT=Release CI=ON
