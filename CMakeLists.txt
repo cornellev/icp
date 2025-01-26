@@ -108,13 +108,6 @@ endif()
 include(CMakePackageConfigHelpers)
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/cevicp)
 
-# Generate the CevIcpConfigVersion.cmake file
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfigVersion.cmake
-  VERSION ${PROJECT_VERSION}
-  COMPATIBILITY AnyNewerVersion
-)
-
 # Generate the CevIcpConfig.cmake file
 configure_package_config_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/CevIcpConfig.cmake.in
@@ -122,16 +115,27 @@ configure_package_config_file(
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
+# Generate the CevIcpConfigVersion.cmake file
+write_basic_package_version_file(
+  CevIcpConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+
+export(TARGETS cevicp NAMESPACE CevIcp FILE CevIcpTargets.cmake)
+
+export(PACKAGE CevIcp)
+
 # Install the targets and export them
+install(EXPORT CevIcpTargets
+  NAMESPACE CevIcp::
+  DESTINATION ${INSTALL_CONFIGDIR}
+)
+
 install(TARGETS cevicp
   EXPORT CevIcpTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
-install(EXPORT CevIcpTargets
-  FILE CevIcpTargets.cmake
-  NAMESPACE CEV::
-  DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 # Install headers
