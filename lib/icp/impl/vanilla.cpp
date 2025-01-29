@@ -8,6 +8,7 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Dense>
+#include "icp/geo.h"
 
 #include "icp/impl/vanilla.h"
 
@@ -92,21 +93,21 @@ namespace icp {
             R = V * U.transpose();
         }
 
-        transform.rotation = R * transform.rotation;
-
         /*
-            #step
-            Transformation Step: determine optimal transformation.
+           #step
+           Transformation Step: determine optimal transformation.
 
-            The translation vector is determined by the displacement between
-            the centroids of both point clouds. The rotation matrix is
-            calculated via singular value decomposition.
+           The translation vector is determined by the displacement between
+           the centroids of both point clouds. The rotation matrix is
+           calculated via singular value decomposition.
 
-            Sources:
-            https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
-            https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
-         */
-        transform.translation += b_cm - R * a_current_cm;
+           Sources:
+           https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
+           https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
+        */
+        RBTransform step(b_cm - R * a_current_cm, R);
+
+        transform = transform.and_then(step);
     }
 }
 

@@ -9,7 +9,6 @@
 #include <cmath>
 #include <sstream>
 #include <Eigen/Core>
-#include <iostream>
 
 namespace icp {
     using Vector = Eigen::Vector2d;
@@ -30,6 +29,11 @@ namespace icp {
 
         Vector apply_to(Vector v) const {
             return rotation * v + translation;
+        }
+
+        RBTransform and_then(RBTransform next) {
+            return RBTransform(next.rotation * this->translation + next.translation,
+                next.rotation * this->rotation);
         }
 
         std::string to_string() const {

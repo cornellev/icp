@@ -89,10 +89,10 @@ namespace icp {
             R = V * U.transpose();
         }
 
-        transform.rotation = R * transform.rotation;
-
         /* #step Transformation Step: see \ref vanilla_icp for details. */
-        transform.translation += trimmed_b_cm - R * trimmed_cm;
+        RBTransform step(trimmed_b_cm - R * trimmed_cm, R);
+
+        transform = transform.and_then(step);
     }
 
     void Trimmed::compute_matches() {

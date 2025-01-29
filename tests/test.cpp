@@ -1,4 +1,5 @@
 // Copyright (C) 2024 Ethan Uppal. All rights reserved.
+#include <iostream>
 
 extern "C" {
 #include <simple_test/simple_test.h>
