@@ -17,8 +17,8 @@
 exactly and then iterate until an optimal rotation has been found. */
 
 namespace icp {
-    Vanilla::Vanilla([[maybe_unused]] const Config& config): ICP() {}
-    Vanilla::Vanilla(): ICP() {}
+    Vanilla::Vanilla([[maybe_unused]] const Config& config): ICP(2) {}
+    Vanilla::Vanilla(): ICP(2) {}
     Vanilla::~Vanilla() {}
 
     void Vanilla::setup() {
@@ -66,7 +66,7 @@ namespace icp {
             Sources:
             https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
         */
-        Matrix N = Matrix::Zero();
+        Matrix N = Matrix::Zero(2,2);
         for (size_t i = 0; i < n; i++) {
             N += (a_current[i] - a_current_cm) * (b[matches[i].pair] - b_cm).transpose();
         }

@@ -10,7 +10,11 @@ namespace icp {
         const std::vector<Vector>& b, RBTransform t) {
         icp_->begin(a, b, t);
 
-        ConvergenceState state{};
+        //ConvergenceState state{};
+
+        size_t dimension = a[0].size(); 
+        ConvergenceState state(dimension);
+
         state.iteration_count = 0;
         state.cost = icp_->calculate_cost();
         state.transform = icp_->current_transform();

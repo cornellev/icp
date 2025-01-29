@@ -8,7 +8,8 @@
 
 namespace icp {
     Vector get_centroid(const std::vector<Vector>& points) {
-        Vector sum = Vector::Zero();
+        int dim = points.empty() ? 0 : points[0].size();
+        Vector sum = Vector::Zero(dim);
         for (const Vector& point: points) {
             sum += point;
         }

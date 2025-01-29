@@ -11,6 +11,7 @@
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
 #include "icp/impl/feature_aware.h"
+#include "icp/impl/vanilla_3d.h"
 
 namespace icp {
     struct Methods {
@@ -71,6 +72,8 @@ namespace icp {
             [](const ICP::Config& config) { return std::make_unique<Trimmed>(config); });
         register_method("feature_aware",
             [](const ICP::Config& config) { return std::make_unique<FeatureAware>(config); });
+        register_method("vanilla_3d",
+            [](const ICP::Config& config) { return std::make_unique<Vanilla_3d>(config); });
     }
 
     bool ICP::register_method(std::string name,

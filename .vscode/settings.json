@@ -109,6 +109,7 @@
         "strstream": "cpp",
         "source_location": "cpp",
         "stdfloat": "cpp",
-        "dense": "cpp"
+        "dense": "cpp",
+        "execution": "cpp"
     }
 }

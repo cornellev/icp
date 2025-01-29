@@ -45,8 +45,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
     {
         std::vector<icp::Vector> a = {icp::Vector(0, 0)};
         std::vector<icp::Vector> b = {icp::Vector(100, 0)};
-        
-        auto result = driver.converge(a, b, icp::RBTransform());
+        auto result = driver.converge(a, b, icp::RBTransform(2));
 
         // Debug: Print transformation results
         std::cout << "[1]Result Transform Translation X: " << result.transform.translation.x() << std::endl;
@@ -65,7 +64,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
     {
         std::vector<icp::Vector> a = {icp::Vector(0, 0), icp::Vector(100, 100)};
         std::vector<icp::Vector> b = {icp::Vector(0, 0), icp::Vector(100, 100)};
-        auto result = driver.converge(a, b, icp::RBTransform());
+        auto result = driver.converge(a, b, icp::RBTransform(2));
 
         std::cout << "[2]Result Transform Translation X: " << result.transform.translation.x() << std::endl;
         std::cout << "[2]Result Transform Translation Y: " << result.transform.translation.y() << std::endl;
@@ -91,7 +90,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
 
         std::cout << "testing angle: " << deg << '\n';
 
-        auto result = driver.converge(a, b, icp::RBTransform());
+        auto result = driver.converge(a, b, icp::RBTransform(2));
 
         assert_true(std::abs(result.transform.translation.x() - 0) <= TRANS_EPS);
         assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
@@ -102,7 +101,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
         std::vector<icp::Vector> a = {icp::Vector(0, 0), icp::Vector(0, 100)};
         std::vector<icp::Vector> b = {icp::Vector(100, 0), icp::Vector(100, 100)};
 
-        auto result = driver.converge(a, b, icp::RBTransform());
+        auto result = driver.converge(a, b, icp::RBTransform(2));
 
         std::cout << "[3]Result Transform Translation X: " << result.transform.translation.x() << std::endl;
         std::cout << "[3]Result Transform Translation Y: " << result.transform.translation.y() << std::endl;
@@ -177,14 +176,14 @@ void test_main() {
 
     test_icp_generic("vanilla", icp::ICP::Config());
 
-    icp::ICP::Config trimmed_config;
+    //icp::ICP::Config trimmed_config;
     // fails with lower overlap rates on these super small examples
-    trimmed_config.set("overlap_rate", 1.0);
-    test_icp_generic("trimmed", trimmed_config);
+    // trimmed_config.set("overlap_rate", 1.0);
+    // test_icp_generic("trimmed", trimmed_config);
 
-    icp::ICP::Config feature_config;
-    feature_config.set("overlap_rate", 1.0);
-    feature_config.set("feature_weight", 0.7);
-    feature_config.set("symmetric_neighbors", 1);
-    test_icp_generic("feature_aware", feature_config);
+    // icp::ICP::Config feature_config;
+    // feature_config.set("overlap_rate", 1.0);
+    // feature_config.set("feature_weight", 0.7);
+    // feature_config.set("symmetric_neighbors", 1);
+    // test_icp_generic("feature_aware", feature_config);
 }

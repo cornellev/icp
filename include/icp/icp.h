@@ -46,8 +46,12 @@ namespace icp {
      */
     class ICP {
     protected:
+        //the dimension of icp(only 2 and 3 are legal)
+        int dimension;
+
         /** A matching between `point` and `pair` at (arbitrary) cost `cost`.  */
         struct Match {
+            //need to be fix for xd?
             size_t point;
             size_t pair;
             double cost;
@@ -65,7 +69,35 @@ namespace icp {
         /** The pairing of each point in `a` to its closest in `b`. */
         std::vector<Match> matches;
 
+        // Use matrix to represent the point clouds instead of set of vectors
+        Eigen::MatrixXd A;  //a_matrix
+        Eigen::MatrixXd B;  //b_matrix
+
+        void convert_a_to_matrix() {
+            A.resize(a.size(), dimension);
+            for (size_t i = 0; i < a.size(); ++i) {
+            for (int j = 0; j < dimension; ++j) {
+                A(i, j) = a[i][j];
+            }
+            }
+        }
+
+        void convert_b_to_matrix() {
+            B.resize(b.size(), dimension);
+            for (size_t i = 0; i < b.size(); ++i) {
+            for (int j = 0; j < dimension; ++j) {
+                B(i, j) = b[i][j];
+            }
+            }
+        }
+
         ICP();
+        
+        ICP(int dim) : dimension(dim), transform(RBTransform(dim)) {
+            if (dimension != 2 && dimension != 3) {
+                throw std::invalid_argument("Dimension must be 2 or 3");
+            }
+        }
 
         /**
          * @brief Per-method setup code.
