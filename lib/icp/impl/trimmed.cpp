@@ -73,7 +73,7 @@ namespace icp {
         icp::Vector trimmed_b_cm = get_centroid(trimmed_b);
 
         /* #step SVD: see \ref vanilla_icp for details. */
-        Matrix N = Matrix::Zero();
+        Matrix N = Matrix::Zero(2,2);
         for (size_t i = 0; i < new_n; i++) {
             N += (trimmed_current[i] - trimmed_cm) * (trimmed_b[i] - trimmed_b_cm).transpose();
         }

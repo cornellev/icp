@@ -11,6 +11,7 @@
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
 #include "icp/impl/feature_aware.h"
+#include "icp/impl/vanilla_3d.h"
 
 namespace icp {
     ICP::ICP() {}
@@ -32,8 +33,10 @@ namespace icp {
         setup();
     }
 
+    // this is also relying on previous match data right now...
     double ICP::calculate_cost() const {
         double sum_squares{};
+        // double sum_squares = 0.0;
         for (auto& match: matches) {
             sum_squares += match.cost;
         }
@@ -42,6 +45,14 @@ namespace icp {
 
     const RBTransform& ICP::current_transform() const {
         return transform;
+    }
+
+    const std::vector<ICP::Match>& ICP::get_matches() const {
+        return matches;
+    }
+
+    int ICP::dimensionality() const {
+        return dim;
     }
 
     ICP::Methods ICP::global;
@@ -100,6 +111,8 @@ namespace icp {
             [](const ICP::Config& config) { return std::make_unique<Trimmed>(config); });
         register_method_internal("feature_aware",
             [](const ICP::Config& config) { return std::make_unique<FeatureAware>(config); });
+        register_method_internal("vanilla_3d",
+            [](const ICP::Config& config) { return std::make_unique<Vanilla_3d>(config); });
 
         builtins_registered = true;
     }

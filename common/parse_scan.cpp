@@ -17,7 +17,7 @@ void parse_scan_var(const char* var, const char* data, void* user_data) {
         double angle = scan->angle_min + index * scan->angle_increment;
         double range = strtod(data, NULL);
         if (range >= scan->range_min && range <= scan->range_max) {
-            scan->points.push_back(icp::Vector(100 * range * std::cos(angle),
+            scan->points.push_back(Eigen::Vector2d(100 * range * std::cos(angle),
                 100 * range * std::sin(angle)));
         }
     }

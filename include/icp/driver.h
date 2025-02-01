@@ -21,6 +21,7 @@ namespace icp {
 
             /** The transform. */
             RBTransform transform;
+            ConvergenceState(int dim) : transform(dim) {}
         };
 
         /**
