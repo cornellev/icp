@@ -1,5 +1,5 @@
 /*
- * 
+ *
  */
 
 #include <numeric>
@@ -24,39 +24,39 @@ namespace icp {
     Vanilla_3d::~Vanilla_3d() {}
 
     // Euclidean distance between two points
-    float Vanilla_3d::dist(const Eigen::Vector3d &pta, const Eigen::Vector3d &ptb) {
-    return (pta - ptb).norm();
+    float Vanilla_3d::dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb) {
+        return (pta - ptb).norm();
     }
 
-    
     // Find the nearest neighbor
-    NEIGHBOR Vanilla_3d::nearest_neighbor(const Eigen::MatrixXd &src, const Eigen::MatrixXd &dst) {
+    NEIGHBOR Vanilla_3d::nearest_neighbor(const Eigen::MatrixXd& src, const Eigen::MatrixXd& dst) {
         int row_src = src.rows();
         int row_dst = dst.rows();
         NEIGHBOR neigh;
 
         for (int i = 0; i < row_src; i++) {
             Eigen::Vector3d pta = src.row(i).transpose();
-            float min_dist = std::__1::numeric_limits<float>::max();
+            float min_dist = std::numeric_limits<float>::max();
             int index = 0;
 
             for (int j = 0; j < row_dst; j++) {
-            Eigen::Vector3d ptb = dst.row(j).transpose();
-            float d = dist(pta, ptb);
-            if (d < min_dist) {
-                min_dist = d;
-                index = j;
+                Eigen::Vector3d ptb = dst.row(j).transpose();
+                float d = dist(pta, ptb);
+                if (d < min_dist) {
+                    min_dist = d;
+                    index = j;
+                }
             }
+
+            neigh.distances.push_back(min_dist);
+            neigh.indices.push_back(index);
         }
 
-        neigh.distances.push_back(min_dist);
-        neigh.indices.push_back(index);
+        return neigh;
     }
 
-    return neigh;
-    }
-
-    Eigen::Matrix4d Vanilla_3d::best_fit_transform(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
+    Eigen::Matrix4d Vanilla_3d::best_fit_transform(const Eigen::MatrixXd& A,
+        const Eigen::MatrixXd& B) {
         Eigen::Vector3d centroid_A = A.colwise().mean();
         Eigen::Vector3d centroid_B = B.colwise().mean();
 
@@ -78,11 +78,10 @@ namespace icp {
 
         Eigen::MatrixXd T = Eigen::MatrixXd::Identity(A.cols() + 1, A.cols() + 1);
 
-        T.block<3,3>(0,0) = R;
-        T.block<3,1>(0, A.cols()) = t;
+        T.block<3, 3>(0, 0) = R;
+        T.block<3, 1>(0, A.cols()) = t;
         return T;
     }
-
 
     void Vanilla_3d::setup() {
         C = A;
@@ -90,14 +89,14 @@ namespace icp {
 
     void Vanilla_3d::iterate() {
         int row = A.rows();
-        
+
         // Reorder target point set based on nearest neighbor
         NEIGHBOR neighbor = nearest_neighbor(C, B);
         Eigen::MatrixXd dst_reordered(row, 3);
         for (int i = 0; i < row; i++) {
             dst_reordered.row(i) = B.row(neighbor.indices[i]);
         }
-        
+
         Eigen::Matrix4d T = best_fit_transform(C, dst_reordered);
         C = (T * C.transpose().colwise().homogeneous()).transpose();
 

@@ -5,15 +5,15 @@
             "name": "Debug with gdb on linux",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/main",
-            "args": [
-                "-S",
-                "ex_data/scan1/first.conf",
-                "-D",
-                "ex_data/scan1/second.conf",
-                "--method",
-                "vanilla",
-            ],
+            "program": "${workspaceFolder}/build/test_suite",
+            // "args": [
+            //     "-S",
+            //     "ex_data/scan1/first.conf",
+            //     "-D",
+            //     "ex_data/scan1/second.conf",
+            //     "--method",
+            //     "vanilla",
+            // ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -27,7 +27,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "Build main with make"
+            "preLaunchTask": "Build with make"
         }
     ]
 }

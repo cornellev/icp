@@ -1,5 +1,10 @@
 #include "icp/driver.h"
 #include <limits>
+#include <Eigen/Geometry>
+#include "Eigen/src/Core/Matrix.h"
+#include "Eigen/src/Geometry/AngleAxis.h"
+#include "icp/geo.h"
+#include "icp/icp.h"
 
 namespace icp {
     ICPDriver::ICPDriver(std::unique_ptr<ICP> icp) {
@@ -11,9 +16,9 @@ namespace icp {
         start_time_ = std::chrono::steady_clock::now();
         icp_->begin(a, b, t);
 
-        //ConvergenceState state{};
+        // ConvergenceState state{};
 
-        size_t dimension = a[0].size(); 
+        size_t dimension = a[0].size();
         ConvergenceState state(dimension);
 
         state.iteration_count = 0;
@@ -70,17 +75,25 @@ namespace icp {
         if (relative_cost_tolerance_ && relative_cost_change < relative_cost_tolerance_.value()) {
             return true;
         }
-
+        // 3d rotation decompose in 3 param
         if (angle_tolerance_rad_ && translation_tolerance_) {
-            icp::Vector prev_rot_vector = last_state.value().transform.rotation * icp::Vector(1, 0);
-            icp::Vector current_rot_vector = current_state.transform.rotation * icp::Vector(1, 0);
-            double dot = prev_rot_vector.dot(current_rot_vector);
-            double angle = std::acos(std::clamp(dot, -1.0, 1.0));
+            icp::Matrix rotation_step = current_state.transform.rotation
+                                        * last_state.value().transform.rotation.transpose();
+            double angle_diff = 0;
+            if (icp_->dimensionality() == 2) {
+                Eigen::Matrix2d fixed_size_mat(rotation_step);
+                Eigen::Rotation2Dd rot_step_2d(fixed_size_mat);
+                angle_diff = std::abs(rot_step_2d.smallestAngle());
+            } else {
+                Eigen::Matrix3d fixed_size_mat(rotation_step);
+                Eigen::AngleAxisd rot_step_angle_axis(fixed_size_mat);
+                angle_diff = std::abs(rot_step_angle_axis.angle());
+            }
 
             auto translation = current_state.transform.translation
                                - last_state.value().transform.translation;
 
-            if (angle < angle_tolerance_rad_.value()
+            if (angle_diff < angle_tolerance_rad_.value()
                 && translation.norm() < translation_tolerance_.value()) {
                 return true;
             }

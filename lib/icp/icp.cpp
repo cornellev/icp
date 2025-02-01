@@ -36,7 +36,7 @@ namespace icp {
     // this is also relying on previous match data right now...
     double ICP::calculate_cost() const {
         double sum_squares{};
-        //double sum_squares = 0.0;
+        // double sum_squares = 0.0;
         for (auto& match: matches) {
             sum_squares += match.cost;
         }
@@ -49,6 +49,10 @@ namespace icp {
 
     const std::vector<ICP::Match>& ICP::get_matches() const {
         return matches;
+    }
+
+    int ICP::dimensionality() const {
+        return dim;
     }
 
     ICP::Methods ICP::global;

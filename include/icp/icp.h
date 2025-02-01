@@ -47,12 +47,12 @@ namespace icp {
      */
     class ICP {
     protected:
-        //the dimension of icp(only 2 and 3 are legal)
-        int dimension;
+        // the dimension of icp(only 2 and 3 are legal)
+        int dim;
 
         /** A matching between `point` and `pair` at (arbitrary) cost `cost`.  */
         struct Match {
-            //need to be fix for xd?
+            // need to be fix for xd?
             size_t point;
             size_t pair;
             double cost;
@@ -71,31 +71,31 @@ namespace icp {
         std::vector<Match> matches;
 
         // Use matrix to represent the point clouds instead of set of vectors
-        Eigen::MatrixXd A;  //a_matrix
-        Eigen::MatrixXd B;  //b_matrix
+        Eigen::MatrixXd A;  // a_matrix
+        Eigen::MatrixXd B;  // b_matrix
 
         void convert_a_to_matrix() {
-            A.resize(a.size(), dimension);
+            A.resize(a.size(), dim);
             for (size_t i = 0; i < a.size(); ++i) {
-            for (int j = 0; j < dimension; ++j) {
-                A(i, j) = a[i][j];
-            }
+                for (int j = 0; j < dim; ++j) {
+                    A(i, j) = a[i][j];
+                }
             }
         }
 
         void convert_b_to_matrix() {
-            B.resize(b.size(), dimension);
+            B.resize(b.size(), dim);
             for (size_t i = 0; i < b.size(); ++i) {
-            for (int j = 0; j < dimension; ++j) {
-                B(i, j) = b[i][j];
-            }
+                for (int j = 0; j < dim; ++j) {
+                    B(i, j) = b[i][j];
+                }
             }
         }
 
         ICP();
-        
-        ICP(int dim) : dimension(dim), transform(RBTransform(dim)) {
-            if (dimension != 2 && dimension != 3) {
+
+        ICP(int dim): dim(dim), transform(RBTransform(dim)) {
+            if (dim != 2 && dim != 3) {
                 throw std::invalid_argument("Dimension must be 2 or 3");
             }
         }
@@ -162,6 +162,9 @@ namespace icp {
 
         /** The matches. */
         const std::vector<Match>& get_matches() const;
+
+        /** The dimensionality supported by this ICP instance. */
+        int dimensionality() const;
 
         /** Registers methods built into `libcevicp`. Must be called before constructing ICP
          * instances for built-in methods. */

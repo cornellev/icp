@@ -19,17 +19,17 @@ namespace icp {
         Vector translation;
         Matrix rotation;
         Matrix transform;
-        //keep the translation and rotation matrix or just the final matrix?
+        // keep the translation and rotation matrix or just the final matrix?
 
     public:
-        //where is the most apporiate place to initialize dim?
+        // where is the most apporiate place to initialize dim?
         RBTransform(int dim) {
             translation = Vector::Zero(dim);
             rotation = Matrix::Identity(dim, dim);
             transform = Matrix::Identity(dim + 1, dim + 1);
         }
-        RBTransform() : RBTransform(3) {} // Default to 3D
-        
+        RBTransform(): RBTransform(2) {}  // Default to 3D
+
         RBTransform(Vector translation, Matrix rotation)
             : translation(translation), rotation(rotation) {
             int x = rotation.rows();
@@ -37,15 +37,14 @@ namespace icp {
             transform.block(0, 0, x, x) = rotation;
             transform.block(0, x, x, 1) = translation;
         }
-        RBTransform(Matrix transform)
-            : transform(transform) {
+        RBTransform(Matrix transform): transform(transform) {
             int x = transform.rows() - 1;
             rotation = transform.block(0, 0, x, x);
             translation = transform.block(0, x, x, 1);
         }
 
         Vector apply_to(Vector v) const {
-            //return rotation * v + translation;
+            // return rotation * v + translation;
             return transform * v;
         }
 
@@ -73,5 +72,6 @@ namespace icp {
     Vector get_centroid(const std::vector<Vector>& points);
 }
 
-//can not have everything to be dynamic at the same time???
-//need to specific rhe size whencalling zero() or identity() or block() or rows() or cols() or whatever
+// can not have everything to be dynamic at the same time???
+// need to specific rhe size whencalling zero() or identity() or block() or rows() or cols() or
+// whatever
