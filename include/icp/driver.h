@@ -111,7 +111,6 @@ namespace icp {
 
         std::unique_ptr<ICP> icp_;
 
-        int dimension;
         std::optional<uint64_t> min_iterations_;
         std::optional<uint64_t> max_iterations_;
         std::optional<double> stop_cost_;
