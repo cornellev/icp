@@ -9,6 +9,7 @@
 #include <cmath>
 #include <sstream>
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 
 namespace icp {
     using Vector = Eigen::VectorXd;
@@ -44,8 +45,7 @@ namespace icp {
         }
 
         Vector apply_to(Vector v) const {
-            // return rotation * v + translation;
-            return transform * v;
+            return (transform * v.homogeneous()).segment(0, v.size());
         }
 
         RBTransform update(Eigen::Matrix4d transform) const {
