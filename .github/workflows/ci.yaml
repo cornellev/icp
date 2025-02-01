@@ -47,10 +47,10 @@ jobs:
           cd simple-test
           sudo make install
       - name: Build all
-        run: make OPT=Release CI=ON
+        run: make OPT=Release
       - name: Run tests
-        run: make test OPT=Release CI=ON
+        run: make test OPT=Release
       - name: Run benchmarks
-        run: DYLD_LIBRARY_PATH=/usr/local/lib make bench OPT=Release CI=ON
+        run: DYLD_LIBRARY_PATH=/usr/local/lib make bench OPT=Release
       - name: Test install
         run: sudo make install

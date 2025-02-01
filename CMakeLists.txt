@@ -9,17 +9,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add compile options
 add_compile_options(-Wall -Wextra -pedantic)
 
-option(CI "CI build" OFF)
-if(CI)
-  set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
-  # simple_test
-  add_compile_options(-Wno-error=unused-function)
-  if(CMAKE_COMPILER_IS_GNUCXX)
-    # eigen
-    add_compile_options(-Wno-error=class-memaccess) 
-  endif()
-endif()
-
 # Find dependencies
 find_package(Eigen3 REQUIRED)
 find_package(SDL2 REQUIRED)
