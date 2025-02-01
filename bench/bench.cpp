@@ -1,6 +1,7 @@
 #include <chrono>
 #include <stdio.h>
 #include <numeric>
+#include <iostream>
 
 #include "icp/icp.h"
 #include "icp/driver.h"
