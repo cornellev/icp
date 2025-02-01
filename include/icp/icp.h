@@ -19,7 +19,8 @@
 namespace icp {
     /**
      * Interface for iterative closest points.
-     * You should interact with ICP instances through this API only.
+     * Generally, you should interact with ICP instances through this interface or `ICPDriver`,
+     * though interacting with implementations directly isn't explicitly disallowed.
      * Read \ref write_icp_instance for additional information.
      *
      * \par Example
@@ -171,6 +172,9 @@ namespace icp {
         static bool register_method(std::string name,
             std::function<std::unique_ptr<ICP>(const Config&)> constructor);
 
+        /** Returns `true` if the ICP method `name` is registered. */
+        static bool is_method_registered(std::string name);
+
         /** Returns a current list of the names of currently registered ICP
          * methods. */
         static const std::vector<std::string>& registered_methods();
@@ -180,9 +184,27 @@ namespace icp {
          * `config`.
          *
          * @pre `name` is a valid registered method. See
-         * ICP::is_registered_method.
+         * ICP::registered_methods.
          */
         static std::optional<std::unique_ptr<ICP>> from_method(std::string name,
             const Config& params = Config());
+
+    private:
+        struct Methods {
+            std::vector<std::string> registered_method_names;
+            std::vector<std::function<std::unique_ptr<ICP>(const ICP::Config&)>>
+                registered_method_constructors;
+        };
+
+        static Methods global;
+        static bool builtins_registered;
+
+        /** Registers methods built into `libcevicp`. Called automatically such that builtins will
+         * always appear registered to users. */
+        static void ensure_builtins_registered();
+
+        /** Internal method registration that doesn't do any checks. */
+        static void register_method_internal(std::string name,
+            std::function<std::unique_ptr<ICP>(const Config&)> constructor);
     };
 }

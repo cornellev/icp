@@ -1,0 +1,33 @@
+name: Docs
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+permissions:
+  pages: write
+  id-token: write
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "main"
+      - name: Install dependencies
+        run: |
+          sudo apt-get install doxygen
+      - name: Build documentation
+        run: |
+          $(which python3 || which python) script/icp_doc_builder.py lib/icp/ book/icp_descr/ book/main.md
+          doxygen
+          cp book/desmos.txt docs
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: "docs"
+      - id: deployment
+        uses: actions/deploy-pages@v4

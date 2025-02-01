@@ -15,7 +15,6 @@ namespace icp {
         void setup() override;
         void iterate() override;
         
-
     private:
         NEIGHBOR nearest_neighbor(const Eigen::MatrixXd &src, const Eigen::MatrixXd &dst);
         float dist(const Eigen::Vector3d &pta, const Eigen::Vector3d &ptb);

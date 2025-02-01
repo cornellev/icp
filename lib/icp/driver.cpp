@@ -8,6 +8,7 @@ namespace icp {
 
     ICPDriver::ConvergenceState ICPDriver::converge(const std::vector<Vector>& a,
         const std::vector<Vector>& b, RBTransform t) {
+        start_time_ = std::chrono::steady_clock::now();
         icp_->begin(a, b, t);
 
         //ConvergenceState state{};
@@ -35,16 +36,23 @@ namespace icp {
     bool ICPDriver::should_terminate(ConvergenceState current_state,
         std::optional<ConvergenceState> last_state) {
         // absolute conditions based only on current state
-        if (stop_cost_ && current_state.cost < stop_cost_.value()) {
-            return true;
-        }
-
         if (min_iterations_ && current_state.iteration_count < min_iterations_.value()) {
             return false;
         }
 
         if (max_iterations_ && current_state.iteration_count >= max_iterations_.value()) {
             return true;
+        }
+
+        if (stop_cost_ && current_state.cost < stop_cost_.value()) {
+            return true;
+        }
+
+        if (time_limit_) {
+            auto current_time = std::chrono::steady_clock::now();
+            if (current_time - start_time_ > time_limit_.value()) {
+                return true;
+            }
         }
 
         // end if we don't have a last state
@@ -106,5 +114,9 @@ namespace icp {
     void ICPDriver::set_transform_tolerance(double angle_tolerance, double translation_tolerance) {
         angle_tolerance_rad_ = angle_tolerance;
         translation_tolerance_ = translation_tolerance;
+    }
+
+    void ICPDriver::set_time_limit(std::chrono::duration<double> time_limit) {
+        time_limit_ = time_limit;
     }
 }

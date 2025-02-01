@@ -7,6 +7,5 @@ dependencies = [
     "bagpy>=0.5",
     "matplotlib>=3.9.2",
     "pyqt5>=5.15.11",
-    "requests>=2.32.3",
     "sympy>=1.13.3",
 ]

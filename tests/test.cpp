@@ -1,4 +1,5 @@
 // Copyright (C) 2024 Ethan Uppal. All rights reserved.
+#include <iostream>
 
 extern "C" {
 #include <simple_test/simple_test.h>
@@ -172,12 +173,10 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
 void test_main() {
     test_kdtree();
 
-    icp::ICP::register_builtin_methods();
-
     test_icp_generic("vanilla", icp::ICP::Config());
 
-    //icp::ICP::Config trimmed_config;
-    // fails with lower overlap rates on these super small examples
+    // icp::ICP::Config trimmed_config;
+    // //fails with lower overlap rates on these super small examples
     // trimmed_config.set("overlap_rate", 1.0);
     // test_icp_generic("trimmed", trimmed_config);
 

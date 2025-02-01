@@ -8,10 +8,12 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Dense>
+#include "icp/geo.h"
 
 #include "icp/impl/vanilla.h"
 
 /* #name Vanilla */
+/* #register vanilla */
 
 /* #desc The vanilla algorithm for ICP will match the point-cloud centers
 exactly and then iterate until an optimal rotation has been found. */
@@ -98,12 +100,12 @@ namespace icp {
         //transform.rotation = R * transform.rotation;
 
         /*
-            #step
-            Transformation Step: determine optimal transformation.
+           #step
+           Transformation Step: determine optimal transformation.
 
-            The translation vector is determined by the displacement between
-            the centroids of both point clouds. The rotation matrix is
-            calculated via singular value decomposition.
+           The translation vector is determined by the displacement between
+           the centroids of both point clouds. The rotation matrix is
+           calculated via singular value decomposition.
 
             Sources:
             https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
@@ -113,7 +115,7 @@ namespace icp {
 
         Vector translation_update = b_cm - R * a_current_cm;
         RBTransform update_transform(translation_update, R);
-        transform = transform.compose(update_transform);
+        transform = transform.and_then(update_transform);
     }
 
     void Vanilla::compute_matches() {

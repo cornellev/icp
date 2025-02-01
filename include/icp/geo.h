@@ -9,7 +9,6 @@
 #include <cmath>
 #include <sstream>
 #include <Eigen/Core>
-#include <iostream>
 
 namespace icp {
     using Vector = Eigen::VectorXd;
@@ -49,14 +48,15 @@ namespace icp {
             //return rotation * v + translation;
             return transform * v;
         }
-        RBTransform compose(const RBTransform& other) const {
-            Eigen::Matrix2d new_rotation = this->rotation * other.rotation;
-            Eigen::Vector2d new_translation = this->rotation * other.translation + this->translation;
-            return RBTransform(new_translation, new_rotation);
-        }
+
         RBTransform update(Eigen::Matrix4d transform) const {
             Eigen::Matrix4d new_transform = this->transform * transform;
             return RBTransform(new_transform);
+        }
+
+        RBTransform and_then(RBTransform next) {
+            return RBTransform(next.rotation * this->translation + next.translation,
+                next.rotation * this->rotation);
         }
 
         std::string to_string() const {

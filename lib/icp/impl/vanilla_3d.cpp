@@ -56,7 +56,7 @@ namespace icp {
     return neigh;
     }
 
-    Eigen::Matrix4d best_fit_transform(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
+    Eigen::Matrix4d Vanilla_3d::best_fit_transform(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
         Eigen::Vector3d centroid_A = A.colwise().mean();
         Eigen::Vector3d centroid_B = B.colwise().mean();
 
