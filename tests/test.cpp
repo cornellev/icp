@@ -62,6 +62,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
         // Check translation
         assert_true(std::abs(result.transform.translation.x() - 100) <= TRANS_EPS);
         assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
+        assert_true(result.transform.rotation.isApprox(icp::Matrix::Identity(2, 2)));
     }
 
     // Test case 2: Identity test
@@ -80,10 +81,11 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
 
         assert_true(std::abs(result.transform.translation.x() - 0) <= TRANS_EPS);
         assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
+        assert_true(result.transform.rotation.isApprox(icp::Matrix::Identity(2, 2)));
     }
 
     // Test case 3: Rotation at different angles
-    for (int deg = 0; deg < 20; deg++) {
+    for (int deg = 170; deg < 180; deg++) {
         std::vector<icp::Vector> a = {
             icp::Vector(Eigen::Vector2d(-100, -100)), icp::Vector(Eigen::Vector2d(100, 100))};
         std::vector<icp::Vector> b = {};
@@ -98,11 +100,16 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
         }
 
         std::cout << "testing angle: " << deg << '\n';
+        std::cout << "the result for the matrix " << rotation_matrix << '\n';
 
         auto result = driver.converge(a, b, icp::RBTransform(2));
 
         assert_true(std::abs(result.transform.translation.x() - 0) <= TRANS_EPS);
         assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
+
+        std::cout << "the result for the matrix " << result.transform.rotation << '\n';
+        assert_true(result.transform.rotation.isApprox(rotation_matrix));
+        //having problem when the angle is 90, 180
     }
 
     {
@@ -122,6 +129,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
 
         assert_true(std::abs(result.transform.translation.x() - 100) <= TRANS_EPS);
         assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
+        assert_true(result.transform.rotation.isApprox(icp::Matrix::Identity(2, 2)));
     }
 
     // need more test case that works for trimmed and feature aware(more points? since it filtered
@@ -152,7 +160,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
 
         assert_true(std::abs(result.transform.translation.x() - 50) <= TRANS_EPS);
         assert_true(std::abs(result.transform.translation.y() - 50) <= TRANS_EPS);
-        // assert_true(std::abs(result.transform.rotation.angle() - angle) <= RAD_EPS);
+        assert_true(result.transform.rotation.isApprox(rotation_matrix));
     }
 
     {
@@ -183,6 +191,9 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
 
         assert_true(std::abs(result.transform.translation.x() - 20) <= TRANS_EPS + 1.0);
         assert_true(std::abs(result.transform.translation.y() - 10) <= TRANS_EPS + 1.0);
+        double angle_compute = std::atan2(result.transform.rotation(1,0), result.transform.rotation(0,0));
+        assert_true(std::abs(angle_compute - angle) <= RAD_EPS);
+        //need to find a way to test the rotation
     }
 }
 

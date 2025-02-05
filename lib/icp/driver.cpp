@@ -76,6 +76,7 @@ namespace icp {
             return true;
         }
         // 3d rotation decompose in 3 param
+        //used Axis_angle to decompose it now: avoiding gimbal lock for 90 degree rotation that happens in euler angles
         if (angle_tolerance_rad_ && translation_tolerance_) {
             icp::Matrix rotation_step = current_state.transform.rotation
                                         * last_state.value().transform.rotation.transpose();

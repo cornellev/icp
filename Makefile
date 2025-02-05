@@ -4,6 +4,7 @@ LIB_TARGET := cevicp
 MAIN_TARGET := main
 TEST_TARGET := test_suite
 BENCH_TARGET := bench_suite
+TEST3D_TARGET := test_suite3d
 
 N := 1
 METHOD := vanilla
@@ -39,6 +40,14 @@ $(TEST_TARGET): configure
 .PHONY: $(BENCH_TARGET)
 $(BENCH_TARGET): configure
 	cmake --build $(BUILD_DIR) --target $(BENCH_TARGET) -- $(MAKE_FLAGS)
+
+.PHONY: $(TEST3D_TARGET)
+$(TEST3D_TARGET): configure
+	cmake --build $(BUILD_DIR) --target $(TEST3D_TARGET) -- $(MAKE_FLAGS)
+
+.PHONY: test3d
+test3d: $(TEST3D_TARGET)
+	./$(BUILD_DIR)/$(TEST3D_TARGET)
 	
 .PHONY: test
 test: $(TEST_TARGET)

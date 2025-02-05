@@ -74,6 +74,21 @@ target_include_directories(test_suite
 )
 target_compile_definitions(test_suite PRIVATE TEST)
 
+set(TEST_SOURCES_3D tests/test3d.cpp)
+add_executable(test_suite3d ${TEST_SOURCES_3D})
+target_link_libraries(test_suite3d
+  cevicp
+)
+target_include_directories(test_suite3d
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    /usr/local/include/simple_test
+)
+target_compile_definitions(test_suite3d PRIVATE TEST)
+
+# add_executable(test3d_suite tests/test3d.cpp)
+# target_link_libraries(test3d_suite PRIVATE icp)
+
 set(BENCH_SOURCES bench/bench.cpp common/parse_scan.cpp)
 add_executable(bench_suite ${BENCH_SOURCES})
 target_link_libraries(bench_suite
