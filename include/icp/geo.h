@@ -24,6 +24,7 @@ namespace icp {
             translation = Vector::Zero();
             rotation = Matrix::Identity();
         }
+
         RBTransform(Vector translation, Matrix rotation)
             : translation(translation), rotation(rotation) {}
 
@@ -31,9 +32,14 @@ namespace icp {
             return rotation * v + translation;
         }
 
-        RBTransform and_then(RBTransform next) {
+        RBTransform and_then(const RBTransform& next) const {
             return RBTransform(next.rotation * this->translation + next.translation,
                 next.rotation * this->rotation);
+        }
+
+        RBTransform inverse() const {
+            auto transpose = this->rotation.transpose();
+            return RBTransform(-transpose * this->translation, transpose);
         }
 
         std::string to_string() const {
