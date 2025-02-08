@@ -141,8 +141,6 @@ int main(int argc, const char** argv) {
         auto source = parse_lidar_scan(f_src);
         auto dest = parse_lidar_scan(f_dst);
 
-        std::cout << source.size() << " " << dest.size() << "\n";
-
         icp::ICP::Config config;
         config.set("overlap_rate", 0.9);
         LidarView* view = new LidarView(source, dest, std::move(icp));
