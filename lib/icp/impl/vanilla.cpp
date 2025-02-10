@@ -4,10 +4,12 @@
  */
 
 #include <cassert>
+#include <cstddef>
 #include <cstdlib>
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Dense>
+#include <vector>
 #include "icp/geo.h"
 
 #include "icp/impl/vanilla.h"
@@ -25,7 +27,6 @@ namespace icp {
 
     void Vanilla::setup() {
         a_current.resize(a.size());
-        b_cm = get_centroid(b);
 
         compute_matches();
     }
@@ -54,6 +55,12 @@ namespace icp {
          */
         compute_matches();
 
+        icp::Vector corr_cm = icp::Vector::Zero();
+        for (size_t i = 0; i < matches.size(); i++) {
+            corr_cm += b[matches[i].pair];
+        }
+        corr_cm /= matches.size();
+
         /*
             #step
             SVD
@@ -66,7 +73,7 @@ namespace icp {
         */
         Matrix N = Matrix::Zero();
         for (size_t i = 0; i < n; i++) {
-            N += (a_current[i] - a_current_cm) * (b[matches[i].pair] - b_cm).transpose();
+            N += (a_current[i] - a_current_cm) * (b[matches[i].pair] - corr_cm).transpose();
         }
         auto svd = N.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
         const Matrix U = svd.matrixU();
@@ -105,7 +112,7 @@ namespace icp {
            https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
            https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
         */
-        RBTransform step(b_cm - R * a_current_cm, R);
+        RBTransform step(corr_cm - R * a_current_cm, R);
 
         transform = transform.and_then(step);
     }
