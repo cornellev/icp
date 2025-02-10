@@ -128,60 +128,62 @@ else()
 endif()
 
 # Installation
-include(CMakePackageConfigHelpers)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/cevicp)
+if(NOT LIB_ONLY)
+  include(CMakePackageConfigHelpers)
+  set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/cevicp)
 
-# Generate the CevIcpConfig.cmake file
-configure_package_config_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/CevIcpConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfig.cmake
-  INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
-)
+  # Generate the CevIcpConfig.cmake file
+  configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/CevIcpConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfig.cmake
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
+  )
 
-# Generate the CevIcpConfigVersion.cmake file
-write_basic_package_version_file(
-  CevIcpConfigVersion.cmake
-  VERSION ${PROJECT_VERSION}
-  COMPATIBILITY AnyNewerVersion
-)
+  # Generate the CevIcpConfigVersion.cmake file
+  write_basic_package_version_file(
+    CevIcpConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+  )
 
-export(TARGETS cevicp NAMESPACE CevIcp FILE CevIcpTargets.cmake)
+  export(TARGETS cevicp NAMESPACE CevIcp FILE CevIcpTargets.cmake)
 
-export(PACKAGE CevIcp)
+  export(PACKAGE CevIcp)
 
-# Install the targets and export them
-install(EXPORT CevIcpTargets
-  NAMESPACE CevIcp::
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
+  # Install the targets and export them
+  install(EXPORT CevIcpTargets
+    NAMESPACE CevIcp::
+    DESTINATION ${INSTALL_CONFIGDIR}
+  )
 
-install(TARGETS cevicp
-  EXPORT CevIcpTargets
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+  install(TARGETS cevicp
+    EXPORT CevIcpTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
 
-# Install headers
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cev_icp
-  FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-)
+  # Install headers
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cev_icp
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+  )
 
-# Install configuration files
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfig.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfigVersion.cmake
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
+  # Install configuration files
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/CevIcpConfigVersion.cmake
+    DESTINATION ${INSTALL_CONFIGDIR}
+  )
 
-# Per https://gitlab.kitware.com/cmake/community/-/wikis/FAQ#can-i-do-make-uninstall-with-cmake
-# uninstall target
-if(NOT TARGET uninstall)
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-    IMMEDIATE @ONLY)
+  # Per https://gitlab.kitware.com/cmake/community/-/wikis/FAQ#can-i-do-make-uninstall-with-cmake
+  # uninstall target
+  if(NOT TARGET uninstall)
+    configure_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+      IMMEDIATE @ONLY)
 
-  add_custom_target(uninstall
-    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+    add_custom_target(uninstall
+      COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+  endif()
 endif()
