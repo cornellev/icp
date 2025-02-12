@@ -2,12 +2,14 @@
  * @author Ethan Uppal
  * @copyright Copyright (C) 2024 Ethan Uppal. All rights reserved.
  */
-
+#include <iostream>
 #include <cassert>
+#include <cstddef>
 #include <cstdlib>
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Dense>
+#include <vector>
 #include "icp/geo.h"
 
 #include "icp/impl/vanilla.h"
@@ -25,13 +27,20 @@ namespace icp {
 
     void Vanilla::setup() {
         a_current.resize(a.size());//make function in icp
-        b_cm = get_centroid(b);
+        // b_cm = get_centroid(b);
 
         for (size_t i = 0; i < a.size(); i++) {
             a_current[i] = transform.apply_to(a[i]);
         }
 
         compute_matches();
+
+        icp::Vector corr_cm = icp::Vector::Zero(2);
+        for (size_t i = 0; i < matches.size(); i++) {
+            corr_cm += b[matches[i].pair];
+        }
+        corr_cm /= matches.size();
+        b_cm = corr_cm;
     }
 
     void Vanilla::iterate() {
@@ -76,6 +85,8 @@ namespace icp {
         const Matrix U = svd.matrixU();
         Matrix V = svd.matrixV();
         Matrix R = V * U.transpose();
+        std::cout << "0: ___" << std::endl;
+        std::cout << R << std::endl;
 
         /*
             #step
@@ -93,9 +104,20 @@ namespace icp {
             https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
         */
         if (R.determinant() < 0) {
+            std::cout << "1: ___" << std::endl;
+            std::cout << R << std::endl;
+            std::cout << "Utrans: " << U.transpose() << std::endl;
+            std::cout << "Determinant: " << R.determinant() << std::endl;
+            std::cout << "V: " << V << std::endl;
             V = V * Eigen::DiagonalMatrix<double, 2>(1, -1);
+            std::cout << "V: " << V << std::endl;
             R = V * U.transpose();
+            std::cout << "2: ___" << std::endl;
+            std::cout << R << std::endl;
         }
+        std::cout << "3: ___" << std::endl;
+        std::cout << get_matches()[0].pair << std::endl;
+        std::cout << get_matches()[1].pair << std::endl;
 
         //transform.rotation = R * transform.rotation;
 

@@ -5,6 +5,7 @@
 #include "Eigen/src/Geometry/AngleAxis.h"
 #include "icp/geo.h"
 #include "icp/icp.h"
+#include "iostream"
 
 namespace icp {
     ICPDriver::ICPDriver(std::unique_ptr<ICP> icp) {
@@ -15,9 +16,6 @@ namespace icp {
         const std::vector<Vector>& b, RBTransform t) {
         start_time_ = std::chrono::steady_clock::now();
         icp_->begin(a, b, t);
-
-        // ConvergenceState state{};
-
         size_t dimension = a[0].size();
         ConvergenceState state(dimension);
 
@@ -27,12 +25,20 @@ namespace icp {
 
         std::optional<ConvergenceState> last_state{};
 
+        
         while (!should_terminate(state, last_state)) {
             icp_->iterate();
             last_state = state;
             state.iteration_count++;
             state.cost = icp_->calculate_cost();
             state.transform = icp_->current_transform();
+
+            // Debug: Print current state
+            std::cout << "Iteration: " << state.iteration_count << std::endl;
+            std::cout << "Cost: " << state.cost << std::endl;
+            std::cout << "Transform: " << std::endl;
+            std::cout << state.transform.rotation << std::endl;
+            std::cout << state.transform.translation.transpose() << std::endl;
         }
 
         return state;
@@ -93,6 +99,10 @@ namespace icp {
 
             auto translation = current_state.transform.translation
                                - last_state.value().transform.translation;
+
+            // Debug: Print angle and translation differences
+            std::cout << "Angle difference: " << angle_diff << std::endl;
+            std::cout << "Translation difference: " << translation.norm() << std::endl;
 
             if (angle_diff < angle_tolerance_rad_.value()
                 && translation.norm() < translation_tolerance_.value()) {

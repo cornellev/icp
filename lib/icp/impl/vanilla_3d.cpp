@@ -1,7 +1,7 @@
 /*
  *
  */
-
+# include <iostream>
 #include <numeric>
 #include <vector>
 #include <cmath>
@@ -33,8 +33,8 @@ namespace icp {
         int row_src = src.rows();
         int row_dst = dst.rows();
         NEIGHBOR neigh;
-
         for (int i = 0; i < row_src; i++) {
+            // std::cout << "row:" << row_src << std::endl;
             Eigen::Vector3d pta = src.row(i).transpose();
             float min_dist = std::numeric_limits<float>::max();
             int index = 0;
@@ -79,27 +79,52 @@ namespace icp {
         Eigen::MatrixXd T = Eigen::MatrixXd::Identity(A.cols() + 1, A.cols() + 1);
 
         T.block<3, 3>(0, 0) = R;
-        T.block<3, 1>(0, A.cols()) = t;
+        T.block<3, 1>(0, 3) = t;
         return T;
     }
 
     void Vanilla_3d::setup() {
+        A.resize(a.size(), dim);
+        for (size_t i = 0; i < a.size(); ++i) {
+            for (int j = 0; j < dim; ++j) {
+                A(i, j) = a[i][j];
+            }
+        }
+        
+        B.resize(b.size(), dim);
+        for (size_t i = 0; i < b.size(); ++i) {
+            for (int j = 0; j < dim; ++j) {
+                B(i, j) = b[i][j];
+            }
+        }
+
         C = A;
+        // std::cout << "hi______________ " << std::endl;
+        // std::cout << "A: "<< A << std::endl;
+        // std::cout << "B: "<< B << std::endl;
     }
 
     void Vanilla_3d::iterate() {
+        // std::cout << "bye 1 ______________ " << std::endl;
         int row = A.rows();
+        // std::cout << row << std::endl;
 
         // Reorder target point set based on nearest neighbor
+        // std::cout << "C:" << C << std::endl;
         NEIGHBOR neighbor = nearest_neighbor(C, B);
+        // std::cout << "bye 2 ______________ " << std::endl;
         Eigen::MatrixXd dst_reordered(row, 3);
+        // std::cout << "bye 3 ______________ " << std::endl;
         for (int i = 0; i < row; i++) {
             dst_reordered.row(i) = B.row(neighbor.indices[i]);
         }
-
+        // std::cout << "bye 4 ______________ " << std::endl;
         Eigen::Matrix4d T = best_fit_transform(C, dst_reordered);
-        C = (T * C.transpose().colwise().homogeneous()).transpose();
+        Eigen::MatrixXd C_homogeneous = C.transpose().colwise().homogeneous();
+        C = (T * C_homogeneous).transpose().leftCols(3);
 
+        // std::cout << "bye 5 ______________ " << std::endl;
         transform = transform.update(T);
     }
 }
+//more iteration should not diverge
