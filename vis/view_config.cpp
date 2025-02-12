@@ -14,4 +14,6 @@ namespace view_config {
     double y_displace = 50;
 
     bool use_light_mode = false;
+
+    double view_scale = 100;
 }

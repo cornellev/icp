@@ -13,4 +13,6 @@ namespace view_config {
     extern double y_displace;
 
     extern bool use_light_mode;
+
+    extern double view_scale;
 }
