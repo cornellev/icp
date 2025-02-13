@@ -1,42 +1,38 @@
 #include "parse_scan.h"
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <fstream>
+#include <stdexcept>
+#include <string_view>
+#include <vector>
+#include "icp/geo.h"
 
-void parse_scan_var(const char* var, const char* data, void* user_data) {
-    LidarScan* scan = static_cast<LidarScan*>(user_data);
-    if (strcmp(var, "range_min") == 0) {
-        scan->range_min = strtod(data, NULL);
-    } else if (strcmp(var, "range_max") == 0) {
-        scan->range_max = strtod(data, NULL);
-    } else if (strcmp(var, "angle_max") == 0) {
-        scan->angle_max = strtod(data, NULL);
-    } else if (strcmp(var, "angle_min") == 0) {
-        scan->angle_min = strtod(data, NULL);
-    } else if (strcmp(var, "angle_increment") == 0) {
-        scan->angle_increment = strtod(data, NULL);
-    } else if (isdigit(var[0])) {
-        long index = strtol(var, NULL, 10);
-        double angle = scan->angle_min + index * scan->angle_increment;
-        double range = strtod(data, NULL);
-        if (range >= scan->range_min && range <= scan->range_max) {
-            scan->points.push_back(Eigen::Vector2d(100 * range * std::cos(angle),
-                100 * range * std::sin(angle)));
+std::vector<icp::Vector> parse_lidar_scan(std::string path) {
+    std::ifstream in(path);
+    if (!in.is_open()) {
+        throw std::runtime_error("failed to read lidar scan: failed to open file");
+    }
+
+    std::vector<icp::Vector> result;
+
+    std::string line;
+    while (std::getline(in, line)) {
+        size_t index = line.find(',');
+        std::string_view view(line);
+
+        std::string_view x_view = view.substr(0, index);
+        std::string_view y_view = view.substr(index + 1);
+
+        char* end = nullptr;
+        double x = std::strtod(x_view.cbegin(), &end);
+        double y = std::strtod(y_view.cbegin(), &end);
+        if (std::isinf(x) || std::isinf(y)) {
+            continue;
         }
-    }
-}
 
-LidarScan parse_lidar_scan(std::string path) {
-    FILE* file = fopen(path.c_str(), "r");
-    if (!file) {
-        perror("parse_config: fopen");
-        std::exit(1);
+        result.emplace_back(x, y);
     }
 
-    LidarScan scan;
-    if (conf_parse_file(file, parse_scan_var, &scan) != 0) {
-        perror("parse_config: conf_parse_file");
-        std::exit(1);
-    }
-
-    fclose(file);
-
-    return scan;
+    return result;
 }

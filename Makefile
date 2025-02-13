@@ -55,7 +55,7 @@ test: $(TEST_TARGET)
 
 .PHONY: view
 view: $(MAIN_TARGET)
-	./$(BUILD_DIR)/$(MAIN_TARGET) -S ex_data/scan$(N)/first.conf -D ex_data/scan$(N)/second.conf --method $(METHOD)
+	./$(BUILD_DIR)/$(MAIN_TARGET) -S ex_data/scan$(N)/first.csv -D ex_data/scan$(N)/second.csv --method $(METHOD)
 	
 .PHONY: bench
 bench: $(BENCH_TARGET)

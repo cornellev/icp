@@ -5,16 +5,12 @@ extern "C" {
 #include <cmdapp/cmdapp.h>
 #include <config/config.h>
 }
-#include <chrono>
-#include <numeric>
-#include <algorithm>
 #include <sdlwrapper/gui/window.h>
 #include <optional>
 #include "view_config.h"
 #include "lidar_view.h"
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
-#include "icp/driver.h"
 #include "parse_scan.h"
 
 void set_config_param(const char* var, const char* data, [[maybe_unused]] void* user_data) {
@@ -26,6 +22,8 @@ void set_config_param(const char* var, const char* data, [[maybe_unused]] void* 
         view_config::window_width = std::stoi(data);
     } else if (strcmp(var, "window_height") == 0) {
         view_config::window_height = std::stoi(data);
+    } else if (strcmp(var, "view_scale") == 0) {
+        view_config::view_scale = std::stod(data);
     }
 }
 
@@ -140,12 +138,12 @@ int main(int argc, const char** argv) {
     // return 0;
 
     if (*read_scan_files) {
-        LidarScan source = parse_lidar_scan(f_src);
-        LidarScan destination = parse_lidar_scan(f_dst);
+        auto source = parse_lidar_scan(f_src);
+        auto dest = parse_lidar_scan(f_dst);
 
         icp::ICP::Config config;
         config.set("overlap_rate", 0.9);
-        LidarView* view = new LidarView(source.points, destination.points, std::move(icp));
+        LidarView* view = new LidarView(source, dest, std::move(icp));
 
         launch_gui(view, std::string(f_src) + std::string(" and ") + std::string(f_dst));
     }

@@ -83,15 +83,15 @@ void LidarView::draw(SDL_Renderer* renderer, [[maybe_unused]] const SDL_Rect* fr
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
     for (const icp::Vector& point: destination) {
-        SDL_DrawCircle(renderer, point[0] + view_config::x_displace,
-            point[1] + view_config::y_displace, CIRCLE_RADIUS);
+        SDL_DrawCircle(renderer, view_config::view_scale * point[0] + view_config::x_displace,
+            view_config::view_scale * point[1] + view_config::y_displace, CIRCLE_RADIUS);
     }
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
     for (const icp::Vector& point: source) {
         icp::Vector result = icp->current_transform().apply_to(point);
-        SDL_DrawCircle(renderer, result[0] + view_config::x_displace,
-            result[1] + view_config::y_displace, CIRCLE_RADIUS);
+        SDL_DrawCircle(renderer, view_config::view_scale * result[0] + view_config::x_displace,
+            view_config::view_scale * result[1] + view_config::y_displace, CIRCLE_RADIUS);
     }
 
    // Draw a line connecting the transformed source point to the destination point (in green)
@@ -99,13 +99,13 @@ void LidarView::draw(SDL_Renderer* renderer, [[maybe_unused]] const SDL_Rect* fr
 
     icp::Vector a_cm = icp->current_transform().apply_to(icp::get_centroid(source));
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
-    SDL_DrawCircle(renderer, a_cm.x() + view_config::x_displace, a_cm.y() + view_config::y_displace,
-        20);
+    SDL_DrawCircle(renderer, view_config::view_scale * a_cm.x() + view_config::x_displace,
+        view_config::view_scale * a_cm.y() + view_config::y_displace, 20);
 
     icp::Vector b_cm = icp::get_centroid(destination);
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
-    SDL_DrawCircle(renderer, b_cm.x() + view_config::x_displace, b_cm.y() + view_config::y_displace,
-        20);
+    SDL_DrawCircle(renderer, view_config::view_scale * b_cm.x() + view_config::x_displace,
+        view_config::view_scale * b_cm.y() + view_config::y_displace, 20);
 
     if (is_iterating) {
         step();

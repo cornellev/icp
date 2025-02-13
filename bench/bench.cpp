@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <numeric>
 #include <iostream>
+#include <vector>
 
 #include "icp/icp.h"
 #include "icp/driver.h"
@@ -32,19 +33,17 @@ struct BenchmarkParams {
 BenchmarkResult run_benchmark(BenchmarkParams params) {
     auto icp = icp::ICP::from_method(params.method).value();
     icp::ICPDriver driver(std::move(icp));
-    driver.set_transform_tolerance(0.1 * M_PI / 180, 0.1);
+    driver.set_transform_tolerance(params.angle_tol, params.trans_tol);
 
-    LidarScan source = parse_lidar_scan("ex_data/scan" + std::to_string(params.scan_id)
-                                        + "/first.conf");
-    LidarScan destination = parse_lidar_scan("ex_data/scan" + std::to_string(params.scan_id)
-                                             + "/second.conf");
+    auto source = parse_lidar_scan("ex_data/scan" + std::to_string(params.scan_id) + "/first.csv");
+    auto dest = parse_lidar_scan("ex_data/scan" + std::to_string(params.scan_id) + "/second.csv");
 
     std::vector<double> final_costs;
     std::vector<size_t> iteration_counts;
 
     const auto start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < params.num_iter; i++) {
-        auto result = driver.converge(source.points, destination.points, icp::RBTransform());
+        auto result = driver.converge(source, dest, icp::RBTransform());
         final_costs.push_back(result.cost);
         iteration_counts.push_back(result.iteration_count);
     }
