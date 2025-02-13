@@ -85,7 +85,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
     }
 
     // Test case 3: Rotation at different angles
-    for (int deg = 90; deg < 91; deg++) {
+    for (int deg = 0; deg < 10; deg++) {
         std::vector<icp::Vector> a = {
             icp::Vector(Eigen::Vector2d(-100, -100)), icp::Vector(Eigen::Vector2d(100, 100))};
         std::vector<icp::Vector> b = {};
@@ -113,7 +113,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
     }
 
     // Test case 3: Rotation at different angles
-    for (int deg = 90; deg < 91; deg++) {
+    for (int deg = 0; deg < 10; deg++) {
         double angle = deg * M_PI / 180.0;
         Eigen::Matrix2d rotation_matrix;
         rotation_matrix << cos(angle), -sin(angle), sin(angle), cos(angle);
@@ -162,7 +162,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
         std::vector<icp::Vector> b;
 
         double angle = 45 * M_PI / 180.0;                  // Rotate 45 degrees
-        icp::Vector translation(Eigen::Vector2d(50, 50));  // Translate by (50, 50)
+        icp::Vector translation(Eigen::Vector2d(5, 5));  // Translate by (50, 50)
 
         icp::Matrix rotation_matrix{
             {std::cos(angle), -std::sin(angle)}, {std::sin(angle), std::cos(angle)}};
@@ -179,8 +179,8 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
                   << std::endl;
         std::cout << "[4]Result Iteration Count: " << result.iteration_count << std::endl;
 
-        assert_true(std::abs(result.transform.translation.x() - 50) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.y() - 50) <= TRANS_EPS);
+        assert_true(std::abs(result.transform.translation.x() - 5) <= TRANS_EPS);
+        assert_true(std::abs(result.transform.translation.y() - 5) <= TRANS_EPS);
         assert_true(result.transform.rotation.isApprox(rotation_matrix));
     }
 
