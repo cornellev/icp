@@ -13,8 +13,12 @@ add_compile_options(-Wall -Wextra -pedantic)
 find_package(Eigen3 REQUIRED)
 find_package(SDL2 REQUIRED)
 
-include_directories(/usr/local/include)
-link_directories(/usr/local/lib)
+# Specify PCL path and find PCL
+set(PCL_DIR "/opt/homebrew/share/pcl-1.14")
+find_package(PCL 1.14 REQUIRED COMPONENTS common io visualization)
+
+include_directories(${PCL_INCLUDE_DIRS} /usr/local/include)
+link_directories(${PCL_LIBRARY_DIRS} /usr/local/lib)
 
 # Library target
 set(LIB_SOURCES
@@ -27,6 +31,7 @@ set(LIB_SOURCES
   lib/icp/impl/trimmed.cpp
   lib/icp/impl/feature_aware.cpp
   lib/icp/impl/vanilla_3d.cpp
+  common/parse_ply.cpp  # Add the PLY parser source file
 )
 add_library(cevicp STATIC ${LIB_SOURCES})
 target_include_directories(cevicp 
@@ -34,7 +39,9 @@ target_include_directories(cevicp
     ${CMAKE_CURRENT_SOURCE_DIR}/include
   PUBLIC
     ${EIGEN3_INCLUDE_DIRS}
+    ${PCL_INCLUDE_DIRS}
 )
+target_link_libraries(cevicp ${PCL_LIBRARIES})
 
 # Main executable
 set(MAIN_SOURCES
@@ -57,6 +64,7 @@ target_include_directories(main
     ${CMAKE_CURRENT_SOURCE_DIR}/vis
     ${CMAKE_CURRENT_SOURCE_DIR}/common
     ${EIGEN3_INCLUDE_DIRS}
+    ${PCL_INCLUDE_DIRS}
     /usr/local/include/cmdapp
     /usr/local/include/config
     /usr/local/include/sdlwrapper
@@ -71,6 +79,7 @@ target_include_directories(test_suite
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     /usr/local/include/simple_test
+    ${PCL_INCLUDE_DIRS}
 )
 target_compile_definitions(test_suite PRIVATE TEST)
 
@@ -83,11 +92,24 @@ target_include_directories(test_suite3d
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     /usr/local/include/simple_test
+    ${PCL_INCLUDE_DIRS}
 )
 target_compile_definitions(test_suite3d PRIVATE TEST)
 
-# add_executable(test3d_suite tests/test3d.cpp)
-# target_link_libraries(test3d_suite PRIVATE icp)
+# Add the new test executable for test_ply
+set(TEST_SOURCES_PLY tests/test_ply.cpp)
+add_executable(test_ply ${TEST_SOURCES_PLY})
+target_link_libraries(test_ply
+  cevicp
+)
+target_include_directories(test_ply
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
+    /usr/local/include/simple_test
+    ${PCL_INCLUDE_DIRS}
+)
+target_compile_definitions(test_ply PRIVATE TEST)
 
 set(BENCH_SOURCES bench/bench.cpp common/parse_scan.cpp)
 add_executable(bench_suite ${BENCH_SOURCES})
@@ -99,6 +121,7 @@ target_include_directories(bench_suite
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/common
+    ${PCL_INCLUDE_DIRS}
 )
 
 # Debug/Release configuration
