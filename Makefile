@@ -5,6 +5,10 @@ MAIN_TARGET := main
 TEST_TARGET := test_suite
 BENCH_TARGET := bench_suite
 TEST3D_TARGET := test_suite3d
+TEST_PLY_TARGET := test_ply
+TEST_PLY_INPUT_A := /Users/wangjiaxuan/Desktop/cev/3dply/input2_transformed.ply
+TEST_PLY_INPUT_B := /Users/wangjiaxuan/Desktop/cev/3dply/input2.ply
+TEST_PLY_OUTPUT := /Users/wangjiaxuan/Desktop/cev/3dply/input2_result.ply
 
 N := 1
 METHOD := vanilla
@@ -45,6 +49,10 @@ $(BENCH_TARGET): configure
 $(TEST3D_TARGET): configure
 	cmake --build $(BUILD_DIR) --target $(TEST3D_TARGET) -- $(MAKE_FLAGS)
 
+# .PHONY: $(TEST_PLY_TARGET)
+# $(TEST_PLY_TARGET): configure
+# 	cmake --build $(BUILD_DIR) --target $(TEST_PLY_TARGET) -- $(MAKE_FLAGS)
+
 .PHONY: test3d
 test3d: $(TEST3D_TARGET)
 	./$(BUILD_DIR)/$(TEST3D_TARGET)
@@ -60,6 +68,10 @@ view: $(MAIN_TARGET)
 .PHONY: bench
 bench: $(BENCH_TARGET)
 	./$(BUILD_DIR)/$(BENCH_TARGET)
+
+.PHONY: test_ply
+test_ply: configure $(TEST_PLY_TARGET)
+	./$(BUILD_DIR)/$(TEST_PLY_TARGET) $(TEST_PLY_INPUT_A) $(TEST_PLY_INPUT_B) $(TEST_PLY_OUTPUT)
 
 .PHONY: clean
 clean: configure

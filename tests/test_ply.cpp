@@ -2,7 +2,7 @@
 #include "icp/geo.h"
 #include "icp/icp.h"
 #include "icp/driver.h"
-#include "parse_ply.h"
+#include "icp/parse_ply.h"
 #include <iostream>
 #include <fstream>
 #include <cassert>
