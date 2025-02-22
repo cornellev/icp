@@ -111,8 +111,8 @@ namespace icp {
             [](const ICP::Config& config) { return std::make_unique<Trimmed>(config); });
         register_method_internal("feature_aware",
             [](const ICP::Config& config) { return std::make_unique<FeatureAware>(config); });
-        register_method_internal("vanilla_3d",
-            [](const ICP::Config& config) { return std::make_unique<Vanilla_3d>(config); });
+        // register_method_internal("vanilla_3d",
+        //     [](const ICP::Config& config) { return std::make_unique<Vanilla_3d>(config); });
 
         builtins_registered = true;
     }

@@ -21,17 +21,20 @@ reduces to vanilla. */
 
 namespace icp {
 
-    Trimmed::Trimmed(double overlap_rate): ICP(), overlap_rate(overlap_rate) {}
+    Trimmed::Trimmed(double overlap_rate): ICP(2), overlap_rate(overlap_rate) {}
 
     /* #conf "overlap_rate" A `double` between `0.0` and `1.0` for
      * the overlap rate. The default is `1.0`. */
     Trimmed::Trimmed(const Config& config)
-        : ICP(), overlap_rate(config.get<double>("overlap_rate", 0.9)) {}
+        : ICP(2), overlap_rate(config.get<double>("overlap_rate", 0.9)) {}
 
     Trimmed::~Trimmed() {}
 
     void Trimmed::setup() {
         a_current.resize(a.size());
+        for (size_t i = 0; i < a.size(); i++) {
+            a_current[i] = transform.apply_to(a[i]);
+        }
         b_cm = get_centroid(b);
 
         compute_matches();

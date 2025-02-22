@@ -71,7 +71,7 @@ view: $(MAIN_TARGET)
 	
 .PHONY: bench
 bench: $(BENCH_TARGET)
-	./$(BUILD_DIR)/$(BENCH_TARGET)
+	DYLD_LIBRARY_PATH=/usr/local/lib ./$(BUILD_DIR)/$(BENCH_TARGET)
 
 
 .PHONY: clean

@@ -13,7 +13,7 @@ distance criteria, matches them based on a local "feature vector."
 
 namespace icp {
     FeatureAware::FeatureAware(double overlap_rate, double feature_weight, int symmetric_neighbors)
-        : ICP(),
+        : ICP(2),
           overlap_rate(overlap_rate),
           symmetric_neighbors(symmetric_neighbors),
           feature_weight(feature_weight),
@@ -34,6 +34,9 @@ namespace icp {
 
     void FeatureAware::setup() {
         a_current.resize(a.size());
+        for (size_t i = 0; i < a.size(); i++) {
+            a_current[i] = transform.apply_to(a[i]);
+        }
         a_features.resize(a.size());
         b_features.resize(b.size());
 

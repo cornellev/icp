@@ -68,6 +68,6 @@ jobs:
           make test_3d OPT=Release
           make test_ply OPT=Release
       - name: Run benchmarks
-        run: DYLD_LIBRARY_PATH=/usr/local/lib make bench OPT=Release
+        run: make bench OPT=Release
       - name: Test install
         run: sudo make install

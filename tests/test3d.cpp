@@ -2,6 +2,7 @@
 #include "icp/geo.h"
 #include "icp/icp.h"
 #include "icp/driver.h"
+#include "icp/impl/vanilla_3d.h"
 #include <iostream>
 #include <random>
 
@@ -13,8 +14,8 @@ extern "C" {
 #define TRANS_EPS 0.5             // Translation tolerance in units
 #define RAD_EPS ((double)(0.01))  // Rotation tolerance in radians
 
-void test_icp_3d(const std::string& method, const icp::ICP::Config& config) {
-    std::unique_ptr<icp::ICP> icp = icp::ICP::from_method(method, config).value();
+void test_icp_3d(const icp::ICP::Config& config) {
+    std::unique_ptr<icp::ICP> icp = std::make_unique<icp::Vanilla_3d>(config);
     icp::ICPDriver driver(std::move(icp));
     driver.set_min_iterations(BURN_IN);
     driver.set_max_iterations(100);
@@ -263,5 +264,5 @@ void test_icp_3d(const std::string& method, const icp::ICP::Config& config) {
 }
 
 void test_main() {
-    test_icp_3d("vanilla_3d", icp::ICP::Config());
+    test_icp_3d(icp::ICP::Config());
 }
