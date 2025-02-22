@@ -29,6 +29,7 @@ namespace icp {
             rotation = Matrix::Identity(dim, dim);
             transform = Matrix::Identity(dim + 1, dim + 1);
         }
+
         RBTransform(): RBTransform(2) {}  // Default to 3D
 
         RBTransform(Vector translation, Matrix rotation)
@@ -53,9 +54,14 @@ namespace icp {
             return RBTransform(new_transform);
         }
 
-        RBTransform and_then(RBTransform next) {
+        RBTransform and_then(const RBTransform& next) const {
             return RBTransform(next.rotation * this->translation + next.translation,
                 next.rotation * this->rotation);
+        }
+
+        RBTransform inverse() const {
+            auto transpose = this->rotation.transpose();
+            return RBTransform(-transpose * this->translation, transpose);
         }
 
         std::string to_string() const {

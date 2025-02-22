@@ -26,21 +26,13 @@ namespace icp {
     Vanilla::~Vanilla() {}
 
     void Vanilla::setup() {
-        a_current.resize(a.size());//make function in icp
-        // b_cm = get_centroid(b);
+        a_current.resize(a.size());
 
         for (size_t i = 0; i < a.size(); i++) {
             a_current[i] = transform.apply_to(a[i]);
         }
 
         compute_matches();
-
-        icp::Vector corr_cm = icp::Vector::Zero(2);
-        for (size_t i = 0; i < matches.size(); i++) {
-            corr_cm += b[matches[i].pair];
-        }
-        corr_cm /= matches.size();
-        b_cm = corr_cm;
     }
 
     void Vanilla::iterate() {
@@ -67,6 +59,12 @@ namespace icp {
          */
         compute_matches();
 
+        icp::Vector corr_cm = icp::Vector::Zero(2);
+        for (size_t i = 0; i < matches.size(); i++) {
+            corr_cm += b[matches[i].pair];
+        }
+        corr_cm /= matches.size();
+
         /*
             #step
             SVD
@@ -77,9 +75,9 @@ namespace icp {
             Sources:
             https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
         */
-        Matrix N = Matrix::Zero(2,2);
+        Matrix N = Matrix::Zero(2, 2);
         for (size_t i = 0; i < n; i++) {
-            N += (a_current[i] - a_current_cm) * (b[matches[i].pair] - b_cm).transpose();
+            N += (a_current[i] - a_current_cm) * (b[matches[i].pair] - corr_cm).transpose();
         }
         auto svd = N.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
         const Matrix U = svd.matrixU();
@@ -119,8 +117,6 @@ namespace icp {
         std::cout << get_matches()[0].pair << std::endl;
         std::cout << get_matches()[1].pair << std::endl;
 
-        //transform.rotation = R * transform.rotation;
-
         /*
            #step
            Transformation Step: determine optimal transformation.
@@ -129,15 +125,12 @@ namespace icp {
            the centroids of both point clouds. The rotation matrix is
            calculated via singular value decomposition.
 
-            Sources:
-            https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
-            https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
-         */
-        //transform.translation = R * transform.translation + b_cm - R * a_current_cm;
-
-        Vector translation_update = b_cm - R * a_current_cm;
-        RBTransform update_transform(translation_update, R);
-        transform = transform.and_then(update_transform);
+           Sources:
+           https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
+           https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
+        */
+        RBTransform step(corr_cm - R * a_current_cm, R);
+        transform = transform.and_then(step);
     }
 
     void Vanilla::compute_matches() {

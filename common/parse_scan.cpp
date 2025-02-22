@@ -31,7 +31,8 @@ std::vector<icp::Vector> parse_lidar_scan(std::string path) {
             continue;
         }
 
-        result.emplace_back(x, y);
+        icp::Vector vec = icp::Vector(Eigen::Vector2d(x, y));
+        result.push_back(vec);
     }
 
     return result;
