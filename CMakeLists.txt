@@ -87,32 +87,32 @@ if(NOT LIB_ONLY)
   target_compile_definitions(test_suite PRIVATE TEST)
   
   set(TEST_SOURCES_3D tests/test3d.cpp)
-  add_executable(test_suite3d ${TEST_SOURCES_3D})
-  target_link_libraries(test_suite3d
+  add_executable(test_suite_3d ${TEST_SOURCES_3D})
+  target_link_libraries(test_suite_3d
     cevicp
   )
-  target_include_directories(test_suite3d
+  target_include_directories(test_suite_3d
     PRIVATE
       ${CMAKE_CURRENT_SOURCE_DIR}/include
       /usr/local/include/simple_test
       ${PCL_INCLUDE_DIRS}
   )
-  target_compile_definitions(test_suite3d PRIVATE TEST)
+  target_compile_definitions(test_suite_3d PRIVATE TEST)
 
   # Add the new test executable for test_ply
   set(TEST_SOURCES_PLY tests/test_ply.cpp)
-  add_executable(test_ply ${TEST_SOURCES_PLY})
-  target_link_libraries(test_ply
+  add_executable(test_suite_ply ${TEST_SOURCES_PLY})
+  target_link_libraries(test_suite_ply
     cevicp
   )
-  target_include_directories(test_ply
+  target_include_directories(test_suite_ply
     PRIVATE
       ${CMAKE_CURRENT_SOURCE_DIR}/include
       ${CMAKE_CURRENT_SOURCE_DIR}/common
       /usr/local/include/simple_test
       ${PCL_INCLUDE_DIRS}
   )
-  target_compile_definitions(test_ply PRIVATE TEST)
+  target_compile_definitions(test_suite_ply PRIVATE TEST)
 
   set(BENCH_SOURCES bench/bench.cpp common/parse_scan.cpp)
   add_executable(bench_suite ${BENCH_SOURCES})

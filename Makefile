@@ -4,11 +4,11 @@ LIB_TARGET := cevicp
 MAIN_TARGET := main
 TEST_TARGET := test_suite
 BENCH_TARGET := bench_suite
-TEST3D_TARGET := test_suite3d
-TEST_PLY_TARGET := test_ply
-TEST_PLY_INPUT_A := /Users/wangjiaxuan/Desktop/cev/3dply/3dpointclouds/Rico_transformed.ply
-TEST_PLY_INPUT_B := /Users/wangjiaxuan/Desktop/cev/3dply/3dpointclouds/Rico.ply
-TEST_PLY_OUTPUT := /Users/wangjiaxuan/Desktop/cev/3dply/3dpointclouds/Rico_result.ply
+TEST3D_TARGET := test_suite_3d
+TEST_PLY_TARGET := test_suite_ply
+TEST_PLY_INPUT_A := ex_data/ply/queen_transformed.ply
+TEST_PLY_INPUT_B := ex_data/ply/queen.ply
+TEST_PLY_OUTPUT := queen_result.ply
 
 N := 1
 METHOD := vanilla
@@ -53,13 +53,17 @@ $(TEST3D_TARGET): configure
 $(TEST_PLY_TARGET): configure
 	cmake --build $(BUILD_DIR) --target $(TEST_PLY_TARGET) -- $(MAKE_FLAGS)
 
-.PHONY: test3d
-test3d: $(TEST3D_TARGET)
-	./$(BUILD_DIR)/$(TEST3D_TARGET)
-	
 .PHONY: test
 test: $(TEST_TARGET)
 	./$(BUILD_DIR)/$(TEST_TARGET)
+
+.PHONY: test_ply
+test_ply: $(TEST_PLY_TARGET)
+	./$(BUILD_DIR)/$(TEST_PLY_TARGET) $(TEST_PLY_INPUT_A) $(TEST_PLY_INPUT_B) $(TEST_PLY_OUTPUT)
+	
+.PHONY: test_3d
+test_3d: $(TEST3D_TARGET)
+	./$(BUILD_DIR)/$(TEST3D_TARGET)
 
 .PHONY: view
 view: $(MAIN_TARGET)
@@ -69,9 +73,6 @@ view: $(MAIN_TARGET)
 bench: $(BENCH_TARGET)
 	./$(BUILD_DIR)/$(BENCH_TARGET)
 
-.PHONY: test_ply
-test_ply: $(TEST_PLY_TARGET)
-	./$(BUILD_DIR)/$(TEST_PLY_TARGET) $(TEST_PLY_INPUT_A) $(TEST_PLY_INPUT_B) $(TEST_PLY_OUTPUT)
 
 .PHONY: clean
 clean: configure
