@@ -5,7 +5,7 @@
             "name": "Debug with gdb on linux",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/test_suite",
+            "program": "${workspaceFolder}/build/test_suite_3d",
             // "args": [
             //     "-S",
             //     "ex_data/scan1/first.conf",

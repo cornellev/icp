@@ -4,11 +4,11 @@ LIB_TARGET := cevicp
 MAIN_TARGET := main
 TEST_TARGET := test_suite
 BENCH_TARGET := bench_suite
-TEST3D_TARGET := test_suite3d
-TEST_PLY_TARGET := test_suiteply
-TEST_PLY_INPUT_A := /Users/wangjiaxuan/Desktop/cev/3dply/3dpointclouds/Rico_transformed.ply
-TEST_PLY_INPUT_B := /Users/wangjiaxuan/Desktop/cev/3dply/3dpointclouds/Rico.ply
-TEST_PLY_OUTPUT := /Users/wangjiaxuan/Desktop/cev/3dply/3dpointclouds/Rico_result.ply
+TEST3D_TARGET := test_suite_3d
+TEST_PLY_TARGET := test_suite_ply
+TEST_PLY_INPUT_A := ex_data/ply/queen_transformed.ply
+TEST_PLY_INPUT_B := ex_data/ply/queen.ply
+TEST_PLY_OUTPUT := queen_result.ply
 
 N := 1
 METHOD := vanilla
