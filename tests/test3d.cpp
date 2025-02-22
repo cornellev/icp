@@ -218,9 +218,15 @@ void test_icp_3d(const std::string& method, const icp::ICP::Config& config) {
 
         Eigen::Matrix3d rotation_matrix_2 = result.transform.rotation.block<3, 3>(0, 0);
         Eigen::Vector3d euler_angles = rotation_matrix_2.eulerAngles(0, 1, 2);
-        // assert_true(std::abs(euler_angles[0] - angle_1) <= RAD_EPS);
-        // assert_true(std::abs(euler_angles[1] - angle_2) <= RAD_EPS);
-        // assert_true(std::abs(euler_angles[2] - angle_3) <= RAD_EPS);
+        std::cout << "[5]Result Transform Translation X: " << result.transform.translation.x() << std::endl;
+        std::cout << "[5]Result Transform Translation Y: " << result.transform.translation.y() << std::endl;
+        std::cout << "[5]Result Transform Translation Z: " << result.transform.translation.z() << std::endl;
+        std::cout << "[5]Result Iteration Count: " << result.iteration_count << std::endl;
+        std::cout << "rotation matrix (expected): " << rotation_matrix << std::endl;
+        std::cout << "rotation matrix (true): " << result.transform.rotation << std::endl;
+        assert_true(std::abs(euler_angles[0] - angle_1) <= 0.1);
+        assert_true(std::abs(euler_angles[1] - angle_2) <= 0.1);
+        assert_true(std::abs(euler_angles[2] - angle_3) <= 0.1);
     }
 }
 
