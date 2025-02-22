@@ -26,6 +26,8 @@ jobs:
         run: ${{ contains(matrix.os, 'macos') && 'brew install eigen'|| 'sudo apt-get install libeigen3-dev' }}
       - name: Install SDL2
         run: ${{ contains(matrix.os, 'macos') && 'brew install SDL2'|| 'sudo apt-get install libsdl2-dev' }}
+      - name: Install PCL
+        run: ${{ contains(matrix.os, 'macos') && 'brew install pcl'|| 'sudo apt install libpcl-dev' }}
       - name: Install sdl-wrapper
         run: |
           git clone https://github.com/cornellev/sdl-wrapper.git
