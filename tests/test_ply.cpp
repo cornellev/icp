@@ -3,6 +3,7 @@
 #include "icp/icp.h"
 #include "icp/driver.h"
 #include "icp/parse_ply.h"
+#include "icp/impl/vanilla_3d.h"
 #include <iostream>
 #include <fstream>
 #include <cassert>
@@ -32,9 +33,9 @@ void write_transformed_points_ply(const std::vector<icp::Vector>& points,
     }
 }
 
-void test_icp_ply(const std::string& method, const icp::ICP::Config& config,
-    const std::string& path_a, const std::string& path_b, const std::string& output_path) {
-    std::unique_ptr<icp::ICP> icp = icp::ICP::from_method(method, config).value();
+void test_icp_ply(const icp::ICP::Config& config, const std::string& path_a,
+    const std::string& path_b, const std::string& output_path) {
+    std::unique_ptr<icp::ICP> icp = std::make_unique<icp::Vanilla_3d>(config);
     icp::ICPDriver driver(std::move(icp));
     driver.set_min_iterations(BURN_IN);
     driver.set_max_iterations(100);
@@ -72,7 +73,7 @@ int main(int argc, char* argv[]) {
     std::string path_a = argv[1];
     std::string path_b = argv[2];
     std::string output_path = argv[3];
-    test_icp_ply(ICP_METHOD, icp::ICP::Config(), path_a, path_b, output_path);
+    test_icp_ply(icp::ICP::Config(), path_a, path_b, output_path);
 
     return 0;
 }
