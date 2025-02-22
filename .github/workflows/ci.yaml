@@ -32,6 +32,7 @@ jobs:
       - name: Install PCL (Linux)
         if: ${{ contains(matrix.os, 'ubuntu') }}
         run: |
+          sudo apt install libboost-all-dev
           git clone https://github.com/PointCloudLibrary/pcl.git
           cd pcl
           git checkout tags/pcl-1.14.1
