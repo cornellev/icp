@@ -89,7 +89,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
         std::vector<icp::Vector> a = {
             icp::Vector(Eigen::Vector2d(-100, -100)), icp::Vector(Eigen::Vector2d(100, 100))};
         std::vector<icp::Vector> b = {};
-        
+
         double angle = (double)deg * M_PI / 180.0;
         icp::Vector center = icp::get_centroid(a);
         icp::Matrix rotation_matrix{
@@ -105,7 +105,8 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
         auto result = driver.converge(a, b, icp::RBTransform(2));
 
         std::cout << "the result for the matrix (true)" << result.transform.rotation << '\n';
-        std::cout << "the result for the matrix (true translate)" << result.transform.translation << '\n';
+        std::cout << "the result for the matrix (true translate)" << result.transform.translation
+                  << '\n';
 
         assert_true(std::abs(result.transform.translation.x() - 0) <= TRANS_EPS);
         assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
@@ -120,15 +121,16 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
 
         std::vector<icp::Vector> a = {
             icp::Vector(Eigen::Vector2d(0, 0)), icp::Vector(Eigen::Vector2d(1, 0))};
-        std::vector<icp::Vector> b = {
-            icp::Vector(Eigen::Vector2d(0, 0)), icp::Vector(rotation_matrix * Eigen::Vector2d(1, 0))};
+        std::vector<icp::Vector> b = {icp::Vector(Eigen::Vector2d(0, 0)),
+            icp::Vector(rotation_matrix * Eigen::Vector2d(1, 0))};
 
         auto result = driver.converge(a, b, icp::RBTransform(2));
 
         std::cout << "testing angle: " << deg << std::endl;
         std::cout << "the result for the matrix (expect) " << rotation_matrix << std::endl;
         std::cout << "the result for the matrix (true)" << result.transform.rotation << std::endl;
-        std::cout << "the result for the matrix (true translate)" << result.transform.translation << std::endl;
+        std::cout << "the result for the matrix (true translate)" << result.transform.translation
+                  << std::endl;
 
         assert_true(result.transform.rotation.isApprox(rotation_matrix, 1e-6));
     }
@@ -161,7 +163,7 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
             icp::Vector(Eigen::Vector2d(0, 0)), icp::Vector(Eigen::Vector2d(100, 0))};
         std::vector<icp::Vector> b;
 
-        double angle = 45 * M_PI / 180.0;                  // Rotate 45 degrees
+        double angle = 45 * M_PI / 180.0;                // Rotate 45 degrees
         icp::Vector translation(Eigen::Vector2d(5, 5));  // Translate by (50, 50)
 
         icp::Matrix rotation_matrix{
@@ -212,9 +214,10 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
 
         assert_true(std::abs(result.transform.translation.x() - 20) <= TRANS_EPS + 1.0);
         assert_true(std::abs(result.transform.translation.y() - 10) <= TRANS_EPS + 1.0);
-        double angle_compute = std::atan2(result.transform.rotation(1,0), result.transform.rotation(0,0));
+        double angle_compute = std::atan2(result.transform.rotation(1, 0),
+            result.transform.rotation(0, 0));
         assert_true(std::abs(angle_compute - angle) <= RAD_EPS);
-        //need to find a way to test the rotation
+        // need to find a way to test the rotation
     }
 }
 

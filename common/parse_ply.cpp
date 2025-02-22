@@ -10,7 +10,7 @@ std::vector<icp::Vector> parse_ply(const std::string& path) {
     }
 
     std::vector<icp::Vector> points;
-    for (const auto& point : cloud->points) {
+    for (const auto& point: cloud->points) {
         points.emplace_back(Eigen::Vector3d(point.x, point.y, point.z));
     }
 

@@ -1,7 +1,7 @@
 /*
  *
  */
-# include <iostream>
+#include <iostream>
 #include <numeric>
 #include <vector>
 #include <cmath>
@@ -90,7 +90,7 @@ namespace icp {
                 A(i, j) = a[i][j];
             }
         }
-        
+
         B.resize(b.size(), dim);
         for (size_t i = 0; i < b.size(); ++i) {
             for (int j = 0; j < dim; ++j) {
@@ -127,4 +127,4 @@ namespace icp {
         transform = transform.update(T);
     }
 }
-//more iteration should not diverge
+// more iteration should not diverge
