@@ -29,8 +29,7 @@ namespace icp {
             rotation = Matrix::Identity(dim, dim);
             transform = Matrix::Identity(dim + 1, dim + 1);
         }
-
-        RBTransform(): RBTransform(2) {}  // Default to 3D
+        RBTransform(): RBTransform(2) {}  // Default to 2D
 
         RBTransform(Vector translation, Matrix rotation)
             : translation(translation), rotation(rotation) {
