@@ -59,7 +59,7 @@ jobs:
       - name: Install PCL (MacOS)
         if: ${{ contains(matrix.os, 'macos') }}
         run: |
-          brew install pcl --ignore-dependencies  # Installing pcl without unnecessary dependencies
+          brew install pcl 
 
       # Install PCL (Ubuntu)
       - name: Install PCL (Ubuntu)
