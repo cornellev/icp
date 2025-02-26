@@ -25,18 +25,26 @@ jobs:
       - name: brew update
         if: ${{ contains(matrix.os, 'macos') }}
         run: brew update
-
-      - name: Unlink Conflicting Python
+      - name: Fix Python Conflicts (MacOS)
         if: ${{ contains(matrix.os, 'macos') }}
-        run: brew unlink python@3.12 || true
+        run: |
+          brew unlink python@3.12 || true
+          brew install python@3.12 || true
+          brew link --overwrite --dry-run python@3.12 || true
+          brew link --overwrite python@3.12 || true
 
-      - name: Reinstall Python
-        if: ${{ contains(matrix.os, 'macos') }}
-        run: brew install python@3.12
 
-      - name: Force Link Python
-        if: ${{ contains(matrix.os, 'macos') }}
-        run: brew link --overwrite python@3.12
+      # - name: Unlink Conflicting Python
+      #   if: ${{ contains(matrix.os, 'macos') }}
+      #   run: brew unlink python@3.12 || true
+
+      # - name: Reinstall Python
+      #   if: ${{ contains(matrix.os, 'macos') }}
+      #   run: brew install python@3.12
+
+      # - name: Force Link Python
+      #   if: ${{ contains(matrix.os, 'macos') }}
+      #   run: brew link --overwrite python@3.12
 
       # - name: Fix Python symlink conflicts (MacOS)
       #   if: ${{ contains(matrix.os, 'macos') }}
