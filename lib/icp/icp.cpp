@@ -11,7 +11,7 @@
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
 #include "icp/impl/feature_aware.h"
-#include "icp/impl/vanilla_3d.h"
+// #include "icp/impl/vanilla_3d.h"
 
 namespace icp {
     ICP::ICP() {}
@@ -110,8 +110,6 @@ namespace icp {
             [](const ICP::Config& config) { return std::make_unique<Trimmed>(config); });
         register_method_internal("feature_aware",
             [](const ICP::Config& config) { return std::make_unique<FeatureAware>(config); });
-        // register_method_internal("vanilla_3d",
-        //     [](const ICP::Config& config) { return std::make_unique<Vanilla_3d>(config); });
 
         builtins_registered = true;
     }
