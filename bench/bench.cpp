@@ -6,7 +6,7 @@
 
 #include "icp/icp.h"
 #include "icp/driver.h"
-#include "icp/parse_scan.h"
+#include "parse_scan.h"
 
 struct BenchmarkResult {
     double min_cost;
