@@ -48,7 +48,7 @@ namespace icp {
     class ICP {
     protected:
         // the dimension of icp(only 2 and 3 are legal)
-        int dim;
+        size_t dim;
 
         /** A matching between `point` and `pair` at (arbitrary) cost `cost`.  */
         struct Match {
@@ -77,7 +77,7 @@ namespace icp {
         void convert_a_to_matrix() {
             A.resize(a.size(), dim);
             for (size_t i = 0; i < a.size(); ++i) {
-                for (int j = 0; j < dim; ++j) {
+                for (size_t j = 0; j < dim; ++j) {
                     A(i, j) = a[i][j];
                 }
             }
@@ -86,7 +86,7 @@ namespace icp {
         void convert_b_to_matrix() {
             B.resize(b.size(), dim);
             for (size_t i = 0; i < b.size(); ++i) {
-                for (int j = 0; j < dim; ++j) {
+                for (size_t j = 0; j < dim; ++j) {
                     B(i, j) = b[i][j];
                 }
             }
@@ -94,7 +94,7 @@ namespace icp {
 
         ICP();
 
-        ICP(int dim): dim(dim), transform(RBTransform(dim)) {
+        ICP(size_t dim): dim(dim), transform(RBTransform(dim)) {
             if (dim != 2 && dim != 3) {
                 throw std::invalid_argument("Dimension must be 2 or 3");
             }

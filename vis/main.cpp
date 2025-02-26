@@ -11,7 +11,7 @@ extern "C" {
 #include "lidar_view.h"
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
-#include "parse_scan.h"
+#include "icp/parse_scan.h"
 
 void set_config_param(const char* var, const char* data, [[maybe_unused]] void* user_data) {
     if (strcmp(var, "x_displace") == 0) {

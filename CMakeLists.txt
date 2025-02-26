@@ -15,9 +15,6 @@ option(LIB_ONLY "Build library only" OFF)
 find_package(Eigen3 REQUIRED)
 if(NOT LIB_ONLY)
   find_package(SDL2 REQUIRED)
-
-  # Specify PCL path and find PCL
-  set(PCL_DIR "/opt/homebrew/share/pcl-1.14")
   find_package(PCL 1.14 REQUIRED COMPONENTS common io visualization)
 
   include_directories(${PCL_INCLUDE_DIRS} /usr/local/include)
@@ -35,7 +32,7 @@ set(LIB_SOURCES
   lib/icp/impl/trimmed.cpp
   lib/icp/impl/feature_aware.cpp
   lib/icp/impl/vanilla_3d.cpp
-  common/parse_ply.cpp  # Add the PLY parser source file
+  common/parse_ply.cpp  
 )
 add_library(cevicp STATIC ${LIB_SOURCES})
 target_include_directories(cevicp 
@@ -99,7 +96,6 @@ if(NOT LIB_ONLY)
   )
   target_compile_definitions(test_suite_3d PRIVATE TEST)
 
-  # Add the new test executable for test_ply
   set(TEST_SOURCES_PLY tests/test_ply.cpp)
   add_executable(test_suite_ply ${TEST_SOURCES_PLY})
   target_link_libraries(test_suite_ply
@@ -110,7 +106,6 @@ if(NOT LIB_ONLY)
       ${CMAKE_CURRENT_SOURCE_DIR}/include
       ${CMAKE_CURRENT_SOURCE_DIR}/common
       /usr/local/include/simple_test
-      ${PCL_INCLUDE_DIRS}
   )
   target_compile_definitions(test_suite_ply PRIVATE TEST)
 

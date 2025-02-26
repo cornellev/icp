@@ -73,10 +73,6 @@ namespace icp {
             return stream.str();
         }
     };
-
+    // using RBTransform = Eigen::Transform<double, 3, Eigen::Affine>;
     Vector get_centroid(const std::vector<Vector>& points);
 }
-
-// can not have everything to be dynamic at the same time???
-// need to specific rhe size whencalling zero() or identity() or block() or rows() or cols() or
-// whatever

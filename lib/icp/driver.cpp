@@ -32,7 +32,6 @@ namespace icp {
             state.cost = icp_->calculate_cost();
             state.transform = icp_->current_transform();
 
-            // Debug: Print current state
             std::cout << "Iteration: " << state.iteration_count << std::endl;
             std::cout << "Cost: " << state.cost << std::endl;
             std::cout << "Transform: " << std::endl;
@@ -100,7 +99,6 @@ namespace icp {
             auto translation = current_state.transform.translation
                                - last_state.value().transform.translation;
 
-            // Debug: Print angle and translation differences
             std::cout << "Angle difference: " << angle_diff << std::endl;
             std::cout << "Translation difference: " << translation.norm() << std::endl;
 

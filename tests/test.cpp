@@ -17,31 +17,11 @@ extern "C" {
 void test_kdtree(void) {}
 
 void test_icp_generic(const std::string& method, const icp::ICP::Config& config) {
-    // // Create ICP instance using the specified method and configuration
-    // auto icp_result = icp::ICP::from_method(method, config);
-    // assert_true(icp_result.has_value()); // Ensure ICP instance creation succeeded
-
-    // std::unique_ptr<icp::ICP> icp = std::move(icp_result.value());
-
     std::unique_ptr<icp::ICP> icp = icp::ICP::from_method(method, config).value();
     icp::ICPDriver driver(std::move(icp));
     driver.set_min_iterations(BURN_IN);
     driver.set_max_iterations(100);
     driver.set_transform_tolerance(0.1 * M_PI / 180, 0.1);
-
-    // Test case 1: Single point translation
-    // {
-    //     std::vector<icp::Vector> a = {icp::Vector(Eigen::Vector2d(0, 0))};
-    //     std::vector<icp::Vector> b = {icp::Vector(Eigen::Vector2d(100, 0))};
-    //     auto result = driver.converge(a, b, icp::RBTransform());
-
-    //     // should not need more than 10 for such a trivial situation or else
-    //     // there is a serious issue with the algorithm
-    //     assert_true(result.iteration_count <= BURN_IN + 10);
-
-    //     assert_true(std::abs(result.transform.translation.x() - 100) <= TRANS_EPS);
-    //     assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
-    // }
 
     // Test case 1: Single point translation
     {
@@ -155,8 +135,6 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
         assert_true(result.transform.rotation.isApprox(icp::Matrix::Identity(2, 2)));
     }
 
-    // need more test case that works for trimmed and feature aware(more points? since it filtered
-    // out points)
     {
         // Translation + rotation
         std::vector<icp::Vector> a = {
@@ -226,14 +204,14 @@ void test_main() {
 
     test_icp_generic("vanilla", icp::ICP::Config());
 
-    // icp::ICP::Config trimmed_config;
-    // //fails with lower overlap rates on these super small examples
-    // trimmed_config.set("overlap_rate", 1.0);
-    // test_icp_generic("trimmed", trimmed_config);
+    icp::ICP::Config trimmed_config;
+    // fails with lower overlap rates on these super small examples
+    trimmed_config.set("overlap_rate", 1.0);
+    test_icp_generic("trimmed", trimmed_config);
 
-    // icp::ICP::Config feature_config;
-    // feature_config.set("overlap_rate", 1.0);
-    // feature_config.set("feature_weight", 0.7);
-    // feature_config.set("symmetric_neighbors", 1);
-    // test_icp_generic("feature_aware", feature_config);
+    icp::ICP::Config feature_config;
+    feature_config.set("overlap_rate", 1.0);
+    feature_config.set("feature_weight", 0.7);
+    feature_config.set("symmetric_neighbors", 1);
+    test_icp_generic("feature_aware", feature_config);
 }

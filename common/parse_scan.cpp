@@ -1,4 +1,4 @@
-#include "icp/parse_scan.h"
+#include "parse_scan.h"
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>

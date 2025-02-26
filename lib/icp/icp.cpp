@@ -35,8 +35,7 @@ namespace icp {
 
     // this is also relying on previous match data right now...
     double ICP::calculate_cost() const {
-        double sum_squares{};
-        // double sum_squares = 0.0;
+        double sum_squares = 0.0;
         for (auto& match: matches) {
             sum_squares += match.cost;
         }
