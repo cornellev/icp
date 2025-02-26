@@ -2,18 +2,32 @@
 #include "icp/geo.h"
 #include "icp/icp.h"
 #include "icp/driver.h"
-#include "icp/parse_ply.h"
 #include "icp/impl/vanilla_3d.h"
 #include <iostream>
 #include <fstream>
 #include <cassert>
 #include <pcl/io/ply_io.h>
 #include <pcl/point_types.h>
+#include <stdexcept>
 
 #define BURN_IN 0                  // Minimum required iterations for the algorithm
 #define TRANS_EPS 0.001            // Translation tolerance in units
 #define RAD_EPS ((double)(0.001))  // Rotation tolerance in radians
 const std::string ICP_METHOD = "vanilla_3d";
+
+std::vector<icp::Vector> parse_ply(const std::string& path) {
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    if (pcl::io::loadPLYFile<pcl::PointXYZ>(path, *cloud) == -1) {
+        throw std::runtime_error("failed to read PLY file: failed to open file");
+    }
+
+    std::vector<icp::Vector> points;
+    for (const auto& point: cloud->points) {
+        points.emplace_back(Eigen::Vector3d(point.x, point.y, point.z));
+    }
+
+    return points;
+}
 
 void write_transformed_points_ply(const std::vector<icp::Vector>& points,
     const icp::RBTransform& transform, const std::string& output_path) {
@@ -56,10 +70,6 @@ void test_icp_ply(const icp::ICP::Config& config, const std::string& path_a,
     std::cout << "Result Transform Translation Z: " << result.transform.translation.z()
               << std::endl;
     std::cout << "Result Iteration Count: " << result.iteration_count << std::endl;
-
-    // Check translation
-
-    // Write transformed points to output file in PLY format
 }
 
 int main(int argc, char* argv[]) {
