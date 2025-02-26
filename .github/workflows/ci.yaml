@@ -12,19 +12,23 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-22.04-arm, macos-latest, macos-13]
       fail-fast: false
-    runs-on: ${{matrix.os}}
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: apt update
+
+      - name: apt update (Ubuntu)
         if: ${{ contains(matrix.os, 'ubuntu') }}
         run: sudo apt-get update
-      - name: Set up Homebrew
+
+      - name: Set up Homebrew (MacOS)
         if: ${{ contains(matrix.os, 'macos') }}
         uses: Homebrew/actions/setup-homebrew@master
-      - name: brew update
+
+      - name: Brew update (MacOS)
         if: ${{ contains(matrix.os, 'macos') }}
         run: brew update
+
       - name: Fix Python Conflicts (MacOS)
         if: ${{ contains(matrix.os, 'macos') }}
         run: |
@@ -33,76 +37,86 @@ jobs:
           brew link --overwrite --dry-run python@3.12 || true
           brew link --overwrite python@3.12 || true
 
-
-      # - name: Unlink Conflicting Python
-      #   if: ${{ contains(matrix.os, 'macos') }}
-      #   run: brew unlink python@3.12 || true
-
-      # - name: Reinstall Python
-      #   if: ${{ contains(matrix.os, 'macos') }}
-      #   run: brew install python@3.12
-
-      # - name: Force Link Python
-      #   if: ${{ contains(matrix.os, 'macos') }}
-      #   run: brew link --overwrite python@3.12
-
-      # - name: Fix Python symlink conflicts (MacOS)
-      #   if: ${{ contains(matrix.os, 'macos') }}
-      #   run: |
-      #     brew unlink python@3.12 || true
-      #     brew install python@3.12
-      #     brew link --overwrite python@3.12
-      # - name: Verify Python installation
-      #   if: ${{ contains(matrix.os, 'macos') }}
-      #   run: |
-      #     which python3
-      #     python3 --version
+      # Install Eigen (Cross-platform)
       - name: Install Eigen
-        run: ${{ contains(matrix.os, 'macos') && 'brew install eigen' || 'sudo apt-get install libeigen3-dev' }}
+        run: |
+          if [[ "${{ matrix.os }}" == "macos-latest" || "${{ matrix.os }}" == "macos-13" ]]; then
+            brew install eigen
+          else
+            sudo apt-get install -y libeigen3-dev
+          fi
+
+      # Install SDL2 (Cross-platform)
       - name: Install SDL2
-        run: ${{ contains(matrix.os, 'macos') && 'brew install SDL2' || 'sudo apt-get install libsdl2-dev' }}
+        run: |
+          if [[ "${{ matrix.os }}" == "macos-latest" || "${{ matrix.os }}" == "macos-13" ]]; then
+            brew install SDL2
+          else
+            sudo apt-get install -y libsdl2-dev
+          fi
+
+      # Install PCL (MacOS)
       - name: Install PCL (MacOS)
         if: ${{ contains(matrix.os, 'macos') }}
-        run: brew install pcl
-      - name: Install PCL (Linux)
+        run: |
+          brew install pcl --ignore-dependencies  # Installing pcl without unnecessary dependencies
+
+      # Install PCL (Ubuntu)
+      - name: Install PCL (Ubuntu)
         if: ${{ contains(matrix.os, 'ubuntu') }}
         run: |
-          sudo apt install libboost-all-dev
+          sudo apt install -y libboost-all-dev
           git clone https://github.com/PointCloudLibrary/pcl.git
           cd pcl
           git checkout tags/pcl-1.14.1
           mkdir build
-          cd build 
+          cd build
           cmake -DCMAKE_BUILD_TYPE=Release ..
           sudo make -j$(nproc) install
+
+      # Install sdl-wrapper (Cross-platform)
       - name: Install sdl-wrapper
         run: |
           git clone https://github.com/cornellev/sdl-wrapper.git
           cd sdl-wrapper
           sudo make install
+
+      # Install libcmdapp2 (Cross-platform)
       - name: Install libcmdapp2
         run: |
           git clone https://github.com/cornellev/libcmdapp2.git
           cd libcmdapp2
           sudo make install
+
+      # Install libconfig (Cross-platform)
       - name: Install libconfig
         run: |
           git clone https://github.com/cornellev/config
           cd config
           sudo make install
+
+      # Install simple-test (Cross-platform)
       - name: Install simple-test
         run: |
           git clone https://github.com/cornellev/simple-test
           cd simple-test
           sudo make install
+
+      # Build all (Cross-platform)
       - name: Build all
         run: make OPT=Release
+
+      # Run tests (Cross-platform)
       - name: Run tests
         run: |
           make test OPT=Release
           make test_3d OPT=Release
           make test_ply OPT=Release
+
+      # Run benchmarks (Cross-platform)
       - name: Run benchmarks
         run: make bench OPT=Release
+
+      # Test install (Cross-platform)
       - name: Test install
         run: sudo make install
