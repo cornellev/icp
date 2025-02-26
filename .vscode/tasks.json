@@ -2,9 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build main with make",
+            "label": "Build with make",
             "type": "shell",
-            "command": "make main",
+            "command": "make",
             "group": {
                 "kind": "build",
                 "isDefault": true

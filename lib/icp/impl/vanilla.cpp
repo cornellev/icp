@@ -2,7 +2,7 @@
  * @author Ethan Uppal
  * @copyright Copyright (C) 2024 Ethan Uppal. All rights reserved.
  */
-
+#include <iostream>
 #include <cassert>
 #include <cstddef>
 #include <cstdlib>
@@ -21,12 +21,16 @@
 exactly and then iterate until an optimal rotation has been found. */
 
 namespace icp {
-    Vanilla::Vanilla([[maybe_unused]] const Config& config): ICP() {}
-    Vanilla::Vanilla(): ICP() {}
+    Vanilla::Vanilla([[maybe_unused]] const Config& config): ICP(2) {}
+    Vanilla::Vanilla(): ICP(2) {}
     Vanilla::~Vanilla() {}
 
     void Vanilla::setup() {
         a_current.resize(a.size());
+
+        for (size_t i = 0; i < a.size(); i++) {
+            a_current[i] = transform.apply_to(a[i]);
+        }
 
         compute_matches();
     }
@@ -55,7 +59,7 @@ namespace icp {
          */
         compute_matches();
 
-        icp::Vector corr_cm = icp::Vector::Zero();
+        icp::Vector corr_cm = icp::Vector::Zero(2);
         for (size_t i = 0; i < matches.size(); i++) {
             corr_cm += b[matches[i].pair];
         }
@@ -71,7 +75,7 @@ namespace icp {
             Sources:
             https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
         */
-        Matrix N = Matrix::Zero();
+        Matrix N = Matrix::Zero(2, 2);
         for (size_t i = 0; i < n; i++) {
             N += (a_current[i] - a_current_cm) * (b[matches[i].pair] - corr_cm).transpose();
         }
@@ -79,6 +83,8 @@ namespace icp {
         const Matrix U = svd.matrixU();
         Matrix V = svd.matrixV();
         Matrix R = V * U.transpose();
+        std::cout << "0: ___" << std::endl;
+        std::cout << R << std::endl;
 
         /*
             #step
@@ -96,9 +102,20 @@ namespace icp {
             https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4767965
         */
         if (R.determinant() < 0) {
+            std::cout << "1: ___" << std::endl;
+            std::cout << R << std::endl;
+            std::cout << "Utrans: " << U.transpose() << std::endl;
+            std::cout << "Determinant: " << R.determinant() << std::endl;
+            std::cout << "V: " << V << std::endl;
             V = V * Eigen::DiagonalMatrix<double, 2>(1, -1);
+            std::cout << "V: " << V << std::endl;
             R = V * U.transpose();
+            std::cout << "2: ___" << std::endl;
+            std::cout << R << std::endl;
         }
+        std::cout << "3: ___" << std::endl;
+        std::cout << get_matches()[0].pair << std::endl;
+        std::cout << get_matches()[1].pair << std::endl;
 
         /*
            #step
@@ -113,24 +130,24 @@ namespace icp {
            https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
         */
         RBTransform step(corr_cm - R * a_current_cm, R);
-
         transform = transform.and_then(step);
     }
-}
 
-void icp::Vanilla::compute_matches() {
-    const size_t n = a.size();
-    const size_t m = b.size();
+    void Vanilla::compute_matches() {
+        const size_t n = a.size();
+        const size_t m = b.size();
 
-    for (size_t i = 0; i < n; i++) {
-        matches[i].cost = std::numeric_limits<double>::infinity();
-        for (size_t j = 0; j < m; j++) {
-            // Point-to-point matching
-            double dist_ij = (b[j] - a_current[i]).squaredNorm();
+        for (size_t i = 0; i < n; i++) {
+            matches[i].point = i;
+            matches[i].cost = std::numeric_limits<double>::infinity();
+            for (size_t j = 0; j < m; j++) {
+                // Point-to-point matching
+                double dist_ij = (b[j] - a_current[i]).squaredNorm();
 
-            if (dist_ij < matches[i].cost) {
-                matches[i].cost = dist_ij;
-                matches[i].pair = j;
+                if (dist_ij < matches[i].cost) {
+                    matches[i].cost = dist_ij;
+                    matches[i].pair = j;
+                }
             }
         }
     }

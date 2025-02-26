@@ -11,6 +11,7 @@
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
 #include "icp/impl/feature_aware.h"
+// #include "icp/impl/vanilla_3d.h"
 
 namespace icp {
     ICP::ICP() {}
@@ -32,8 +33,9 @@ namespace icp {
         setup();
     }
 
+    // this is also relying on previous match data right now...
     double ICP::calculate_cost() const {
-        double sum_squares{};
+        double sum_squares = 0.0;
         for (auto& match: matches) {
             sum_squares += match.cost;
         }
@@ -42,6 +44,14 @@ namespace icp {
 
     const RBTransform& ICP::current_transform() const {
         return transform;
+    }
+
+    const std::vector<ICP::Match>& ICP::get_matches() const {
+        return matches;
+    }
+
+    int ICP::dimensionality() const {
+        return dim;
     }
 
     ICP::Methods ICP::global;
