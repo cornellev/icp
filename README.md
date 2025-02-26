@@ -6,8 +6,12 @@
 
 ## Introduction
 
-This repository hosts [Ethan](https://www.ethanuppal.com) and [Utku](https://utku.sh)'s implementation of Iterative Closest Points (ICP) as applied to scan matching.
-It is a first step in our project to implement Simultaneous Localization and Mapping (SLAM).
+This repository hosts CEV's implementation of Iterative Closest Points (ICP) as applied to scan matching.
+
+## Authors
+- [Ethan Uppal](https://www.ethanuppal.com)
+- [Jess Wang](https://github.com/jesswang7)
+- [Utku Melemetci](https://utku.sh)
 
 ## Install
 
