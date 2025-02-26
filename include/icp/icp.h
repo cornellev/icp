@@ -128,6 +128,16 @@ namespace icp {
         /** The current transform. */
         const RBTransform& current_transform() const;
 
+        /** The matches. */
+        const std::vector<Match>& get_matches() const;
+
+        /** The dimensionality supported by this ICP instance. */
+        int dimensionality() const;
+
+        /** Registers methods built into `libcevicp`. Must be called before constructing ICP
+         * instances for built-in methods. */
+        static void register_builtin_methods();
+
         /** Registers a new ICP method that can be created with `constructor`,
          * returning `false` if `name` has already been registered. */
         static bool register_method(std::string name,

@@ -28,5 +28,6 @@ public:
         std::unique_ptr<icp::ICP> icp);
 
     void on_event(const SDL_Event& event) override;
+    void draw_matches(SDL_Renderer* renderer);
     void draw(SDL_Renderer* renderer, const SDL_Rect* frame, double dtime) override;
 };
