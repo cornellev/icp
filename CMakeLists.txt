@@ -31,8 +31,7 @@ set(LIB_SOURCES
   lib/icp/impl/vanilla.cpp
   lib/icp/impl/trimmed.cpp
   lib/icp/impl/feature_aware.cpp
-  lib/icp/impl/vanilla_3d.cpp
-  common/parse_ply.cpp  
+  lib/icp/impl/vanilla_3d.cpp 
 )
 add_library(cevicp STATIC ${LIB_SOURCES})
 target_include_directories(cevicp 
@@ -40,9 +39,7 @@ target_include_directories(cevicp
     ${CMAKE_CURRENT_SOURCE_DIR}/include
   PUBLIC
     ${EIGEN3_INCLUDE_DIRS}
-    ${PCL_INCLUDE_DIRS}
 )
-target_link_libraries(cevicp ${PCL_LIBRARIES})
 
 if(NOT LIB_ONLY)
   # Main executable
@@ -92,7 +89,6 @@ if(NOT LIB_ONLY)
     PRIVATE
       ${CMAKE_CURRENT_SOURCE_DIR}/include
       /usr/local/include/simple_test
-      ${PCL_INCLUDE_DIRS}
   )
   target_compile_definitions(test_suite_3d PRIVATE TEST)
 
@@ -100,12 +96,14 @@ if(NOT LIB_ONLY)
   add_executable(test_suite_ply ${TEST_SOURCES_PLY})
   target_link_libraries(test_suite_ply
     cevicp
+    ${PCL_LIBRARIES}
   )
   target_include_directories(test_suite_ply
     PRIVATE
       ${CMAKE_CURRENT_SOURCE_DIR}/include
       ${CMAKE_CURRENT_SOURCE_DIR}/common
       /usr/local/include/simple_test
+      ${PCL_INCLUDE_DIRS}
   )
   target_compile_definitions(test_suite_ply PRIVATE TEST)
 
