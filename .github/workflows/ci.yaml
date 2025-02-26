@@ -19,6 +19,9 @@ jobs:
       - name: apt update
         if: ${{ contains(matrix.os, 'ubuntu') }}
         run: sudo apt-get update
+      - name: Set up Homebrew
+        if: ${{ contains(matrix.os, 'macos') }}
+        uses: Homebrew/actions/setup-homebrew@master
       - name: brew update
         if: ${{ contains(matrix.os, 'macos') }}
         run: brew update
