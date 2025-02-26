@@ -2,7 +2,7 @@
  * @author Ethan Uppal
  * @copyright Copyright (C) 2024 Ethan Uppal. All rights reserved.
  */
-
+#include <iostream>
 #include <cassert>
 #include <cstddef>
 #include <cstdlib>
@@ -27,6 +27,10 @@ namespace icp {
 
     void Vanilla::setup() {
         a_current.resize(a.size());
+
+        for (size_t i = 0; i < a.size(); i++) {
+            a_current[i] = transform.apply_to(a[i]);
+        }
 
         compute_matches();
     }
@@ -113,24 +117,24 @@ namespace icp {
            https://courses.cs.duke.edu/spring07/cps296.2/scribe_notes/lecture24.pdf
         */
         RBTransform step(corr_cm - R * a_current_cm, R);
-
         transform = transform.and_then(step);
     }
-}
 
-void icp::Vanilla::compute_matches() {
-    const size_t n = a.size();
-    const size_t m = b.size();
+    void Vanilla::compute_matches() {
+        const size_t n = a.size();
+        const size_t m = b.size();
 
-    for (size_t i = 0; i < n; i++) {
-        matches[i].cost = std::numeric_limits<double>::infinity();
-        for (size_t j = 0; j < m; j++) {
-            // Point-to-point matching
-            double dist_ij = (b[j] - a_current[i]).squaredNorm();
+        for (size_t i = 0; i < n; i++) {
+            matches[i].point = i;
+            matches[i].cost = std::numeric_limits<double>::infinity();
+            for (size_t j = 0; j < m; j++) {
+                // Point-to-point matching
+                double dist_ij = (b[j] - a_current[i]).squaredNorm();
 
-            if (dist_ij < matches[i].cost) {
-                matches[i].cost = dist_ij;
-                matches[i].pair = j;
+                if (dist_ij < matches[i].cost) {
+                    matches[i].cost = dist_ij;
+                    matches[i].pair = j;
+                }
             }
         }
     }
