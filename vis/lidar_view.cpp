@@ -64,10 +64,14 @@ void LidarView::draw_matches(SDL_Renderer* renderer) {
 
         // current transform
         SDL_RenderDrawLine(renderer,
-            static_cast<int>(transformed_source[0]) + view_config::x_displace,
-            static_cast<int>(transformed_source[1]) + view_config::y_displace,
-            static_cast<int>(destination_point[0]) + view_config::x_displace,
-            static_cast<int>(destination_point[1]) + view_config::y_displace);
+            static_cast<int>(view_config::view_scale * transformed_source[0])
+                + view_config::x_displace,
+            static_cast<int>(view_config::view_scale * transformed_source[1])
+                + view_config::y_displace,
+            static_cast<int>(view_config::view_scale * destination_point[0])
+                + view_config::x_displace,
+            static_cast<int>(view_config::view_scale * destination_point[1])
+                + view_config::y_displace);
     }
 }
 
