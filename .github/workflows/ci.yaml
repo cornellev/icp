@@ -54,12 +54,19 @@ jobs:
           else
             sudo apt-get install -y libsdl2-dev
           fi
-
-      # Install PCL (MacOS)
+      # Install PCL (MacOS) with only essential dependencies
       - name: Install PCL (MacOS)
         if: ${{ contains(matrix.os, 'macos') }}
         run: |
-          brew install pcl 
+          # Ensure essential dependencies are installed
+          brew install boost eigen cmake
+          
+          # Now install PCL with minimal dependencies
+          brew install pcl --ignore-dependencies  # Installing pcl without unnecessary dependencies
+          
+          # Ensure any missing dependencies are explicitly handled
+          brew install libomp  # libomp may be required for parallel processing in PCL
+
 
       # Install PCL (Ubuntu)
       - name: Install PCL (Ubuntu)
