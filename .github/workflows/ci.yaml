@@ -10,7 +10,7 @@ jobs:
   ci:
     strategy:
       matrix:
-        os: [ubuntu-22.04-x86, ubuntu-22.04-arm, macos-latest, macos-14]
+        os: [ubuntu-latest, ubuntu-22.04-arm, macos-latest, macos-14]
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
