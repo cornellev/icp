@@ -10,7 +10,7 @@ jobs:
   ci:
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-22.04-arm, macos-latest, macos-13]
+        os: [ubuntu-22.04-x86, ubuntu-22.04-arm, macos-latest, macos-14]
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
@@ -40,7 +40,7 @@ jobs:
       # Install Eigen (Cross-platform)
       - name: Install Eigen
         run: |
-          if [[ "${{ matrix.os }}" == "macos-latest" || "${{ matrix.os }}" == "macos-13" ]]; then
+          if [[ "${{ matrix.os }}" == "macos-latest" || "${{ matrix.os }}" == "macos-14" ]]; then
             brew install eigen
           else
             sudo apt-get install -y libeigen3-dev
@@ -49,24 +49,25 @@ jobs:
       # Install SDL2 (Cross-platform)
       - name: Install SDL2
         run: |
-          if [[ "${{ matrix.os }}" == "macos-latest" || "${{ matrix.os }}" == "macos-13" ]]; then
+          if [[ "${{ matrix.os }}" == "macos-latest" || "${{ matrix.os }}" == "macos-14" ]]; then
             brew install SDL2
           else
             sudo apt-get install -y libsdl2-dev
           fi
-      # Install PCL (MacOS) with only essential dependencies
+
+            # Install PCL (MacOS)
       - name: Install PCL (MacOS)
         if: ${{ contains(matrix.os, 'macos') }}
         run: |
-          # Ensure essential dependencies are installed
           brew install boost eigen cmake
-          
-          # Now install PCL with minimal dependencies
-          brew install pcl --ignore-dependencies  # Installing pcl without unnecessary dependencies
-          
-          # Ensure any missing dependencies are explicitly handled
-          brew install libomp  # libomp may be required for parallel processing in PCL
-
+          git clone https://github.com/PointCloudLibrary/pcl.git
+          cd pcl
+          git checkout tags/pcl-1.14.1
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+          make -j$(sysctl -n hw.ncpu)
+          sudo make install
 
       # Install PCL (Ubuntu)
       - name: Install PCL (Ubuntu)
