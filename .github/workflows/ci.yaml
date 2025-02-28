@@ -55,19 +55,11 @@ jobs:
             sudo apt-get install -y libsdl2-dev
           fi
 
-            # Install PCL (MacOS)
+      # Install PCL (MacOS)
       - name: Install PCL (MacOS)
         if: ${{ contains(matrix.os, 'macos') }}
         run: |
-          brew install boost eigen cmake
-          git clone https://github.com/PointCloudLibrary/pcl.git
-          cd pcl
-          git checkout tags/pcl-1.14.1
-          mkdir build
-          cd build
-          cmake -DCMAKE_BUILD_TYPE=Release ..
-          make -j$(sysctl -n hw.ncpu)
-          sudo make install
+          brew install pcl
 
       # Install PCL (Ubuntu)
       - name: Install PCL (Ubuntu)
