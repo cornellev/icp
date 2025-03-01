@@ -128,6 +128,9 @@ namespace icp {
         /** The current transform. */
         const RBTransform& current_transform() const;
 
+        virtual const std::vector<Match>& get_next_matches() const = 0;
+        virtual RBTransform get_last_step() const = 0;
+
         /** The matches. */
         const std::vector<Match>& get_matches() const;
 

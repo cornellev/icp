@@ -5,7 +5,7 @@
 #include "icp/icp.h"
 
 namespace icp {
-    class Trimmed final : public ICP {
+    class Trimmed : public ICP {
     public:
         Trimmed(double overlap_rate);
         Trimmed(const Config& config);
@@ -13,6 +13,16 @@ namespace icp {
 
         void setup() override;
         void iterate() override;
+        RBTransform get_last_step() const override {
+            return last_step;
+        }
+        const std::vector<Match>& get_next_matches() const override {
+            return next_matches;
+        }
+
+    protected:
+        RBTransform last_step;
+        std::vector<Match> next_matches;
 
     private:
         void compute_matches();

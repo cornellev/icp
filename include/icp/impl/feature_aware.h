@@ -6,7 +6,7 @@
 #include <Eigen/Core>
 
 namespace icp {
-    class FeatureAware final : public ICP {
+    class FeatureAware : public ICP {
         using FeatureVector = Eigen::VectorXd;
 
     public:
@@ -16,6 +16,17 @@ namespace icp {
 
         void setup() override;
         void iterate() override;
+
+        const std::vector<Match>& get_next_matches() const override {
+            return next_matches;
+        }
+        RBTransform get_last_step() const override {
+            return last_step;
+        }
+
+    protected:
+        RBTransform last_step;
+        std::vector<Match> next_matches;
 
     private:
         void compute_matches();

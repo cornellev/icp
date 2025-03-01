@@ -34,6 +34,7 @@ namespace icp {
         a_current.resize(a.size());
         b_cm = get_centroid(b);
 
+        matches.resize(a.size());
         compute_matches();
     }
 
@@ -90,9 +91,12 @@ namespace icp {
         }
 
         /* #step Transformation Step: see \ref vanilla_icp for details. */
-        RBTransform step(trimmed_b_cm - R * trimmed_cm, R);
+        // RBTransform step(trimmed_b_cm - R * trimmed_cm, R);
 
-        transform = transform.and_then(step);
+        // transform = transform.and_then(step);
+        RBTransform new_step(trimmed_b_cm - R * trimmed_cm, R);
+        last_step = new_step;  // 保存最后一步变换
+        transform = transform.and_then(new_step);
     }
 
     void Trimmed::compute_matches() {

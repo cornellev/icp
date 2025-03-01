@@ -9,6 +9,7 @@
 #include <cmath>
 #include <sstream>
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 
 namespace icp {
     using Vector = Eigen::Vector2d;
