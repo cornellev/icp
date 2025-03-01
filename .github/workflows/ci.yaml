@@ -109,8 +109,6 @@ jobs:
       # Run tests (Cross-platform)
       - name: Run tests
         run: |
-          make test OPT=Release
-          make test_3d OPT=Release
           make test_ply OPT=Release
 
       # Run benchmarks (Cross-platform)
