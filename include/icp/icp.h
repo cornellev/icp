@@ -137,6 +137,10 @@ namespace icp {
 
         virtual ~ICP() = default;
 
+        virtual void set_target(const std::vector<Vector>& target) {
+            b = target;
+        }
+
         /** Begins the ICP process for point clouds `a` and `b` with an initial
          * guess for the transform `t`.*/
         void begin(const std::vector<Vector>& a, const std::vector<Vector>& b, RBTransform t);

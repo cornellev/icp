@@ -1,6 +1,7 @@
 // Copyright (C) 2024 Ethan Uppal. All rights reserved.
 #include <string>
 #include "icp/geo.h"
+#include "algo/kdtree.h"  // Add this line to include the KdTree definition
 #include "icp/icp.h"
 #include "icp/driver.h"
 #include <iostream>
@@ -14,7 +15,42 @@ extern "C" {
 #define TRANS_EPS 0.5             // Translation tolerance in units
 #define RAD_EPS ((double)(0.01))  // Rotation tolerance in radians
 
-void test_kdtree(void) {}
+void test_kdtree(void) {
+    std::vector<icp::Vector> points;
+    points.push_back(icp::Vector(Eigen::Vector2d(0, 0)));
+    points.push_back(icp::Vector(Eigen::Vector2d(1, 0)));
+    points.push_back(icp::Vector(Eigen::Vector2d(0, 1)));
+    points.push_back(icp::Vector(Eigen::Vector2d(1, 1)));
+    points.push_back(icp::Vector(Eigen::Vector2d(0.5, 0.5)));
+
+    std::cout << "Building KdTree with " << points.size() << " points" << std::endl;
+
+    try {
+        icp::KdTree<icp::Vector> tree(points, 2);
+
+        icp::Vector query(Eigen::Vector2d(0.2, 0.2));
+        float min_dist = 0;
+        size_t nearest_idx = tree.find_nearest(query, &min_dist);
+
+        std::cout << "Nearest point to (0.2, 0.2) is at index " << nearest_idx << " with distance "
+                  << min_dist << std::endl;
+
+        assert_true(nearest_idx == 0);
+
+        query = icp::Vector(Eigen::Vector2d(0.6, 0.6));
+        nearest_idx = tree.find_nearest(query, &min_dist);
+
+        std::cout << "Nearest point to (0.6, 0.6) is at index " << nearest_idx << " with distance "
+                  << min_dist << std::endl;
+
+        assert_true(nearest_idx == 4);
+
+        std::cout << "KdTree test passed" << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "KdTree test failed: " << e.what() << std::endl;
+        assert_true(false);
+    }
+}
 
 void test_icp_generic(const std::string& method, const icp::ICP::Config& config) {
     std::unique_ptr<icp::ICP> icp = icp::ICP::from_method(method, config).value();
