@@ -20,8 +20,10 @@
 exactly and then iterate until an optimal rotation has been found. */
 
 namespace icp {
-    Vanilla_3d::Vanilla_3d([[maybe_unused]] const Config& config): ICP(3) {}
-    Vanilla_3d::Vanilla_3d(): ICP(3), target_kdtree_(nullptr) {}
+    Vanilla_3d::Vanilla_3d([[maybe_unused]] const Config& config)
+        : ICP(3), current_cost_(std::numeric_limits<double>::max()) {}
+    Vanilla_3d::Vanilla_3d()
+        : ICP(3), target_kdtree_(nullptr), current_cost_(std::numeric_limits<double>::max()) {}
     Vanilla_3d::~Vanilla_3d() {}
 
     void Vanilla_3d::set_target(const std::vector<Vector>& target) {
@@ -185,6 +187,9 @@ namespace icp {
         if (!target_kdtree_ && !b.empty()) {
             rebuild_kdtree();
         }
+
+        // 初始化成本为最大值
+        current_cost_ = std::numeric_limits<double>::max();
     }
 
     void Vanilla_3d::iterate() {
@@ -201,5 +206,21 @@ namespace icp {
         C = (T * C_homogeneous).transpose().leftCols(3);
 
         transform = transform.update(T);
+
+        calculate_cost(neighbor.distances);
+    }
+
+    void Vanilla_3d::calculate_cost(const std::vector<float>& distances) {
+        if (distances.empty()) {
+            current_cost_ = std::numeric_limits<double>::max();
+            return;
+        }
+
+        double sum = std::accumulate(distances.begin(), distances.end(), 0.0);
+        current_cost_ = sum / distances.size();
+    }
+
+    double Vanilla_3d::get_current_cost() const {
+        return current_cost_;
     }
 }

@@ -11,6 +11,9 @@ namespace icp {
      */
     class ICPDriver {
     public:
+        ICP* get_icp() {
+            return icp_.get();
+        }
         /** The result of running `ICPDriver::converge`. */
         struct ConvergenceState {
             /** The cost achieved. */
