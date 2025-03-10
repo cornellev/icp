@@ -15,4 +15,5 @@ namespace view_config {
     extern bool use_light_mode;
 
     extern double view_scale;
+    constexpr bool show_prediction = true;
 }
