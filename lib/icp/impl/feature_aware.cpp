@@ -13,7 +13,7 @@ distance criteria, matches them based on a local "feature vector."
 
 namespace icp {
     FeatureAware::FeatureAware(double overlap_rate, double feature_weight, int symmetric_neighbors)
-        : ICP(),
+        : ICP(2),
           overlap_rate(overlap_rate),
           symmetric_neighbors(symmetric_neighbors),
           feature_weight(feature_weight),
@@ -34,6 +34,9 @@ namespace icp {
 
     void FeatureAware::setup() {
         a_current.resize(a.size());
+        for (size_t i = 0; i < a.size(); i++) {
+            a_current[i] = transform.apply_to(a[i]);
+        }
         a_features.resize(a.size());
         b_features.resize(b.size());
 
@@ -93,7 +96,7 @@ namespace icp {
         icp::Vector trimmed_b_cm = get_centroid(trimmed_b);
 
         /* #step SVD: see \ref vanilla_icp for details. */
-        Matrix N = Matrix::Zero();
+        Matrix N = Matrix::Zero(2, 2);
         for (size_t i = 0; i < new_n; i++) {
             N += (trimmed_current[i] - trimmed_cm) * (trimmed_b[i] - trimmed_b_cm).transpose();
         }
@@ -111,7 +114,6 @@ namespace icp {
 
         /* #step Transformation Step: see \ref vanilla_icp for details. */
         RBTransform step(trimmed_b_cm - R * trimmed_cm, R);
-
         transform = transform.and_then(step);
     }
 

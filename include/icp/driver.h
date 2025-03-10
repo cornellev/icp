@@ -11,16 +11,20 @@ namespace icp {
      */
     class ICPDriver {
     public:
+        ICP* get_icp() {
+            return icp_.get();
+        }
         /** The result of running `ICPDriver::converge`. */
         struct ConvergenceState {
             /** The cost achieved. */
-            double cost;
+            double cost = 0.;
 
             /** The number of iterations performed. */
-            size_t iteration_count;
+            size_t iteration_count = 0;
 
             /** The transform. */
             RBTransform transform;
+            ConvergenceState(size_t dim): transform(dim) {}
         };
 
         /**
