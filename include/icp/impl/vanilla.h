@@ -20,5 +20,8 @@ namespace icp {
         void compute_matches();
 
         std::vector<icp::Vector> a_current;
+        // icp::Vector a_current_cm;
+        // icp::Vector corr_cm = icp::Vector::Zero();
+        // size_t n;
     };
 }

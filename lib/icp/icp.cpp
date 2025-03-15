@@ -31,9 +31,8 @@ namespace icp {
         // Per-instance customization routine
         setup();
     }
-
     double ICP::calculate_cost() const {
-        double sum_squares{};
+        double sum_squares = 0.0;
         for (auto& match: matches) {
             sum_squares += match.cost;
         }
@@ -42,6 +41,10 @@ namespace icp {
 
     const RBTransform& ICP::current_transform() const {
         return transform;
+    }
+
+    const std::vector<ICP::Match>& ICP::get_matches() const {
+        return matches;
     }
 
     ICP::Methods ICP::global;
