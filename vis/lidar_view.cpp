@@ -52,6 +52,8 @@ void LidarView::on_event(const SDL_Event& event) {
     }
 }
 
+// this is the correct logic if we want the green line to be the indicator of how good is our
+// current transformation
 void LidarView::draw_matches(SDL_Renderer* renderer) {
     const auto& matches = icp->get_matches();  // one iteration before we calculated the transform
 
