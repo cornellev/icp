@@ -187,8 +187,6 @@ namespace icp {
         if (!target_kdtree_ && !b.empty()) {
             rebuild_kdtree();
         }
-
-        // 初始化成本为最大值
         current_cost_ = std::numeric_limits<double>::max();
     }
 
@@ -205,7 +203,8 @@ namespace icp {
         Eigen::MatrixXd C_homogeneous = C.transpose().colwise().homogeneous();
         C = (T * C_homogeneous).transpose().leftCols(3);
 
-        transform = transform.update(T);
+        RBTransform step(T.block<3, 1>(0, 3), T.block<3, 3>(0, 0));
+        transform = transform.and_then(step);
 
         calculate_cost(neighbor.distances);
     }
