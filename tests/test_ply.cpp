@@ -124,11 +124,11 @@ int main(int argc, char* argv[]) {
 
         // Print results
         std::cout << "\n===== ICP Results =====" << std::endl;
+        std::cout << "  Rotation: \n" << result.transform.rotation << std::endl;
         std::cout << "  Translation: [" << result.transform.translation.x() << ", "
                   << result.transform.translation.y() << ", " << result.transform.translation.z()
                   << "]" << std::endl;
         std::cout << "  Iterations: " << result.iteration_count << std::endl;
-        std::cout << "  Final cost: " << result.cost << std::endl;
 
         std::cout << "ICP completed successfully" << std::endl;
     } catch (const std::exception& e) {
