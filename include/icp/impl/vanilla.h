@@ -8,7 +8,7 @@
 #include "algo/kdtree.h"
 
 namespace icp {
-    class Vanilla final : public ICP {
+    class Vanilla final : public ICP<2> {
     public:
         Vanilla();
         Vanilla(const Config& config);

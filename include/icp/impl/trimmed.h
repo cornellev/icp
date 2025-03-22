@@ -5,7 +5,7 @@
 #include "icp/icp.h"
 
 namespace icp {
-    class Trimmed final : public ICP {
+    class Trimmed final : public ICP2d {
     public:
         Trimmed(double overlap_rate);
         Trimmed(const Config& config);
@@ -18,7 +18,6 @@ namespace icp {
         void compute_matches();
 
         double overlap_rate;
-        std::vector<icp::Vector> a_current;
-        icp::Vector b_cm;
+        PointCloud a_current;
     };
 }

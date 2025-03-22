@@ -1,6 +1,8 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Dense>
+#include "Eigen/src/Core/Matrix.h"
+#include "Eigen/src/Core/util/Constants.h"
 
 /* #name Feature-Aware */
 /* #register feature_aware */
@@ -13,7 +15,7 @@ distance criteria, matches them based on a local "feature vector."
 
 namespace icp {
     FeatureAware::FeatureAware(double overlap_rate, double feature_weight, int symmetric_neighbors)
-        : ICP(2),
+        : ICP(),
           overlap_rate(overlap_rate),
           symmetric_neighbors(symmetric_neighbors),
           feature_weight(feature_weight),
@@ -33,29 +35,21 @@ namespace icp {
     FeatureAware::~FeatureAware() {}
 
     void FeatureAware::setup() {
-        a_current.resize(a.size());
-        for (size_t i = 0; i < a.size(); i++) {
-            a_current[i] = transform.apply_to(a[i]);
-        }
-        a_features.resize(a.size());
-        b_features.resize(b.size());
+        a_current = transform * a;
 
-        b_cm = get_centroid(b);
+        a_features = compute_features(a_current);
+        b_features = compute_features(b);
 
-        compute_features(a, get_centroid(a), a_features);
-        compute_features(b, b_cm, b_features);
-
-        norm_feature_dists = compute_norm_dists(a_features, b_features);
+        normalized_feature_dists = compute_norm_dists<Eigen::Dynamic>(a_features, b_features);
+        normalized_feature_dists /= normalized_feature_dists.maxCoeff();
 
         compute_matches();
     }
 
     void FeatureAware::iterate() {
-        const size_t n = a.size();
+        const size_t n = a.cols();
 
-        for (size_t i = 0; i < n; i++) {
-            a_current[i] = transform.apply_to(a[i]);
-        }
+        a_current = transform * a;
 
         /*
             #step
@@ -85,26 +79,25 @@ namespace icp {
         new_n = std::max<size_t>(new_n, 1);  // TODO: bad for scans with 0 points
 
         // yeah, i know this is inefficient. we'll get back to it later.
-        std::vector<icp::Vector> trimmed_current(new_n);
-        std::vector<icp::Vector> trimmed_b(new_n);
+        PointCloud trimmed_a_current(new_n);
+        PointCloud trimmed_b(new_n);
         for (size_t i = 0; i < new_n; i++) {
-            trimmed_current[i] = a_current[matches[i].point];
-            trimmed_b[i] = b[matches[i].pair];
+            trimmed_a_current.col(i) = a_current.col(matches[i].point);
+            trimmed_b.col(i) = b.col(matches[i].pair);
         }
 
-        icp::Vector trimmed_cm = get_centroid(trimmed_current);
-        icp::Vector trimmed_b_cm = get_centroid(trimmed_b);
+        Vector trimmed_a_cm = get_centroid<2>(trimmed_a_current);
+        Vector trimmed_b_cm = get_centroid<2>(trimmed_b);
 
         /* #step SVD: see \ref vanilla_icp for details. */
-        Matrix N = Matrix::Zero(2, 2);
-        for (size_t i = 0; i < new_n; i++) {
-            N += (trimmed_current[i] - trimmed_cm) * (trimmed_b[i] - trimmed_b_cm).transpose();
-        }
+        Eigen::Matrix2d N = (trimmed_a_current.colwise() - trimmed_a_cm)
+                            * (trimmed_b.colwise() - trimmed_b_cm).transpose();
 
-        auto svd = N.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
-        Matrix U = svd.matrixU();
-        Matrix V = svd.matrixV();
-        Matrix R = V * U.transpose();
+        Eigen::JacobiSVD<Eigen::Matrix2d> svd = N.jacobiSvd(Eigen::ComputeFullU
+                                                            | Eigen::ComputeFullV);
+        Eigen::Matrix2d U = svd.matrixU();
+        Eigen::Matrix2d V = svd.matrixV();
+        Eigen::Matrix2d R = V * U.transpose();
 
         /* #step Reflection Handling: see \ref vanilla_icp for details. */
         if (R.determinant() < 0) {
@@ -113,22 +106,26 @@ namespace icp {
         }
 
         /* #step Transformation Step: see \ref vanilla_icp for details. */
-        RBTransform step(trimmed_b_cm - R * trimmed_cm, R);
-        transform = transform.and_then(step);
+        RBTransform step;
+        step.linear() = R;
+        step.translation() = trimmed_b_cm - R * trimmed_a_cm;
+
+        transform = step * transform;
     }
 
     void FeatureAware::compute_matches() {
-        const size_t n = a.size();
-        const size_t m = b.size();
+        const size_t n = a.cols();
+        const size_t m = b.cols();
 
-        Eigen::MatrixXd norm_dists = compute_norm_dists(a_current, b);
+        Eigen::MatrixXd normalized_dists = compute_norm_dists<2>(a_current, b);
+        normalized_dists /= normalized_dists.maxCoeff();
 
         for (size_t i = 0; i < n; i++) {
             matches[i].point = i;
             matches[i].cost = std::numeric_limits<double>::infinity();
             for (size_t j = 0; j < m; j++) {
-                double dist = norm_dists(i, j);
-                double feature_dist = norm_feature_dists(i, j);
+                double dist = normalized_dists(i, j);
+                double feature_dist = normalized_feature_dists(i, j);
                 double cost = neighbor_weight * dist + feature_weight * feature_dist;
 
                 if (cost < matches[i].cost) {
@@ -139,30 +136,32 @@ namespace icp {
         }
     }
 
-    void FeatureAware::compute_features(const std::vector<Vector>& points, Vector cm,
-        std::vector<FeatureVector>& features) {
-        for (size_t i = 0; i < points.size(); i++) {
-            Vector p = points[i];
-            double cm_dist_p = (p - cm).norm();
+    Eigen::MatrixXd FeatureAware::compute_features(const PointCloud& points) {
+        const size_t n = points.cols();
+        Eigen::MatrixXd features(n, 2 * symmetric_neighbors);
+        features.setZero();
 
-            FeatureVector feature(2 * symmetric_neighbors);
-            feature.setZero();
+        Vector cm = get_centroid<2>(points);
+
+        for (size_t i = 0; i < n; i++) {
+            Vector p = points.col(i);
+            double cm_dist_p = (p - cm).norm();
 
             size_t lower = std::max((size_t)0, i - symmetric_neighbors);
             for (size_t j = lower; j < i; j++) {
-                Vector q = points[j];
+                Vector q = points.col(j);
                 double cm_dist_q = (q - cm).norm();
-                feature[j - lower] = cm_dist_q - cm_dist_p;
+                features(i, j - lower) = cm_dist_q - cm_dist_p;
             }
 
-            size_t upper = std::min(points.size() - 1, i + symmetric_neighbors);
+            size_t upper = std::min(n - 1, i + symmetric_neighbors);
             for (size_t j = i + 1; j <= upper; j++) {
-                Vector q = points[j];
+                Vector q = points.col(j);
                 double cm_dist_q = (q - cm).norm();
-                feature[j - i - 1 + symmetric_neighbors] = cm_dist_q - cm_dist_p;
+                features(i, j - i - 1 + symmetric_neighbors) = cm_dist_q - cm_dist_p;
             }
-
-            features[i] = feature;
         }
+
+        return features;
     }
 }
