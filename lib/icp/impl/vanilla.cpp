@@ -10,43 +10,28 @@
 #include <Eigen/SVD>
 #include <Eigen/Dense>
 #include <vector>
+#include <memory>
 #include "icp/geo.h"
 
 #include "icp/impl/vanilla.h"
 
 namespace icp {
-    Vanilla::Vanilla([[maybe_unused]] const Config& config): ICP(2) {}
-    Vanilla::Vanilla(): ICP(2) {}
+    Vanilla::Vanilla([[maybe_unused]] const Config& config): ICP() {}
+    Vanilla::Vanilla(): ICP() {}
     Vanilla::~Vanilla() {}
 
-    void Vanilla::set_target(const std::vector<Vector>& target) {
-        ICP::set_target(target);
-        rebuild_kdtree();
-    }
-
     void Vanilla::rebuild_kdtree() {
-        if (!b.empty()) {
-            try {
-                target_kdtree_ = std::make_unique<KdTree<Vector>>(b, 4);
-            } catch (const std::exception& e) {
-                std::cerr << "Error building KdTree: " << e.what() << std::endl;
-                target_kdtree_ = nullptr;
-            }
-        } else {
-            target_kdtree_ = nullptr;
+        // TODO: kdtree should take point cloud
+        std::vector<Vector> b_vec(b.cols());
+        for (size_t i = 0; i < b.cols(); i++) {
+            b_vec[i] = b.col(i);
         }
+        target_kdtree_ = std::make_unique<KdTree<Vector>>(b_vec, 4);
     }
 
     void Vanilla::setup() {
-        a_current.resize(a.size());
+        a_current = transform * a;
         matches.resize(a.size());
-
-        for (size_t i = 0; i < a.size(); i++) {
-            a_current[i] = transform.apply_to(a[i]);
-            matches[i].point = i;
-            matches[i].pair = 0;
-            matches[i].cost = std::numeric_limits<double>::infinity();
-        }
 
         compute_matches();
     }

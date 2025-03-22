@@ -12,14 +12,11 @@ namespace icp {
         std::vector<size_t> indices;
     };
 
-    class Vanilla_3d : public ICP {
+    class Vanilla_3d : public ICP3d {
     public:
         Vanilla_3d(const Config& config);
         Vanilla_3d();
         ~Vanilla_3d();
-
-        void set_target(const std::vector<Vector>& target) override;
-        double get_current_cost() const;
 
     protected:
         void setup() override;

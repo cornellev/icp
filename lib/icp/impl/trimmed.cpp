@@ -31,6 +31,7 @@ namespace icp {
 
     void Trimmed::setup() {
         a_current = transform * a;
+        matches.resize(a.cols());
 
         compute_matches();
     }

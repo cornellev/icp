@@ -36,13 +36,16 @@ namespace icp {
 
     void FeatureAware::setup() {
         a_current = transform * a;
+        matches.resize(a.cols());
 
+        // TODO: is relying on NRVO a good idea?
         a_features = compute_features(a_current);
         b_features = compute_features(b);
 
         normalized_feature_dists = compute_norm_dists<Eigen::Dynamic>(a_features, b_features);
         normalized_feature_dists /= normalized_feature_dists.maxCoeff();
 
+        // TODO: should we rely on NRVO here?
         compute_matches();
     }
 

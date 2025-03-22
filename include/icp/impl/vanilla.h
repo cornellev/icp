@@ -8,7 +8,7 @@
 #include "algo/kdtree.h"
 
 namespace icp {
-    class Vanilla final : public ICP<2> {
+    class Vanilla final : public ICP2d {
     public:
         Vanilla();
         Vanilla(const Config& config);
@@ -17,8 +17,6 @@ namespace icp {
         void setup() override;
         void iterate() override;
 
-        void set_target(const std::vector<Vector>& target) override;
-
     private:
         void rebuild_kdtree();
         void compute_matches();
@@ -26,7 +24,6 @@ namespace icp {
 
         std::unique_ptr<KdTree<Vector>> target_kdtree_;
 
-    protected:
-        std::vector<icp::Vector> a_current;
+        PointCloud a_current;
     };
 }
