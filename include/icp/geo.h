@@ -5,11 +5,15 @@
 
 #pragma once
 
+#include <cassert>
+#include <iostream>
+#include <ostream>
 #include <vector>
 #include <cmath>
 #include <sstream>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+#include "Eigen/src/Core/util/Memory.h"
 
 namespace icp {
     using Vector = Eigen::VectorXd;
@@ -17,28 +21,40 @@ namespace icp {
 
     /** Rigid-body transformation. */
     struct RBTransform final {
-        Vector translation;
-        Matrix rotation;
         Matrix transform;
+        Matrix rotation;
+        Vector translation;
         // keep the translation and rotation matrix or just the final matrix?
 
     public:
         // where is the most apporiate place to initialize dim?
         RBTransform(int dim) {
+            std::cout << "dim constructor called" << std::endl;
             translation = Vector::Zero(dim);
             rotation = Matrix::Identity(dim, dim);
             transform = Matrix::Identity(dim + 1, dim + 1);
         }
-        RBTransform(): RBTransform(2) {}  // Default to 2D
+        ~RBTransform() {
+            std::cout << "destructor" << std::endl;
+            std::cout << translation.data() << std::endl;
+            std::cout << rotation.data() << std::endl;
+            std::cout << transform.data() << std::endl;
+            std::cout << "end destructor" << std::endl;
+        }
+        RBTransform(): RBTransform(2) {
+            std::cout << "default constructor called" << std::endl;
+        }  // Default to 2D
 
         RBTransform(Vector translation, Matrix rotation)
-            : translation(translation), rotation(rotation) {
+            : rotation(rotation), translation(translation) {
+            std::cout << "vec mat constructor" << std::endl;
             int x = rotation.rows();
             transform = Matrix::Identity(x + 1, x + 1);
             transform.block(0, 0, x, x) = rotation;
             transform.block(0, x, x, 1) = translation;
         }
         RBTransform(Matrix transform): transform(transform) {
+            std::cout << "mat constructor" << std::endl;
             int x = transform.rows() - 1;
             rotation = transform.block(0, 0, x, x);
             translation = transform.block(0, x, x, 1);

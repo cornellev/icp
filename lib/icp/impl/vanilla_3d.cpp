@@ -2,6 +2,7 @@
  *
  */
 #include <iostream>
+#include <memory>
 #include <numeric>
 #include <vector>
 #include <cmath>
@@ -12,7 +13,9 @@
 #include <Eigen/Dense>
 
 #include "icp/impl/vanilla_3d.h"
+#include "Eigen/src/Core/Matrix.h"
 #include "algo/kdtree.h"
+#include "icp/geo.h"
 
 /* #name Vanilla */
 
@@ -24,7 +27,6 @@ namespace icp {
         : ICP(3), current_cost_(std::numeric_limits<double>::max()) {}
     Vanilla_3d::Vanilla_3d()
         : ICP(3), target_kdtree_(nullptr), current_cost_(std::numeric_limits<double>::max()) {}
-    Vanilla_3d::~Vanilla_3d() {}
 
     void Vanilla_3d::set_target(const std::vector<Vector>& target) {
         ICP::set_target(target);

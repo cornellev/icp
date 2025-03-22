@@ -6,6 +6,17 @@ set(PROJECT_VERSION 1.3.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# set(CMAKE_CXX_COMPILER "/usr/bin/clang")
+# link_libraries(stdc++)
+
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -mno-avx")
+
+# Debug/Release configuration
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  add_compile_definitions(RELEASE_BUILD)  
+endif()
+
 # Add compile options
 add_compile_options(-Wall -Wextra -pedantic)
 
@@ -118,31 +129,6 @@ if(NOT LIB_ONLY)
       ${CMAKE_CURRENT_SOURCE_DIR}/include
       ${CMAKE_CURRENT_SOURCE_DIR}/common
   )
-endif()
-
-# Debug/Release configuration
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  target_compile_definitions(cevicp PRIVATE RELEASE_BUILD)
-  target_compile_options(cevicp PRIVATE -O3)
-  
-  if(NOT LIB_ONLY)
-    target_compile_definitions(main PRIVATE RELEASE_BUILD)
-    target_compile_options(main PRIVATE -O3)
-    
-    target_compile_definitions(test_suite PRIVATE RELEASE_BUILD)
-    target_compile_options(bench_suite PRIVATE -O3)
-
-    target_compile_definitions(bench_suite PRIVATE RELEASE_BUILD)
-    target_compile_options(bench_suite PRIVATE -O3)
-  endif()
-else()
-  target_compile_options(cevicp PRIVATE -g)
-
-  if(NOT LIB_ONLY)
-    target_compile_options(main PRIVATE -g)
-    target_compile_options(test_suite PRIVATE -g)
-    target_compile_options(bench_suite PRIVATE -g)
-  endif()
 endif()
 
 # Installation

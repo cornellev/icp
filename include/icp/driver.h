@@ -3,6 +3,7 @@
 #include <optional>
 #include <chrono>
 #include "icp.h"
+#include <iostream>
 
 namespace icp {
 
@@ -11,9 +12,6 @@ namespace icp {
      */
     class ICPDriver {
     public:
-        ICP* get_icp() {
-            return icp_.get();
-        }
         /** The result of running `ICPDriver::converge`. */
         struct ConvergenceState {
             /** The cost achieved. */
@@ -24,7 +22,9 @@ namespace icp {
 
             /** The transform. */
             RBTransform transform;
-            ConvergenceState(size_t dim): transform(dim) {}
+            ConvergenceState(size_t dim): transform(dim) {
+                std::cout << "convergence state constructor called" << std::endl;
+            }
         };
 
         /**
@@ -32,7 +32,7 @@ namespace icp {
          *
          * @param icp The ICP method to use.
          */
-        ICPDriver(std::unique_ptr<ICP> icp);
+        ICPDriver();
 
         /**
          * @brief Runs ICP to convergence based on the termination conditions set. If no conditions
@@ -44,7 +44,7 @@ namespace icp {
          * @return ConvergenceState
          */
         ConvergenceState converge(const std::vector<Vector>& a, const std::vector<Vector>& b,
-            RBTransform t);
+            const RBTransform& t);
 
         /**
          * @brief Sets the minimum number of iterations to run. This number of iterations will
@@ -112,7 +112,7 @@ namespace icp {
         bool should_terminate(ConvergenceState current_state,
             std::optional<ConvergenceState> last_state);
 
-        std::unique_ptr<ICP> icp_;
+        // std::unique_ptr<ICP> icp_;
 
         std::optional<uint64_t> min_iterations_;
         std::optional<uint64_t> max_iterations_;
