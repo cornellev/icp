@@ -1,4 +1,6 @@
-# Copyright (C) 2023 Ethan Uppal. All rights reserved.
+# Copyright (C) 2023 Ethan Uppal.
+# SPDX-License-Identifier: MIT
+
 BUILD_DIR := build
 LIB_TARGET := cevicp
 MAIN_TARGET := main

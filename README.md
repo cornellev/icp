@@ -13,6 +13,9 @@ This repository hosts CEV's implementation of Iterative Closest Points (ICP) as 
 - [Jess Wang](https://github.com/jesswang7)
 - [Utku Melemetci](https://utku.sh)
 
+## Licensing
+Please see [LICENSE](LICENSE). Note that all code is licensed under the MIT license, with the exception of some additions to `doxygen-style.css`.
+
 ## Install
 
 You can view installation instructions at [INSTALL.md](INSTALL.md).
