@@ -14,7 +14,8 @@ This repository hosts CEV's implementation of Iterative Closest Points (ICP) as 
 - [Utku Melemetci](https://utku.sh)
 
 ## Licensing
-Please see [LICENSE](LICENSE). Note that all code is licensed under the MIT license, with the exception of some additions to `doxygen-style.css`.
+Please see [LICENSE](LICENSE). Note that all code is licensed under the MIT license, with the exception of some additions to `doxygen-style.css`. Files with copyright headers denoting specific copyright holders belong to said holders. Files without copyright headers are under the MIT license, 
+Copyright (c) 2024-2025 Cornell Electric Vehicles.
 
 ## Install
 
