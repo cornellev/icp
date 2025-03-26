@@ -1,6 +1,7 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Dense>
+#include <cstddef>
 #include "Eigen/src/Core/Matrix.h"
 #include "Eigen/src/Core/util/Constants.h"
 
@@ -50,8 +51,6 @@ namespace icp {
     }
 
     void FeatureAware::iterate() {
-        const size_t n = a.cols();
-
         a_current = transform * a;
 
         /*
@@ -78,13 +77,13 @@ namespace icp {
         */
         std::sort(matches.begin(), matches.end(),
             [](const auto& a, const auto& b) { return a.cost < b.cost; });
-        size_t new_n = static_cast<size_t>(overlap_rate * n);
-        new_n = std::max<size_t>(new_n, 1);  // TODO: bad for scans with 0 points
+        ptrdiff_t new_n = static_cast<ptrdiff_t>(overlap_rate * a.cols());
+        new_n = std::max<ptrdiff_t>(new_n, 1);  // TODO: bad for scans with 0 points
 
         // yeah, i know this is inefficient. we'll get back to it later.
         PointCloud trimmed_a_current(new_n);
         PointCloud trimmed_b(new_n);
-        for (size_t i = 0; i < new_n; i++) {
+        for (ptrdiff_t i = 0; i < new_n; i++) {
             trimmed_a_current.col(i) = a_current.col(matches[i].point);
             trimmed_b.col(i) = b.col(matches[i].pair);
         }
@@ -117,16 +116,13 @@ namespace icp {
     }
 
     void FeatureAware::compute_matches() {
-        const size_t n = a.cols();
-        const size_t m = b.cols();
-
         Eigen::MatrixXd normalized_dists = compute_norm_dists<2>(a_current, b);
         normalized_dists /= normalized_dists.maxCoeff();
 
-        for (size_t i = 0; i < n; i++) {
+        for (ptrdiff_t i = 0; i < a.cols(); i++) {
             matches[i].point = i;
             matches[i].cost = std::numeric_limits<double>::infinity();
-            for (size_t j = 0; j < m; j++) {
+            for (ptrdiff_t j = 0; j < b.cols(); j++) {
                 double dist = normalized_dists(i, j);
                 double feature_dist = normalized_feature_dists(i, j);
                 double cost = neighbor_weight * dist + feature_weight * feature_dist;
@@ -140,25 +136,24 @@ namespace icp {
     }
 
     Eigen::MatrixXd FeatureAware::compute_features(const PointCloud& points) {
-        const size_t n = points.cols();
-        Eigen::MatrixXd features(n, 2 * symmetric_neighbors);
+        Eigen::MatrixXd features(points.cols(), 2 * symmetric_neighbors);
         features.setZero();
 
         Vector cm = get_centroid<2>(points);
 
-        for (size_t i = 0; i < n; i++) {
+        for (ptrdiff_t i = 0; i < points.cols(); i++) {
             Vector p = points.col(i);
             double cm_dist_p = (p - cm).norm();
 
-            size_t lower = std::max((size_t)0, i - symmetric_neighbors);
-            for (size_t j = lower; j < i; j++) {
+            ptrdiff_t lower = std::max<ptrdiff_t>(0, i - symmetric_neighbors);
+            for (ptrdiff_t j = lower; j < i; j++) {
                 Vector q = points.col(j);
                 double cm_dist_q = (q - cm).norm();
                 features(i, j - lower) = cm_dist_q - cm_dist_p;
             }
 
-            size_t upper = std::min(n - 1, i + symmetric_neighbors);
-            for (size_t j = i + 1; j <= upper; j++) {
+            ptrdiff_t upper = std::min(points.cols() - 1, i + symmetric_neighbors);
+            for (ptrdiff_t j = i + 1; j <= upper; j++) {
                 Vector q = points.col(j);
                 double cm_dist_q = (q - cm).norm();
                 features(i, j - i - 1 + symmetric_neighbors) = cm_dist_q - cm_dist_p;

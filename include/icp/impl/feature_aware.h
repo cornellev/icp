@@ -4,6 +4,7 @@
 
 #include <Eigen/Core>
 #include "icp/icp.h"
+#include "icp/config.h"
 
 namespace icp {
     class FeatureAware final : public ICP2d {

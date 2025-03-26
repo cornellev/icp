@@ -4,12 +4,12 @@
  */
 
 #include <cassert>
+#include <cstddef>
 #include <cstdlib>
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Geometry>
 #include "icp/geo.h"
-
 #include "icp/impl/trimmed.h"
 
 /* #name Trimmed */
@@ -37,7 +37,7 @@ namespace icp {
     }
 
     void Trimmed::iterate() {
-        const size_t n = a.cols();
+        const ptrdiff_t n = a.cols();
 
         a_current = transform * a;
 
@@ -55,13 +55,13 @@ namespace icp {
         */
         std::sort(matches.begin(), matches.end(),
             [](const auto& a, const auto& b) { return a.cost < b.cost; });
-        size_t new_n = static_cast<size_t>(overlap_rate * n);
-        new_n = std::max<size_t>(new_n, 1);  // TODO: bad for scans with 0 points
+        ptrdiff_t new_n = static_cast<ptrdiff_t>(overlap_rate * n);
+        new_n = std::max<ptrdiff_t>(new_n, 1);  // TODO: bad for scans with 0 points
 
         // yeah, i know this is inefficient. we'll get back to it later.
         PointCloud trimmed_a_current(new_n);
         PointCloud trimmed_b(new_n);
-        for (size_t i = 0; i < new_n; i++) {
+        for (ptrdiff_t i = 0; i < new_n; i++) {
             trimmed_a_current.col(i) = a_current.col(matches[i].point);
             trimmed_b.col(i) = b.col(matches[i].pair);
         }
@@ -81,7 +81,7 @@ namespace icp {
 
         /* #step Reflection Handling: see \ref vanilla_icp for details. */
         if (R.determinant() < 0) {
-            V = V * Eigen::DiagonalMatrix<double, 2>(1, -1);
+            V.col(1) *= -1;
             R = V * U.transpose();
         }
 
@@ -94,13 +94,10 @@ namespace icp {
     }
 
     void Trimmed::compute_matches() {
-        const size_t n = a.size();
-        const size_t m = b.size();
-
-        for (size_t i = 0; i < n; i++) {
+        for (ptrdiff_t i = 0; i < a.cols(); i++) {
             matches[i].point = i;
             matches[i].cost = std::numeric_limits<double>::infinity();
-            for (size_t j = 0; j < m; j++) {
+            for (ptrdiff_t j = 0; j < b.cols(); j++) {
                 // Point-to-point matching
                 double dist_ij = (b.col(j) - a_current.col(i)).squaredNorm();
 

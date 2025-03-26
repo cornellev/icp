@@ -6,6 +6,7 @@
 
 #include "icp/icp.h"
 #include "algo/kdtree.h"
+#include "icp/config.h"
 
 namespace icp {
     class Vanilla final : public ICP2d {

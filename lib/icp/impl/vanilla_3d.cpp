@@ -58,6 +58,7 @@ namespace icp {
 
         // For small point clouds or when testing rotation with few points,
         // linear search can give more precise results
+        // TODO: why :skull:
         if (row_src <= 3 || row_dst <= 3) {
             for (size_t i = 0; i < row_src; i++) {
                 Eigen::Vector3d pta = src.row(i).transpose();

@@ -6,10 +6,8 @@
 #pragma once
 
 #include <cmath>
+#include <cstddef>
 #include <vector>
-#include <string>
-#include <unordered_map>
-#include <variant>
 #include <Eigen/Core>
 #include "geo.h"
 
@@ -42,7 +40,7 @@ namespace icp {
      * `icp->transform()`. Do note, however, that `icp->calculate_cost()` is not
      * a constant-time operation.
      */
-    template<const size_t Dim>
+    template<const int Dim>
     class ICP {
     protected:
         using Vector = icp::Vector<Dim>;
@@ -79,33 +77,6 @@ namespace icp {
         virtual void setup() = 0;
 
     public:
-        /** Configuration for ICP instances. */
-        class Config {
-            using Param = std::variant<int, double, std::string>;
-            std::unordered_map<std::string, Param> params;
-
-        public:
-            /** Constructs an empty configuration. */
-            Config() {}
-
-            /** Associates `key` with an integer, double, or string `value`. */
-            template<typename T>
-            void set(std::string key, T value) {
-                params[key] = value;
-            }
-
-            /** Retrieves the integer, double, or string value associated with
-             * `key`. */
-            template<typename T>
-            T get(std::string key, T otherwise) const {
-                if (params.find(key) == params.end()) {
-                    return otherwise;
-                } else {
-                    return std::get<T>(params.at(key));
-                }
-            }
-        };
-
         virtual ~ICP() = default;
 
         /** Begins the ICP process for point clouds `a` and `b` with an initial

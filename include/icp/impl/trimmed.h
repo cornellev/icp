@@ -3,6 +3,7 @@
  */
 
 #include "icp/icp.h"
+#include "icp/config.h"
 
 namespace icp {
     class Trimmed final : public ICP2d {
