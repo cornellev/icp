@@ -81,8 +81,8 @@ namespace icp {
         new_n = std::max<ptrdiff_t>(new_n, 1);  // TODO: bad for scans with 0 points
 
         // yeah, i know this is inefficient. we'll get back to it later.
-        PointCloud trimmed_a_current(new_n);
-        PointCloud trimmed_b(new_n);
+        PointCloud trimmed_a_current(2, new_n);
+        PointCloud trimmed_b(2, new_n);
         for (ptrdiff_t i = 0; i < new_n; i++) {
             trimmed_a_current.col(i) = a_current.col(matches[i].point);
             trimmed_b.col(i) = b.col(matches[i].pair);
