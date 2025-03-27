@@ -51,8 +51,11 @@ namespace icp {
         }
         matched_b_cm /= matches.size();
 
-        Eigen::Matrix2d N = (a_current.colwise() - a_current_cm)
-                            * (b.colwise() - matched_b_cm).transpose();
+        Eigen::Matrix2d N = Eigen::Matrix2d::Zero();
+        for (ptrdiff_t i = 0; i < a.rows(); i++) {
+            N += (a_current.col(i) - a_current_cm)
+                 * (b.col(matches[i].pair) - matched_b_cm).transpose();
+        }
 
         Eigen::JacobiSVD<Eigen::Matrix2d> svd = N.jacobiSvd(Eigen::ComputeFullU
                                                             | Eigen::ComputeFullV);

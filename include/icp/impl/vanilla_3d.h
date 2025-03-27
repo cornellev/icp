@@ -13,7 +13,7 @@ namespace icp {
         std::vector<size_t> indices;
     };
 
-    class Vanilla_3d : public ICP3d {
+    class Vanilla_3d : public ICP3 {
     public:
         Vanilla_3d(const Config& config);
         Vanilla_3d();

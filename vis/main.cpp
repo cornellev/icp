@@ -1,17 +1,18 @@
 // Copyright (C) 2024 Ethan Uppal. All rights reserved.
 
 #include <iostream>
+#include <memory>
+#include <optional>
 extern "C" {
 #include <cmdapp/cmdapp.h>
 #include <config/config.h>
 }
 #include <sdlwrapper/gui/window.h>
-#include <optional>
 #include "view_config.h"
 #include "lidar_view.h"
-#include "icp/impl/vanilla.h"
-#include "icp/impl/trimmed.h"
 #include "parse_scan.h"
+#include "icp/impl/trimmed.h"
+#include "icp/impl/feature_aware.h"
 
 void set_config_param(const char* var, const char* data, [[maybe_unused]] void* user_data) {
     if (strcmp(var, "x_displace") == 0) {
@@ -112,17 +113,20 @@ int main(int argc, const char** argv) {
         view_config::use_light_mode = true;
     }
 
-    std::optional<std::unique_ptr<icp::ICP>> icp_opt = icp::ICP::from_method(method);
+    // TODO: method factory
+    // std::optional<std::unique_ptr<icp::ICP2>> icp_opt = icp::ICP2::from_method(method);
+    std::optional<std::unique_ptr<icp::ICP2>> icp_opt =
+        std::make_unique<icp::FeatureAware>(icp::Config());
 
-    if (!icp_opt.has_value()) {
-        std::cerr << "error: unknown ICP method '" << method << "'. expected one of:\n";
-        for (const std::string& registered_method: icp::ICP::registered_methods()) {
-            std::cerr << "* " << registered_method << '\n';
-        }
-        std::exit(1);
-    }
+    // if (!icp_opt.has_value()) {
+    //     std::cerr << "error: unknown ICP method '" << method << "'. expected one of:\n";
+    //     for (const std::string& registered_method: icp::ICP::registered_methods()) {
+    //         std::cerr << "* " << registered_method << '\n';
+    //     }
+    //     std::exit(1);
+    // }
 
-    std::unique_ptr<icp::ICP> icp = std::move(icp_opt.value());
+    std::unique_ptr<icp::ICP2> icp = std::move(icp_opt.value());
 
     // std::vector<icp::Vector> a = {icp::Vector(0, 0), icp::Vector(100, 100)};
     // std::vector<icp::Vector> b = {};
@@ -141,10 +145,11 @@ int main(int argc, const char** argv) {
         auto source = parse_lidar_scan(f_src);
         auto dest = parse_lidar_scan(f_dst);
 
-        icp::ICP::Config config;
+        icp::Config config;
         config.set("overlap_rate", 0.9);
         LidarView* view = new LidarView(source, dest, std::move(icp));
 
         launch_gui(view, std::string(f_src) + std::string(" and ") + std::string(f_dst));
+        delete view;
     }
 }

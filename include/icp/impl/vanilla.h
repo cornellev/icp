@@ -4,12 +4,14 @@
  * @author Utku Melemetci
  */
 
+#pragma once
+
 #include "icp/icp.h"
 #include "algo/kdtree.h"
 #include "icp/config.h"
 
 namespace icp {
-    class Vanilla final : public ICP2d {
+    class Vanilla final : public ICP2 {
     public:
         Vanilla();
         Vanilla(const Config& config);

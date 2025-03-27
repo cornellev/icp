@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "icp/icp.h"
-#include "icp/driver.h"
+#include "icp/driver/driver.h"
 #include "parse_scan.h"
 
 struct BenchmarkResult {

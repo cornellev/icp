@@ -1,7 +1,7 @@
 #include <string>
 #include "icp/geo.h"
 #include "icp/icp.h"
-#include "icp/driver.h"
+#include "icp/driver/driver.h"
 #include "icp/impl/vanilla_3d.h"
 #include <iostream>
 #include <random>

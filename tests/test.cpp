@@ -3,7 +3,7 @@
 #include "icp/geo.h"
 #include "algo/kdtree.h"  // Add this line to include the KdTree definition
 #include "icp/icp.h"
-#include "icp/driver.h"
+#include "icp/driver/driver.h"
 #include <iostream>
 #include <random>
 

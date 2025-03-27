@@ -8,13 +8,13 @@
 #include <vector>
 #include "icp/geo.h"
 
-std::vector<icp::Vector> parse_lidar_scan(std::string path) {
+icp::PointCloud2 parse_lidar_scan(std::string path) {
     std::ifstream in(path);
     if (!in.is_open()) {
         throw std::runtime_error("failed to read lidar scan: failed to open file");
     }
 
-    std::vector<icp::Vector> result;
+    std::vector<icp::Vector2> temp;
 
     std::string line;
     while (std::getline(in, line)) {
@@ -31,8 +31,12 @@ std::vector<icp::Vector> parse_lidar_scan(std::string path) {
             continue;
         }
 
-        icp::Vector vec = icp::Vector(Eigen::Vector2d(x, y));
-        result.push_back(vec);
+        temp.emplace_back(x, y);
+    }
+
+    icp::PointCloud2 result(2, temp.size());
+    for (size_t i = 0; i < temp.size(); i++) {
+        result.col(i) = temp[i];
     }
 
     return result;

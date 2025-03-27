@@ -136,7 +136,7 @@ namespace icp {
     }
 
     Eigen::MatrixXd FeatureAware::compute_features(const PointCloud& points) {
-        Eigen::MatrixXd features(points.cols(), 2 * symmetric_neighbors);
+        Eigen::MatrixXd features(2 * symmetric_neighbors, points.cols());
         features.setZero();
 
         Vector cm = get_centroid<2>(points);
@@ -149,14 +149,14 @@ namespace icp {
             for (ptrdiff_t j = lower; j < i; j++) {
                 Vector q = points.col(j);
                 double cm_dist_q = (q - cm).norm();
-                features(i, j - lower) = cm_dist_q - cm_dist_p;
+                features(j - lower, i) = cm_dist_q - cm_dist_p;
             }
 
             ptrdiff_t upper = std::min(points.cols() - 1, i + symmetric_neighbors);
             for (ptrdiff_t j = i + 1; j <= upper; j++) {
                 Vector q = points.col(j);
                 double cm_dist_q = (q - cm).norm();
-                features(i, j - i - 1 + symmetric_neighbors) = cm_dist_q - cm_dist_p;
+                features(j - i - 1 + symmetric_neighbors, i) = cm_dist_q - cm_dist_p;
             }
         }
 

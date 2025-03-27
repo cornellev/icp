@@ -1,12 +1,10 @@
-/*
- * @author Utku Melemetci
- */
+#pragma once
 
 #include "icp/icp.h"
 #include "icp/config.h"
 
 namespace icp {
-    class Trimmed final : public ICP2d {
+    class Trimmed final : public ICP2 {
     public:
         Trimmed(double overlap_rate);
         Trimmed(const Config& config);

@@ -3,11 +3,12 @@
  */
 
 #include <Eigen/Core>
+#include <cstddef>
 #include "icp/icp.h"
 #include "icp/config.h"
 
 namespace icp {
-    class FeatureAware final : public ICP2d {
+    class FeatureAware final : public ICP2 {
     public:
         FeatureAware(double overlap_rate, double feature_weight, int symmetric_neighbors);
         FeatureAware(const Config& config);
@@ -36,8 +37,8 @@ namespace icp {
             const Eigen::Matrix<double, VectorDim, Eigen::Dynamic>& first,
             const Eigen::Matrix<double, VectorDim, Eigen::Dynamic>& second) {
             Eigen::MatrixXd dists(first.cols(), second.cols());
-            for (size_t i = 0; i < first.cols(); i++) {
-                for (size_t j = 0; j < second.cols(); j++) {
+            for (ptrdiff_t i = 0; i < first.cols(); i++) {
+                for (ptrdiff_t j = 0; j < second.cols(); j++) {
                     dists(i, j) = (first.col(i) - second.col(j)).norm();
                 }
             }

@@ -124,6 +124,6 @@ namespace icp {
         }
     };
 
-    using ICP3d = ICP<3>;
-    using ICP2d = ICP<2>;
+    using ICP3 = ICP<3>;
+    using ICP2 = ICP<2>;
 }
