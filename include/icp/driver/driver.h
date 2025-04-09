@@ -17,7 +17,7 @@ namespace icp {
         /** The result of running `ICPDriver::converge`. */
         struct ConvergenceState {
             /** The cost achieved. */
-            double cost = 0.;
+            double cost = 0;
 
             /** The number of iterations performed. */
             size_t iteration_count = 0;
