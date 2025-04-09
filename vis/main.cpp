@@ -12,6 +12,7 @@ extern "C" {
 #include "lidar_view.h"
 #include "parse_scan.h"
 #include "icp/icp.h"
+#include "icp/registry.h"
 
 void set_config_param(const char* var, const char* data, [[maybe_unused]] void* user_data) {
     if (strcmp(var, "x_displace") == 0) {
@@ -112,15 +113,12 @@ int main(int argc, const char** argv) {
         view_config::use_light_mode = true;
     }
 
-    std::optional<std::unique_ptr<icp::ICP2>> icp_opt = icp::ICP2::from_method(method,
-        icp::Config());
-
-    // std::optional<std::unique_ptr<icp::ICP3>> icp_opt2 = icp::ICP3::from_method(method,
-    //     icp::Config());
+    icp::ICPRegistry2 registry;
+    std::optional<std::unique_ptr<icp::ICP2>> icp_opt = registry.from_name(method, icp::Config());
 
     if (!icp_opt.has_value()) {
         std::cerr << "error: unknown ICP method '" << method << "'. expected one of:\n";
-        for (const std::string& registered_method: icp::ICP2::registered_methods()) {
+        for (const std::string& registered_method: registry.registered_methods()) {
             std::cerr << "* " << registered_method << '\n';
         }
         std::exit(1);

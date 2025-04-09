@@ -7,14 +7,10 @@
 
 #include <cmath>
 #include <cstddef>
-#include <unordered_map>
 #include <vector>
 #include <Eigen/Core>
-#include <memory>
-#include <optional>
 
 #include "geo.h"
-#include "config.h"
 
 namespace icp {
     /**
@@ -47,12 +43,6 @@ namespace icp {
      */
     template<const int Dim>
     class ICP {
-    private:
-        using MethodConstructor = std::function<std::unique_ptr<ICP>(const Config&)>;
-        static inline std::unordered_map<std::string, MethodConstructor> methods;
-
-        static void ensure_builtins_registered();
-
     protected:
         using Vector = icp::Vector<Dim>;
         using RBTransform = icp::RBTransform<Dim>;
@@ -133,49 +123,8 @@ namespace icp {
         RBTransform current_transform() const {
             return transform;
         }
-
-        static std::optional<std::unique_ptr<ICP>> from_method(const std::string& name,
-            const Config& config) {
-            ensure_builtins_registered();
-
-            if (methods.find(name) == methods.end()) {
-                return {};
-            }
-
-            return methods[name](config);
-        }
-
-        static bool register_method(const std::string& name, MethodConstructor constructor) {
-            ensure_builtins_registered();
-
-            if (is_method_registered(name)) {
-                return false;
-            }
-
-            methods[name] = constructor;
-            return true;
-        }
-
-        static bool is_method_registered(const std::string& name) {
-            ensure_builtins_registered();
-
-            return methods.find(name) != methods.end();
-        }
-
-        static std::vector<std::string> registered_methods() {
-            ensure_builtins_registered();
-
-            std::vector<std::string> keys;
-            for (auto it = methods.begin(); it != methods.end(); ++it) {
-                keys.push_back(it->first);
-            }
-            return keys;
-        }
     };
 
     using ICP2 = ICP<2>;
     using ICP3 = ICP<3>;
-
-    template<>
-    void ICP2::ensure_builtins_registered();
 }

@@ -1,25 +1,23 @@
-#include "icp/icp.h"
-#include <unordered_map>
-
+#include "icp/registry.h"
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
 #include "icp/impl/feature_aware.h"
+#include "icp/impl/vanilla_3d.h"
 
 namespace icp {
-
     template<>
-    void ICP2::ensure_builtins_registered() {
+    void ICPRegistry<2>::use_builtins() {
         methods["vanilla"] = [](const Config& config) { return std::make_unique<Vanilla>(config); };
-
         methods["trimmed"] = [](const Config& config) { return std::make_unique<Trimmed>(config); };
-
         methods["feature_aware"] = [](const Config& config) {
             return std::make_unique<FeatureAware>(config);
         };
     }
 
-    // template<>
-    // void ICP3::ensure_builtins_registered() {
-
-    // }
+    template<>
+    void ICPRegistry<3>::use_builtins() {
+        methods["vanilla"] = [](const Config& config) {
+            return std::make_unique<Vanilla_3d>(config);
+        };
+    }
 }

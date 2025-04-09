@@ -25,7 +25,7 @@ endif()
 set(LIB_SOURCES
   lib/algo/kdtree.cpp
   lib/algo/quickselect.cpp
-  lib/icp/icp.cpp
+  lib/icp/registry.cpp
   lib/icp/impl/vanilla.cpp
   lib/icp/impl/trimmed.cpp
   lib/icp/impl/feature_aware.cpp
