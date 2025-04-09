@@ -8,9 +8,12 @@
 #include <cmath>
 #include <cstddef>
 #include <vector>
+#include <memory>
+#include <optional>
 #include <Eigen/Core>
 
 #include "geo.h"
+#include "config.h"
 
 namespace icp {
     /**
@@ -43,12 +46,15 @@ namespace icp {
      */
     template<const int Dim>
     class ICP {
+    private:
+        using MethodConstructor = std::function<std::unique_ptr<ICP<Dim>>(const Config&)>;
+        static std::unordered_map<std::string, MethodConstructor> methods;
+
     protected:
         using Vector = icp::Vector<Dim>;
         using RBTransform = icp::RBTransform<Dim>;
         using PointCloud = icp::PointCloud<Dim>;
 
-    protected:
         /** A matching between `point` and `pair` at (arbitrary) cost `cost`.  */
         struct Match {
             size_t point;
@@ -73,11 +79,33 @@ namespace icp {
         /**
          * @brief Per-method setup code.
          *
-         * @post For implementers: must fill `matches` with match data for the initial point clouds.
+         * @post For implementers: must fill `matches` with match data for the initial point
+         * clouds.
          */
         virtual void setup() = 0;
 
     public:
+        static std::optional<std::unique_ptr<ICP<Dim>>> from_method(const std::string& name,
+            const Config& config) {
+            if (methods.find(name) == methods.end()) {
+                return {};
+            }
+
+            return methods[name](config);
+        }
+
+        static bool is_method_registered(const std::string& name) {
+            return methods.find(name) != methods.end();
+        }
+
+        static std::vector<std::string> registered_methods() {
+            std::vector<std::string> keys;
+            for (auto it = methods.begin(); it != methods.end(); ++it) {
+                keys.push_back(it->first);
+            }
+            return keys;
+        }
+
         virtual ~ICP() = default;
 
         /** Begins the ICP process for point clouds `a` and `b` with an initial
@@ -127,4 +155,10 @@ namespace icp {
 
     using ICP2 = ICP<2>;
     using ICP3 = ICP<3>;
+
+    template<>
+    std::unordered_map<std::string, ICP2::MethodConstructor> ICP2::methods;
+
+    template<>
+    std::unordered_map<std::string, ICP3::MethodConstructor> ICP3::methods;
 }

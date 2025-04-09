@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-#include "icp/icp.h"
+#include "icp/registry.h"
 #include "icp/driver/driver.h"
 #include "parse_scan.h"
 
@@ -114,7 +114,8 @@ int main() {
 
     std::cout << "ICP ALGORITHM BENCHMARKING\n";
 
-    for (const std::string& method: icp::ICP::registered_methods()) {
+    icp::ICPRegistry2 registry;
+    for (const std::string& method: registry.registered_methods()) {
         std::cout << "=======================================\n";
 
         for (uint32_t scan_id = 1; scan_id <= scans; scan_id++) {
