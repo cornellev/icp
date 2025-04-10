@@ -44,7 +44,7 @@ namespace icp {
      * `icp->transform()`. Do note, however, that `icp->calculate_cost()` is not
      * a constant-time operation.
      */
-    template<const int Dim>
+    template<const Dimension Dim>
     class ICP {
     private:
         using MethodConstructor = std::function<std::unique_ptr<ICP<Dim>>(const Config&)>;
@@ -153,8 +153,8 @@ namespace icp {
         }
     };
 
-    using ICP2 = ICP<2>;
-    using ICP3 = ICP<3>;
+    using ICP2 = ICP<Dimension::TwoD>;
+    using ICP3 = ICP<Dimension::ThreeD>;
 
     template<>
     std::unordered_map<std::string, ICP2::MethodConstructor> ICP2::methods;

@@ -9,6 +9,7 @@
 #include <sdlwrapper/util/keyboard.h>
 #include <sdlwrapper/geo/midpoint.h>
 #include "lidar_view.h"
+#include "Eigen/src/Geometry/Rotation2D.h"
 #include "icp/geo.h"
 #include "view_config.h"
 
@@ -47,10 +48,10 @@ void LidarView::on_event(const SDL_Event& event) {
     }
     if (!d_before && d_after) {
         std::cerr << "DEBUG PRINT:\n";
-        std::cerr << "icp->current_transform().rotation() = " << icp->current_transform().rotation()
-                  << '\n';
+        std::cerr << "icp->current_transform().rotation() = "
+                  << Eigen::Rotation2Dd(icp->current_transform().rotation()).angle() << '\n';
         std::cerr << "icp->current_transform().translation() = "
-                  << icp->current_transform().translation() << '\n';
+                  << icp->current_transform().translation().transpose() << '\n';
         std::cerr << "icp->calculate_cost() = " << icp->calculate_cost() << '\n';
         std::cerr << "iterations = " << iterations << '\n';
     }
@@ -78,12 +79,12 @@ void LidarView::draw(SDL_Renderer* renderer, [[maybe_unused]] const SDL_Rect* fr
             view_config::view_scale * result[1] + view_config::y_displace, CIRCLE_RADIUS);
     }
 
-    icp::Vector2 a_cm = icp->current_transform() * icp::get_centroid<2>(source);
+    icp::Vector2 a_cm = icp->current_transform() * icp::get_centroid(source);
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_DrawCircle(renderer, view_config::view_scale * a_cm.x() + view_config::x_displace,
         view_config::view_scale * a_cm.y() + view_config::y_displace, 20);
 
-    icp::Vector2 b_cm = icp::get_centroid<2>(destination);
+    icp::Vector2 b_cm = icp::get_centroid(destination);
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
     SDL_DrawCircle(renderer, view_config::view_scale * b_cm.x() + view_config::x_displace,
         view_config::view_scale * b_cm.y() + view_config::y_displace, 20);

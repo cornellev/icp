@@ -133,8 +133,8 @@ namespace icp {
 
     Vanilla_3d::RBTransform Vanilla_3d::best_fit_transform(const PointCloud& A,
         const PointCloud& B) {
-        Vector centroid_A = get_centroid<3>(A);
-        Vector centroid_B = get_centroid<3>(B);
+        Vector centroid_A = get_centroid(A);
+        Vector centroid_B = get_centroid(B);
 
         Eigen::Matrix3d N = (A.colwise() - centroid_A) * (B.colwise() - centroid_B).transpose();
 

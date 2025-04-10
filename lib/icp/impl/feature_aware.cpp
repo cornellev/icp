@@ -4,6 +4,7 @@
 #include <cstddef>
 #include "Eigen/src/Core/Matrix.h"
 #include "Eigen/src/Core/util/Constants.h"
+#include "icp/geo.h"
 
 /* #name Feature-Aware */
 /* #register feature_aware */
@@ -88,8 +89,8 @@ namespace icp {
             trimmed_b.col(i) = b.col(matches[i].pair);
         }
 
-        Vector trimmed_a_cm = get_centroid<2>(trimmed_a_current);
-        Vector trimmed_b_cm = get_centroid<2>(trimmed_b);
+        Vector trimmed_a_cm = get_centroid(trimmed_a_current);
+        Vector trimmed_b_cm = get_centroid(trimmed_b);
 
         /* #step SVD: see \ref vanilla_icp for details. */
         Eigen::Matrix2d N = (trimmed_a_current.colwise() - trimmed_a_cm)
@@ -103,7 +104,7 @@ namespace icp {
 
         /* #step Reflection Handling: see \ref vanilla_icp for details. */
         if (R.determinant() < 0) {
-            V = V * Eigen::DiagonalMatrix<double, 2>(1, -1);
+            V.col(1) *= -1;
             R = V * U.transpose();
         }
 
@@ -139,7 +140,7 @@ namespace icp {
         Eigen::MatrixXd features(2 * symmetric_neighbors, points.cols());
         features.setZero();
 
-        Vector cm = get_centroid<2>(points);
+        Vector cm = get_centroid(points);
 
         for (ptrdiff_t i = 0; i < points.cols(); i++) {
             Vector p = points.col(i);

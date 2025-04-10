@@ -41,7 +41,7 @@ namespace icp {
         }
 
         a_current = transform * a;
-        Vector a_current_cm = get_centroid<2>(a_current);
+        Vector a_current_cm = get_centroid(a_current);
 
         compute_matches();
 

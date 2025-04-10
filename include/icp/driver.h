@@ -4,6 +4,7 @@
 #include <chrono>
 #include <memory>
 #include <utility>
+#include "icp/geo.h"
 #include "icp/icp.h"
 
 namespace icp {
@@ -11,7 +12,7 @@ namespace icp {
     /**
      * @brief Driver for running ICP to convergence.
      */
-    template<const size_t Dim>
+    template<const Dimension Dim>
     class ICPDriver {
     public:
         /** The result of running `ICPDriver::converge`. */
@@ -24,7 +25,6 @@ namespace icp {
 
             /** The transform. */
             RBTransform<Dim> transform;
-            ConvergenceState(size_t dim): transform(dim) {}
         };
 
         /**
@@ -47,8 +47,7 @@ namespace icp {
             RBTransform<Dim> t) {
             start_time_ = std::chrono::steady_clock::now();
             icp_->begin(a, b, t);
-            size_t dimension = a[0].size();
-            ConvergenceState state(dimension);
+            ConvergenceState state;
 
             state.iteration_count = 0;
             state.cost = icp_->calculate_cost();
@@ -57,8 +56,8 @@ namespace icp {
             std::optional<ConvergenceState> last_state{};
 
             while (!should_terminate(state, last_state)) {
-                icp_->iterate();
                 last_state = state;
+                icp_->iterate();
                 state.iteration_count++;
                 state.cost = icp_->calculate_cost();
                 state.transform = icp_->current_transform();
@@ -187,32 +186,32 @@ namespace icp {
                 return true;
             }
 
-            // TODO: how?
-            // 3d rotation decompose in 3 param
-            // used Axis_angle to decompose it now: avoiding gimbal lock for 90 degree rotation that
-            // happens in euler angles
-            // if (angle_tolerance_rad_ && translation_tolerance_) {
-            //     icp:: rotation_step = current_state.transform.rotation
-            //                                 * last_state.value().transform.rotation.transpose();
-            //     double angle_diff = 0;
-            //     if (icp_->dimensionality() == 2) {
-            //         Eigen::Matrix2d fixed_size_mat(rotation_step);
-            //         Eigen::Rotation2Dd rot_step_2d(fixed_size_mat);
-            //         angle_diff = std::abs(rot_step_2d.smallestAngle());
-            //     } else {
-            //         Eigen::Matrix3d fixed_size_mat(rotation_step);
-            //         Eigen::AngleAxisd rot_step_angle_axis(fixed_size_mat);
-            //         angle_diff = std::abs(rot_step_angle_axis.angle());
-            //     }
+            // TODO: is this metric right
+            if (angle_tolerance_rad_ && translation_tolerance_) {
+                Eigen::Matrix<double, Dim, Dim> rotation_step =
+                    current_state.transform.rotation()
+                    * last_state.value().transform.rotation().transpose();
 
-            //     auto translation = current_state.transform.translation
-            //                        - last_state.value().transform.translation;
+                double angle_diff = 0;
+                if constexpr (Dim == icp::Dimension::TwoD) {
+                    Eigen::Rotation2Dd rot_step_2d(rotation_step);
+                    angle_diff = rot_step_2d.smallestAngle();
+                } else {
+                    // 3d rotation decompose in 3 param
+                    // used Axis_angle to decompose it now: avoiding gimbal lock for 90 degree
+                    // rotation that happens in euler angles
+                    Eigen::AngleAxisd rot_step_angle_axis(rotation_step);
+                    angle_diff = rot_step_angle_axis.angle();
+                }
 
-            //     if (angle_diff < angle_tolerance_rad_.value()
-            //         && translation.norm() < translation_tolerance_.value()) {
-            //         return true;
-            //     }
-            // }
+                auto translation = current_state.transform.translation()
+                                   - last_state.value().transform.translation();
+
+                if (std::abs(angle_diff) < angle_tolerance_rad_.value()
+                    && translation.norm() < translation_tolerance_.value()) {
+                    return true;
+                }
+            }
 
             return false;
         }

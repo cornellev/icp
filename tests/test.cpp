@@ -1,9 +1,10 @@
 // Copyright (C) 2024 Ethan Uppal. All rights reserved.
+#include <cstddef>
 #include <string>
 #include "icp/geo.h"
 #include "algo/kdtree.h"  // Add this line to include the KdTree definition
 #include "icp/icp.h"
-#include "icp/driver/driver.h"
+#include "icp/driver.h"
 #include <iostream>
 #include <random>
 
@@ -16,19 +17,19 @@ extern "C" {
 #define RAD_EPS ((double)(0.01))  // Rotation tolerance in radians
 
 void test_kdtree(void) {
-    std::vector<icp::Vector> points;
-    points.push_back(icp::Vector(Eigen::Vector2d(0, 0)));
-    points.push_back(icp::Vector(Eigen::Vector2d(1, 0)));
-    points.push_back(icp::Vector(Eigen::Vector2d(0, 1)));
-    points.push_back(icp::Vector(Eigen::Vector2d(1, 1)));
-    points.push_back(icp::Vector(Eigen::Vector2d(0.5, 0.5)));
+    std::vector<icp::Vector2> points;
+    points.emplace_back(0, 0);
+    points.emplace_back(1, 0);
+    points.emplace_back(0, 1);
+    points.emplace_back(1, 1);
+    points.emplace_back(0.5, 0.5);
 
     std::cout << "Building KdTree with " << points.size() << " points" << std::endl;
 
     try {
-        icp::KdTree<icp::Vector> tree(points, 2);
+        icp::KdTree<icp::Vector2> tree(points, 2);
 
-        icp::Vector query(Eigen::Vector2d(0.2, 0.2));
+        icp::Vector2 query(0.2, 0.2);
         float min_dist = 0;
         size_t nearest_idx = tree.find_nearest(query, &min_dist);
 
@@ -37,7 +38,7 @@ void test_kdtree(void) {
 
         assert_true(nearest_idx == 0);
 
-        query = icp::Vector(Eigen::Vector2d(0.6, 0.6));
+        query = icp::Vector2(0.6, 0.6);
         nearest_idx = tree.find_nearest(query, &min_dist);
 
         std::cout << "Nearest point to (0.6, 0.6) is at index " << nearest_idx << " with distance "
@@ -52,8 +53,8 @@ void test_kdtree(void) {
     }
 }
 
-void test_icp_generic(const std::string& method, const icp::ICP::Config& config) {
-    std::unique_ptr<icp::ICP> icp = icp::ICP::from_method(method, config).value();
+void test_icp_generic(const std::string& method, const icp::Config& config) {
+    std::unique_ptr<icp::ICP2> icp = icp::ICP2::from_method(method, config).value();
     icp::ICPDriver driver(std::move(icp));
     driver.set_min_iterations(BURN_IN);
     driver.set_max_iterations(100);
@@ -61,191 +62,128 @@ void test_icp_generic(const std::string& method, const icp::ICP::Config& config)
 
     // Test case 1: Single point translation
     {
-        std::vector<icp::Vector> a = {icp::Vector(Eigen::Vector2d(0, 0))};
-        std::vector<icp::Vector> b = {icp::Vector(Eigen::Vector2d(100, 0))};
-        auto result = driver.converge(a, b, icp::RBTransform(2));
+        icp::PointCloud2 a{icp::Vector2(0, 0)};
+        icp::PointCloud2 b{icp::Vector2(100, 0)};
+        auto result = driver.converge(a, b, icp::RBTransform2::Identity());
 
-        // Debug: Print transformation results
-        std::cout << "[1]Result Transform Translation X: " << result.transform.translation.x()
-                  << std::endl;
-        std::cout << "[1]Result Transform Translation Y: " << result.transform.translation.y()
-                  << std::endl;
-        std::cout << "[1]Result Iteration Count: " << result.iteration_count << std::endl;
-
-        // Check iteration count
         assert_true(result.iteration_count <= BURN_IN + 10);
-
-        // Check translation
-        assert_true(std::abs(result.transform.translation.x() - 100) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
-        assert_true(result.transform.rotation.isApprox(icp::Matrix::Identity(2, 2)));
+        assert_true(std::abs(result.transform.translation().x() - 100) <= TRANS_EPS);
+        assert_true(std::abs(result.transform.translation().y() - 0) <= TRANS_EPS);
+        assert_true(result.transform.rotation().isApprox(Eigen::Matrix2d::Identity()));
     }
 
     // Test case 2: Identity test
     {
-        std::vector<icp::Vector> a = {
-            icp::Vector(Eigen::Vector2d(0, 0)), icp::Vector(Eigen::Vector2d(100, 100))};
-        std::vector<icp::Vector> b = {
-            icp::Vector(Eigen::Vector2d(0, 0)), icp::Vector(Eigen::Vector2d(100, 100))};
-        auto result = driver.converge(a, b, icp::RBTransform(2));
+        icp::PointCloud2 a{icp::Vector2(0, 0), icp::Vector2(100, 100)};
+        icp::PointCloud2 b{icp::Vector2(0, 0), icp::Vector2(100, 100)};
+        auto result = driver.converge(a, b, icp::RBTransform2::Identity());
 
-        std::cout << "[2]Result Transform Translation X: " << result.transform.translation.x()
-                  << std::endl;
-        std::cout << "[2]Result Transform Translation Y: " << result.transform.translation.y()
-                  << std::endl;
-        std::cout << "[2]Result Iteration Count: " << result.iteration_count << std::endl;
-
-        assert_true(std::abs(result.transform.translation.x() - 0) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
-        assert_true(result.transform.rotation.isApprox(icp::Matrix::Identity(2, 2)));
+        assert_true(std::abs(result.transform.translation().x() - 0) <= TRANS_EPS);
+        assert_true(std::abs(result.transform.translation().y() - 0) <= TRANS_EPS);
+        assert_true(result.transform.rotation().isApprox(Eigen::Matrix2d::Identity()));
     }
 
-    // Test case 3: Rotation at different angles
+    // Test case 3a: Rotation at different angles
     for (int deg = 0; deg < 10; deg++) {
-        std::vector<icp::Vector> a = {
-            icp::Vector(Eigen::Vector2d(-100, -100)), icp::Vector(Eigen::Vector2d(100, 100))};
-        std::vector<icp::Vector> b = {};
-
         double angle = (double)deg * M_PI / 180.0;
-        icp::Vector center = icp::get_centroid(a);
-        icp::Matrix rotation_matrix{
-            {std::cos(angle), -std::sin(angle)}, {std::sin(angle), std::cos(angle)}};
+        Eigen::Rotation2Dd rotation(angle);
 
-        for (const auto& point: a) {
-            b.push_back(rotation_matrix * (point - center) + center);
-        }
+        icp::PointCloud2 a{icp::Vector2(-100, -100), icp::Vector2(100, 100)};
+        icp::PointCloud2 b = rotation * a;
 
-        std::cout << "testing angle: " << deg << '\n';
-        std::cout << "the result for the matrix (expect) " << rotation_matrix << '\n';
+        auto result = driver.converge(a, b, icp::RBTransform2::Identity());
 
-        auto result = driver.converge(a, b, icp::RBTransform(2));
-
-        std::cout << "the result for the matrix (true)" << result.transform.rotation << '\n';
-        std::cout << "the result for the matrix (true translate)" << result.transform.translation
-                  << '\n';
-
-        assert_true(std::abs(result.transform.translation.x() - 0) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
-        assert_true(result.transform.rotation.isApprox(rotation_matrix));
+        assert_true(std::abs(result.transform.translation().x() - 0) <= TRANS_EPS);
+        assert_true(std::abs(result.transform.translation().y() - 0) <= TRANS_EPS);
+        assert_true(result.transform.rotation().isApprox(rotation.toRotationMatrix()));
     }
 
-    // Test case 3: Rotation at different angles
+    // Test case 3b: Rotation at different angles
     for (int deg = 0; deg < 10; deg++) {
         double angle = deg * M_PI / 180.0;
-        Eigen::Matrix2d rotation_matrix;
-        rotation_matrix << cos(angle), -sin(angle), sin(angle), cos(angle);
+        Eigen::Rotation2Dd rotation(angle);
 
-        std::vector<icp::Vector> a = {
-            icp::Vector(Eigen::Vector2d(0, 0)), icp::Vector(Eigen::Vector2d(1, 0))};
-        std::vector<icp::Vector> b = {icp::Vector(Eigen::Vector2d(0, 0)),
-            icp::Vector(rotation_matrix * Eigen::Vector2d(1, 0))};
+        icp::PointCloud2 a{icp::Vector2(0, 0), icp::Vector2(1, 0)};
+        icp::PointCloud2 b = rotation * a;
 
-        auto result = driver.converge(a, b, icp::RBTransform(2));
+        auto result = driver.converge(a, b, icp::RBTransform2::Identity());
 
-        std::cout << "testing angle: " << deg << std::endl;
-        std::cout << "the result for the matrix (expect) " << rotation_matrix << std::endl;
-        std::cout << "the result for the matrix (true)" << result.transform.rotation << std::endl;
-        std::cout << "the result for the matrix (true translate)" << result.transform.translation
-                  << std::endl;
-
-        assert_true(result.transform.rotation.isApprox(rotation_matrix, 1e-6));
+        assert_true(result.transform.rotation().isApprox(rotation.toRotationMatrix()));
     }
 
     {
         // Test case 4: Pure translation along X-axis
-        std::vector<icp::Vector> a = {
-            icp::Vector(Eigen::Vector2d(0, 0)), icp::Vector(Eigen::Vector2d(0, 100))};
-        std::vector<icp::Vector> b = {
-            icp::Vector(Eigen::Vector2d(100, 0)), icp::Vector(Eigen::Vector2d(100, 100))};
+        icp::PointCloud2 a{icp::Vector2(0, 0), icp::Vector2(0, 100)};
+        icp::PointCloud2 b{icp::Vector2(100, 0), icp::Vector2(100, 100)};
 
-        auto result = driver.converge(a, b, icp::RBTransform(2));
+        auto result = driver.converge(a, b, icp::RBTransform2::Identity());
 
-        std::cout << "[3]Result Transform Translation X: " << result.transform.translation.x()
-                  << std::endl;
-        std::cout << "[3]Result Transform Translation Y: " << result.transform.translation.y()
-                  << std::endl;
-        std::cout << "[3]Result Iteration Count: " << result.iteration_count << std::endl;
-
-        assert_true(std::abs(result.transform.translation.x() - 100) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
-        assert_true(result.transform.rotation.isApprox(icp::Matrix::Identity(2, 2)));
+        assert_true(std::abs(result.transform.translation().x() - 100) <= TRANS_EPS);
+        assert_true(std::abs(result.transform.translation().y() - 0) <= TRANS_EPS);
+        assert_true(result.transform.rotation().isApprox(Eigen::Matrix2d::Identity()));
     }
 
     {
-        // Translation + rotation
-        std::vector<icp::Vector> a = {
-            icp::Vector(Eigen::Vector2d(0, 0)), icp::Vector(Eigen::Vector2d(100, 0))};
-        std::vector<icp::Vector> b;
+        // Test case 5: Translation + rotation
 
-        double angle = 45 * M_PI / 180.0;                // Rotate 45 degrees
-        icp::Vector translation(Eigen::Vector2d(5, 5));  // Translate by (50, 50)
+        double angle = 45 * M_PI / 180.0;  // Rotate 45 degrees
+        icp::Vector2 translation(5, 5);    // Translate by (5, 5)
+        Eigen::Rotation2Dd rotation(angle);
 
-        icp::Matrix rotation_matrix{
-            {std::cos(angle), -std::sin(angle)}, {std::sin(angle), std::cos(angle)}};
+        icp::RBTransform2 transform;
+        transform.linear() = rotation.toRotationMatrix();
+        transform.translation() = translation;
 
-        for (const auto& point: a) {
-            b.push_back(rotation_matrix * point + translation);
-        }
+        icp::PointCloud2 a{icp::Vector2(0, 0), icp::Vector2(100, 0)};
+        icp::PointCloud2 b = transform * a;
 
-        auto result = driver.converge(a, b, icp::RBTransform(2));
+        auto result = driver.converge(a, b, icp::RBTransform2::Identity());
 
-        std::cout << "[4]Result Transform Translation X: " << result.transform.translation.x()
-                  << std::endl;
-        std::cout << "[4]Result Transform Translation Y: " << result.transform.translation.y()
-                  << std::endl;
-        std::cout << "[4]Result Iteration Count: " << result.iteration_count << std::endl;
-
-        assert_true(std::abs(result.transform.translation.x() - 5) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.y() - 5) <= TRANS_EPS);
-        assert_true(result.transform.rotation.isApprox(rotation_matrix));
+        assert_true(std::abs(result.transform.translation().x() - 5) <= TRANS_EPS);
+        assert_true(std::abs(result.transform.translation().y() - 5) <= TRANS_EPS);
+        assert_true(result.transform.rotation().isApprox(transform.rotation()));
     }
 
     {
-        // Add noise
-        std::vector<icp::Vector> a = {
-            icp::Vector(Eigen::Vector2d(0, 0)), icp::Vector(Eigen::Vector2d(100, 0))};
-        std::vector<icp::Vector> b;
+        // Test case 6: Add noise
 
-        double angle = 30 * M_PI / 180.0;                  // Rotate 30 degrees
-        icp::Vector translation(Eigen::Vector2d(20, 10));  // Translate by (20, 10)
+        double angle = 30 * M_PI / 180.0;  // Rotate 30 degrees
+        icp::Vector2 translation(20, 10);  // Translate by (20, 10)
 
-        icp::Matrix rotation_matrix{
-            {std::cos(angle), -std::sin(angle)}, {std::sin(angle), std::cos(angle)}};
+        icp::RBTransform2 transform;
+        transform.linear() = Eigen::Rotation2Dd(angle).toRotationMatrix();
+        transform.translation() = translation;
 
         std::default_random_engine generator;
-        std::normal_distribution<double> noise_dist(0.0,
-            1.0);  // Noise with standard deviation of 1.0
+        std::normal_distribution<double> noise_dist(0.0, 1.0);
 
-        for (const auto& point: a) {
-            Eigen::Vector2d noisy_point;
-            noisy_point = rotation_matrix * point + translation;
-            noisy_point.x() += noise_dist(generator);
-            noisy_point.y() += noise_dist(generator);
-            b.push_back(noisy_point);
+        icp::PointCloud2 a{icp::Vector2(0, 0), icp::Vector2(100, 0)};
+        icp::PointCloud2 b = transform * a;
+
+        for (ptrdiff_t i = 0; i < b.cols(); i++) {
+            b.col(i) += Eigen::Vector2d(noise_dist(generator), noise_dist(generator));
         }
 
-        auto result = driver.converge(a, b, icp::RBTransform());
+        auto result = driver.converge(a, b, icp::RBTransform2());
 
-        assert_true(std::abs(result.transform.translation.x() - 20) <= TRANS_EPS + 1.0);
-        assert_true(std::abs(result.transform.translation.y() - 10) <= TRANS_EPS + 1.0);
-        double angle_compute = std::atan2(result.transform.rotation(1, 0),
-            result.transform.rotation(0, 0));
-        assert_true(std::abs(angle_compute - angle) <= RAD_EPS);
-        // need to find a way to test the rotation
+        assert_true(std::abs(result.transform.translation().x() - 20) <= TRANS_EPS + 1.0);
+        assert_true(std::abs(result.transform.translation().y() - 10) <= TRANS_EPS + 1.0);
+        // TODO: find a better way to test rotations
+        assert_true(result.transform.rotation().isApprox(transform.rotation()));
     }
 }
 
 void test_main() {
     test_kdtree();
 
-    test_icp_generic("vanilla", icp::ICP::Config());
+    test_icp_generic("vanilla", icp::Config());
 
-    icp::ICP::Config trimmed_config;
+    icp::Config trimmed_config;
     // fails with lower overlap rates on these super small examples
     trimmed_config.set("overlap_rate", 1.0);
     test_icp_generic("trimmed", trimmed_config);
 
-    icp::ICP::Config feature_config;
+    icp::Config feature_config;
     feature_config.set("overlap_rate", 1.0);
     feature_config.set("feature_weight", 0.7);
     feature_config.set("symmetric_neighbors", 1);

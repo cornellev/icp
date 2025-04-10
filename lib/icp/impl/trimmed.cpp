@@ -66,8 +66,8 @@ namespace icp {
             trimmed_b.col(i) = b.col(matches[i].pair);
         }
 
-        Vector trimmed_a_cm = get_centroid<2>(trimmed_a_current);
-        Vector trimmed_b_cm = get_centroid<2>(trimmed_b);
+        Vector trimmed_a_cm = get_centroid(trimmed_a_current);
+        Vector trimmed_b_cm = get_centroid(trimmed_b);
 
         /* #step SVD: see \ref vanilla_icp for details. */
         Eigen::Matrix2d N = (trimmed_a_current.colwise() - trimmed_a_cm)

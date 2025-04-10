@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include "icp/geo.h"
 extern "C" {
 #include <cmdapp/cmdapp.h>
 #include <config/config.h>
@@ -147,6 +148,5 @@ int main(int argc, const char** argv) {
         LidarView* view = new LidarView(source, dest, std::move(icp));
 
         launch_gui(view, std::string(f_src) + std::string(" and ") + std::string(f_dst));
-        delete view;
     }
 }
