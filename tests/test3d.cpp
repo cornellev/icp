@@ -85,9 +85,13 @@ void test_icp_3d(const icp::ICP::Config& config) {
 
         auto result = driver.converge(a, b, icp::RBTransform(3));
 
-        assert_true(std::abs(result.transform.translation.x() - 0) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.z() - 0) <= TRANS_EPS);
+        Eigen::Vector3d expected_t = (Eigen::Matrix3d::Identity() - rotation_matrix) * center;
+        std::cout << "expected translation: " << expected_t << std::endl;
+        std::cout << "result translation: " << result.transform.translation << std::endl;
+
+        assert_true(std::abs(result.transform.translation.x() - expected_t.x()) <= TRANS_EPS);
+        assert_true(std::abs(result.transform.translation.y() - expected_t.y()) <= TRANS_EPS);
+        assert_true(std::abs(result.transform.translation.z() - expected_t.z()) <= TRANS_EPS);
         assert_true(result.transform.rotation.isApprox(rotation_matrix));
     }
 
@@ -128,9 +132,13 @@ void test_icp_3d(const icp::ICP::Config& config) {
         std::cout << "rotation matrix (expected): " << rotation_matrix << std::endl;
         std::cout << "rotation matrix (true): " << result.transform.rotation << std::endl;
 
-        assert_true(std::abs(result.transform.translation.x() - 0) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.z() - 0) <= TRANS_EPS);
+        Eigen::Vector3d expected_t = (Eigen::Matrix3d::Identity() - rotation_matrix) * center;
+        std::cout << "expected translation: " << expected_t << std::endl;
+        std::cout << "result translation: " << result.transform.translation << std::endl;
+
+        assert_true(std::abs(result.transform.translation.x() - expected_t.x()) <= TRANS_EPS);
+        assert_true(std::abs(result.transform.translation.y() - expected_t.y()) <= TRANS_EPS);
+        assert_true(std::abs(result.transform.translation.z() - expected_t.z()) <= TRANS_EPS);
         assert_true(result.transform.rotation.isApprox(rotation_matrix));
     }
 
