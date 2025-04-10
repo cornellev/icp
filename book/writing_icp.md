@@ -1,3 +1,7 @@
+<!--  
+Copyright (C) 2025 Ethan Uppal.
+SPDX-License-Identifier: MIT
+--->
 \page write_icp_instance Writing an ICP Instance
 
 \tableofcontents
