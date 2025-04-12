@@ -15,10 +15,11 @@ option(LIB_ONLY "Build library only" OFF)
 find_package(Eigen3 REQUIRED)
 if(NOT LIB_ONLY)
   find_package(SDL2 REQUIRED)
-endif()
+  find_package(PCL 1.14 REQUIRED COMPONENTS common io visualization)
 
-include_directories(/usr/local/include)
-link_directories(/usr/local/lib)
+  include_directories(${PCL_INCLUDE_DIRS} /usr/local/include)
+  link_directories(${PCL_LIBRARY_DIRS} /usr/local/lib)
+endif()
 
 # Library target
 set(LIB_SOURCES
@@ -30,6 +31,8 @@ set(LIB_SOURCES
   lib/icp/impl/vanilla.cpp
   lib/icp/impl/trimmed.cpp
   lib/icp/impl/feature_aware.cpp
+  lib/icp/impl/vanilla_3d.cpp
+  lib/icp/impl/not_icp.cpp
 )
 add_library(cevicp STATIC ${LIB_SOURCES})
 target_include_directories(cevicp 
@@ -77,6 +80,37 @@ if(NOT LIB_ONLY)
       /usr/local/include/simple_test
   )
   target_compile_definitions(test_suite PRIVATE TEST)
+  
+  set(TEST_SOURCES_3D tests/test3d.cpp)
+  add_executable(test_suite_3d ${TEST_SOURCES_3D})
+  target_link_libraries(test_suite_3d
+    cevicp
+  )
+  target_include_directories(test_suite_3d
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/include
+      /usr/local/include/simple_test
+  )
+  target_compile_definitions(test_suite_3d PRIVATE TEST)
+
+  set(TEST_SOURCES_PLY tests/test_ply.cpp)
+  add_executable(test_suite_ply ${TEST_SOURCES_PLY})
+  set_target_properties(test_suite_ply PROPERTIES
+  INSTALL_RPATH "/opt/homebrew/Cellar/libpcap/1.10.5/lib"
+  BUILD_WITH_INSTALL_RPATH TRUE
+)
+  target_link_libraries(test_suite_ply
+    cevicp
+    ${PCL_LIBRARIES}
+  )
+  target_include_directories(test_suite_ply
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/common
+      /usr/local/include/simple_test
+      ${PCL_INCLUDE_DIRS}
+  )
+  target_compile_definitions(test_suite_ply PRIVATE TEST)
 
   set(BENCH_SOURCES bench/bench.cpp common/parse_scan.cpp)
   add_executable(bench_suite ${BENCH_SOURCES})

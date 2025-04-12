@@ -1,5 +1,11 @@
 #include "icp/driver.h"
 #include <limits>
+#include <Eigen/Geometry>
+#include "Eigen/src/Core/Matrix.h"
+#include "Eigen/src/Geometry/AngleAxis.h"
+#include "icp/geo.h"
+#include "icp/icp.h"
+#include "iostream"
 
 namespace icp {
     ICPDriver::ICPDriver(std::unique_ptr<ICP> icp) {
@@ -10,8 +16,9 @@ namespace icp {
         const std::vector<Vector>& b, RBTransform t) {
         start_time_ = std::chrono::steady_clock::now();
         icp_->begin(a, b, t);
+        size_t dimension = a[0].size();
+        ConvergenceState state(dimension);
 
-        ConvergenceState state{};
         state.iteration_count = 0;
         state.cost = icp_->calculate_cost();
         state.transform = icp_->current_transform();
@@ -24,6 +31,12 @@ namespace icp {
             state.iteration_count++;
             state.cost = icp_->calculate_cost();
             state.transform = icp_->current_transform();
+
+            std::cout << "Iteration: " << state.iteration_count << std::endl;
+            std::cout << "Cost: " << state.cost << std::endl;
+            std::cout << "Transform: " << std::endl;
+            std::cout << state.transform.rotation << std::endl;
+            std::cout << state.transform.translation.transpose() << std::endl;
         }
 
         return state;
@@ -66,17 +79,30 @@ namespace icp {
         if (relative_cost_tolerance_ && relative_cost_change < relative_cost_tolerance_.value()) {
             return true;
         }
-
+        // 3d rotation decompose in 3 param
+        // used Axis_angle to decompose it now: avoiding gimbal lock for 90 degree rotation that
+        // happens in euler angles
         if (angle_tolerance_rad_ && translation_tolerance_) {
-            icp::Vector prev_rot_vector = last_state.value().transform.rotation * icp::Vector(1, 0);
-            icp::Vector current_rot_vector = current_state.transform.rotation * icp::Vector(1, 0);
-            double dot = prev_rot_vector.dot(current_rot_vector);
-            double angle = std::acos(std::clamp(dot, -1.0, 1.0));
+            icp::Matrix rotation_step = current_state.transform.rotation
+                                        * last_state.value().transform.rotation.transpose();
+            double angle_diff = 0;
+            if (icp_->dimensionality() == 2) {
+                Eigen::Matrix2d fixed_size_mat(rotation_step);
+                Eigen::Rotation2Dd rot_step_2d(fixed_size_mat);
+                angle_diff = std::abs(rot_step_2d.smallestAngle());
+            } else {
+                Eigen::Matrix3d fixed_size_mat(rotation_step);
+                Eigen::AngleAxisd rot_step_angle_axis(fixed_size_mat);
+                angle_diff = std::abs(rot_step_angle_axis.angle());
+            }
 
             auto translation = current_state.transform.translation
                                - last_state.value().transform.translation;
 
-            if (angle < angle_tolerance_rad_.value()
+            std::cout << "Angle difference: " << angle_diff << std::endl;
+            std::cout << "Translation difference: " << translation.norm() << std::endl;
+
+            if (angle_diff < angle_tolerance_rad_.value()
                 && translation.norm() < translation_tolerance_.value()) {
                 return true;
             }
