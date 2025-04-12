@@ -6,12 +6,11 @@
 #include "algo/kdtree.h"
 
 namespace icp {
-
-    class Vanilla_3d : public ICP {
+    class Not_icp : public ICP {
     public:
-        Vanilla_3d(const Config& config);
-        Vanilla_3d();
-        ~Vanilla_3d();
+        Not_icp(const Config& config);
+        Not_icp();
+        ~Not_icp();
 
         void set_target(const std::vector<Vector>& target) override;
         double get_current_cost() const;
@@ -26,6 +25,7 @@ namespace icp {
         Eigen::MatrixXd C;
         std::unique_ptr<KdTree<Vector>> target_kdtree_;
         double current_cost_;
+        Eigen::Matrix3d initial_rotation;
 
         void rebuild_kdtree();
         NEIGHBOR nearest_neighbor(const Eigen::MatrixXd& src, const Eigen::MatrixXd& dst);

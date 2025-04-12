@@ -20,6 +20,7 @@
 #include "icp/icp.h"
 #include "icp/driver.h"
 #include "icp/impl/vanilla_3d.h"
+#include "icp/impl/not_icp.h"
 
 // Algorithm parameters
 #define BURN_IN 0                   // Minimum required iterations
@@ -100,7 +101,8 @@ int main(int argc, char* argv[]) {
 
         // ICP configuration
         icp::ICP::Config config;
-        std::unique_ptr<icp::ICP> icp = std::make_unique<icp::Vanilla_3d>(config);
+        // std::unique_ptr<icp::ICP> icp = std::make_unique<icp::Vanilla_3d>(config);
+        std::unique_ptr<icp::ICP> icp = std::make_unique<icp::Not_icp>(config);
         icp::ICPDriver driver(std::move(icp));
 
         driver.set_min_iterations(BURN_IN);
@@ -118,7 +120,6 @@ int main(int argc, char* argv[]) {
 
         // Run ICP
         auto result = driver.converge(source_std, target_std, icp::RBTransform(3));
-
         // Save results
         saveTransformedPointCloud(source_points, result.transform, output_path);
 

@@ -45,6 +45,11 @@ namespace icp {
      * `icp->transform()`. Do note, however, that `icp->calculate_cost()` is not
      * a constant-time operation.
      */
+
+    struct NEIGHBOR {
+        std::vector<float> distances;
+        std::vector<size_t> indices;
+    };
     class ICP {
     protected:
         // the dimension of icp(only 2 and 3 are legal)
@@ -106,6 +111,8 @@ namespace icp {
          * @post For implementers: must fill `matches` with match data for the initial point clouds.
          */
         virtual void setup() = 0;
+
+        RBTransform initial_transform_;
 
     public:
         /** Configuration for ICP instances. */

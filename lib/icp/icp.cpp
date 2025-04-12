@@ -22,6 +22,7 @@ namespace icp {
         // Initial transform guess
         this->transform = t;
 
+        this->initial_transform_ = t;
         // Copy in point clouds
         this->a = a;
         this->b = b;

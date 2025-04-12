@@ -31,7 +31,8 @@ set(LIB_SOURCES
   lib/icp/impl/vanilla.cpp
   lib/icp/impl/trimmed.cpp
   lib/icp/impl/feature_aware.cpp
-  lib/icp/impl/vanilla_3d.cpp 
+  lib/icp/impl/vanilla_3d.cpp
+  lib/icp/impl/not_icp.cpp
 )
 add_library(cevicp STATIC ${LIB_SOURCES})
 target_include_directories(cevicp 
@@ -94,6 +95,10 @@ if(NOT LIB_ONLY)
 
   set(TEST_SOURCES_PLY tests/test_ply.cpp)
   add_executable(test_suite_ply ${TEST_SOURCES_PLY})
+  set_target_properties(test_suite_ply PROPERTIES
+  INSTALL_RPATH "/opt/homebrew/Cellar/libpcap/1.10.5/lib"
+  BUILD_WITH_INSTALL_RPATH TRUE
+)
   target_link_libraries(test_suite_ply
     cevicp
     ${PCL_LIBRARIES}
