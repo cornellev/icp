@@ -52,7 +52,7 @@ namespace icp {
         matched_b_cm /= matches.size();
 
         Eigen::Matrix2d N = Eigen::Matrix2d::Zero();
-        for (ptrdiff_t i = 0; i < a.rows(); i++) {
+        for (ptrdiff_t i = 0; i < a.cols(); i++) {
             N += (a_current.col(i) - a_current_cm)
                  * (b.col(matches[i].pair) - matched_b_cm).transpose();
         }

@@ -63,7 +63,7 @@ namespace icp {
         };
 
         /** The current point cloud transformation that is being optimized. */
-        RBTransform transform;
+        RBTransform transform = RBTransform::Identity();
 
         /** The source point cloud. */
         PointCloud a;
@@ -74,7 +74,7 @@ namespace icp {
         /** The pairing of each point in `a` to its closest in `b`. */
         std::vector<Match> matches;
 
-        ICP() {}
+        ICP(): a(Dim, 0), b(Dim, 0) {}
 
         /**
          * @brief Per-method setup code.

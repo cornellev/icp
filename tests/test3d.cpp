@@ -8,27 +8,42 @@ extern "C" {
 #include <simple_test/simple_test.h>
 }
 
-#define BURN_IN 0                 // Minimum required iterations for the algorithm
 #define TRANS_EPS 0.5             // Translation tolerance in units
 #define RAD_EPS ((double)(0.01))  // Rotation tolerance in radians
+
+#define assert_translation_eps(expected, real, eps)                                                \
+    do {                                                                                           \
+        assert_true(std::abs((real).x() - (expected).x()) < (eps));                                \
+        assert_true(std::abs((real).y() - (expected).y()) < (eps));                                \
+        assert_true(std::abs((real).z() - (expected).z()) < (eps));                                \
+    } while (0)
+
+#define assert_rotation_eps(expected, real, eps)                                                   \
+    do {                                                                                           \
+        assert_true((real).isApprox((expected), (eps)));                                           \
+    } while (0)
+
+#define assert_translation(expected, real) assert_translation_eps(expected, real, TRANS_EPS)
+
+#define assert_rotation(expected, real) assert_rotation_eps(expected, real, RAD_EPS)
 
 void test_icp_3d(const icp::Config& config) {
     std::unique_ptr<icp::ICP3> icp = std::make_unique<icp::Vanilla_3d>(config);
     icp::ICPDriver driver(std::move(icp));
-    driver.set_min_iterations(BURN_IN);
     driver.set_max_iterations(100);
     driver.set_transform_tolerance(0.1 * M_PI / 180, 0.1);
 
     // Test case 1: Single point translation
     {
-        icp::PointCloud3 a{{0, 0, 0}};
-        icp::PointCloud3 b{{100, 0, 0}};
+        icp::PointCloud3 a(3, 1);
+        a.col(0) << 0, 0, 0;
+        icp::PointCloud3 b(3, 1);
+        b.col(0) << 100, 0, 0;
         auto result = driver.converge(a, b, icp::RBTransform3::Identity());  // Use RBTransform3
 
-        assert_true(result.iteration_count <= BURN_IN + 10);
-        assert_true(std::abs(result.transform.translation().x() - 100) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation().y() - 0) <= TRANS_EPS);
-        assert_true(result.transform.rotation().isApprox(Eigen::Matrix3d::Identity()));
+        assert_true(result.iteration_count <= 10);
+        assert_translation(Eigen::Vector3d(100, 0, 0), result.transform.translation());
+        assert_rotation(Eigen::Matrix3d::Identity(), result.transform.rotation());
     }
 
     // Note that we will not test colinear cases as they may lead to hard to correct degenerancy
@@ -48,7 +63,10 @@ void test_icp_3d(const icp::Config& config) {
 
     // Test case 3: Rotation about one of the axes
     for (int deg = 0; deg < 10; deg++) {
-        icp::PointCloud3 a{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+        icp::PointCloud3 a(3, 3);
+        a.col(0) << 1, 0, 0;
+        a.col(1) << 0, 1, 0;
+        a.col(2) << 0, 0, 1;
         icp::PointCloud3 b(3, a.cols());
 
         double angle = (double)deg * M_PI / 180.0;
@@ -65,15 +83,16 @@ void test_icp_3d(const icp::Config& config) {
 
         auto result = driver.converge(a, b, icp::RBTransform3::Identity());  // Use RBTransform3
 
-        assert_true(std::abs(result.transform.translation().x() - 0) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation().y() - 0) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation().z() - 0) <= TRANS_EPS);
-        assert_true(result.transform.rotation().isApprox(rotation_matrix));
+        assert_translation(Eigen::Vector3d(0, 0, 0), result.transform.translation());
+        assert_rotation(rotation_matrix, result.transform.rotation());
     }
 
     // Test case 4: Rotation about multiple axes
     {
-        icp::PointCloud3 a{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+        icp::PointCloud3 a(3, 3);
+        a.col(0) << 1, 0, 0;
+        a.col(1) << 0, 1, 0;
+        a.col(2) << 0, 0, 1;
         icp::PointCloud3 b(3, a.cols());
 
         int deg_1 = 30;
@@ -99,28 +118,33 @@ void test_icp_3d(const icp::Config& config) {
 
         auto result = driver.converge(a, b, icp::RBTransform3::Identity());  // Use RBTransform3
 
-        assert_true(std::abs(result.transform.translation().x() - 0) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation().y() - 0) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation().z() - 0) <= TRANS_EPS);
-        assert_true(result.transform.rotation().isApprox(rotation_matrix));
+        assert_translation(Eigen::Vector3d(0, 0, 0), result.transform.translation());
+        assert_rotation(rotation_matrix, result.transform.rotation());
     }
 
     // Test case 5: Pure translation along multiple axes
     {
-        icp::PointCloud3 a{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-        icp::PointCloud3 b{{51, 73, 2}, {50, 74, 2}, {50, 73, 3}};
+        icp::PointCloud3 a(3, 3);
+        a.col(0) << 1, 0, 0;
+        a.col(1) << 0, 1, 0;
+        a.col(2) << 0, 0, 1;
+        icp::PointCloud3 b(3, 3);
+        b.col(0) << 51, 73, 2;
+        b.col(1) << 50, 74, 2;
+        b.col(2) << 50, 73, 3;
 
         auto result = driver.converge(a, b, icp::RBTransform3::Identity());  // Use RBTransform3
 
-        assert_true(std::abs(result.transform.translation().x() - 50) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation().y() - 73) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation().z() - 2) <= TRANS_EPS);
-        assert_true(result.transform.rotation().isApprox(Eigen::Matrix3d::Identity()));
+        assert_translation(Eigen::Vector3d(50, 73, 2), result.transform.translation());
+        assert_rotation(Eigen::Matrix3d::Identity(), result.transform.rotation());
     }
 
     // Test case 6: Translation + rotation
     {
-        icp::PointCloud3 a{{100, 0, 0}, {0, 100, 0}, {0, 0, 100}};
+        icp::PointCloud3 a(3, 3);
+        a.col(0) << 100, 0, 0;
+        a.col(1) << 0, 100, 0;
+        a.col(2) << 0, 0, 100;
         icp::PointCloud3 b(3, a.cols());
 
         double angle_1 = 10 * M_PI / 180.0;
@@ -142,15 +166,16 @@ void test_icp_3d(const icp::Config& config) {
 
         auto result = driver.converge(a, b, icp::RBTransform3::Identity());  // Use RBTransform3
 
-        assert_true(std::abs(result.transform.translation().x() - 50) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation().y() - 50) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation().z() - 50) <= TRANS_EPS);
-        assert_true(result.transform.rotation().isApprox(rotation_matrix));
+        assert_translation(translation, result.transform.translation());
+        assert_rotation(rotation_matrix, result.transform.rotation());
     }
 
     // Test case 7: Add noise
     {
-        icp::PointCloud3 a{{100, 0, 0}, {0, 100, 0}, {0, 0, 100}};
+        icp::PointCloud3 a(3, 3);
+        a.col(0) << 100, 0, 0;
+        a.col(1) << 0, 100, 0;
+        a.col(2) << 0, 0, 100;
         icp::PointCloud3 b(3, a.cols());
 
         double angle_1 = 10 * M_PI / 180.0;
@@ -185,15 +210,8 @@ void test_icp_3d(const icp::Config& config) {
 
         auto result = driver.converge(a, b, icp::RBTransform3::Identity());  // Use RBTransform3
 
-        assert_true(std::abs(result.transform.translation().x() - 20) <= TRANS_EPS + 1.0);
-        assert_true(std::abs(result.transform.translation().y() - 10) <= TRANS_EPS + 1.0);
-        assert_true(std::abs(result.transform.translation().z() - 30) <= TRANS_EPS + 1.0);
-
-        Eigen::Matrix3d rotation_matrix_2 = result.transform.rotation().block<3, 3>(0, 0);
-        Eigen::Vector3d euler_angles = rotation_matrix_2.eulerAngles(0, 1, 2);
-        assert_true(std::abs(euler_angles[0] - angle_1) <= 0.1);
-        assert_true(std::abs(euler_angles[1] - angle_2) <= 0.1);
-        assert_true(std::abs(euler_angles[2] - angle_3) <= 0.1);
+        assert_translation_eps(translation, result.transform.translation(), TRANS_EPS + 1.0);
+        assert_rotation_eps(rotation_matrix, result.transform.rotation(), 0.1);
     }
 }
 

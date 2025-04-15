@@ -2,8 +2,6 @@
 #include <Eigen/SVD>
 #include <Eigen/Dense>
 #include <cstddef>
-#include "Eigen/src/Core/Matrix.h"
-#include "Eigen/src/Core/util/Constants.h"
 #include "icp/geo.h"
 
 /* #name Feature-Aware */
@@ -45,7 +43,10 @@ namespace icp {
         b_features = compute_features(b);
 
         normalized_feature_dists = compute_norm_dists<Eigen::Dynamic>(a_features, b_features);
-        normalized_feature_dists /= normalized_feature_dists.maxCoeff();
+        double max = normalized_feature_dists.maxCoeff();
+        if (max > 1e-6) {
+            normalized_feature_dists /= max;
+        }
 
         // TODO: should we rely on NRVO here?
         compute_matches();
@@ -118,7 +119,10 @@ namespace icp {
 
     void FeatureAware::compute_matches() {
         Eigen::MatrixXd normalized_dists = compute_norm_dists<2>(a_current, b);
-        normalized_dists /= normalized_dists.maxCoeff();
+        double max = normalized_dists.maxCoeff();
+        if (max > 1e-6) {
+            normalized_dists /= max;
+        }
 
         for (ptrdiff_t i = 0; i < a.cols(); i++) {
             matches[i].point = i;

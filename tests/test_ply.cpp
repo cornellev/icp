@@ -13,7 +13,6 @@
 #include <stdexcept>
 #include <Eigen/StdVector>
 #include <Eigen/Core>
-#include <Eigen/src/Core/Matrix.h>
 #include <pcl/io/ply_io.h>
 #include <pcl/point_types.h>
 

@@ -23,9 +23,12 @@ exactly and then iterate until an optimal rotation has been found. */
 
 namespace icp {
     Vanilla_3d::Vanilla_3d([[maybe_unused]] const Config& config)
-        : ICP(), current_cost_(std::numeric_limits<double>::max()) {}
+        : ICP(), c(3, 0), current_cost_(std::numeric_limits<double>::max()) {}
     Vanilla_3d::Vanilla_3d()
-        : ICP(), target_kdtree_(nullptr), current_cost_(std::numeric_limits<double>::max()) {}
+        : ICP(),
+          c(3, 0),
+          target_kdtree_(nullptr),
+          current_cost_(std::numeric_limits<double>::max()) {}
     Vanilla_3d::~Vanilla_3d() {}
 
     void Vanilla_3d::rebuild_kdtree() {
@@ -34,7 +37,7 @@ namespace icp {
         for (ptrdiff_t i = 0; i < b.cols(); i++) {
             b_vec[i] = b.col(i);
         }
-        target_kdtree_ = std::make_unique<KdTree<Vector>>(b_vec, 4);
+        target_kdtree_ = std::make_unique<KdTree<Vector>>(std::move(b_vec), 4);
     }
 
     // Euclidean distance between two points
@@ -76,10 +79,7 @@ namespace icp {
 
             for (ptrdiff_t i = 0; i < src.cols(); i++) {
                 try {
-                    Vector query_point = Vector::Zero();
-                    query_point(0) = src(i, 0);
-                    query_point(1) = src(i, 1);
-                    query_point(2) = src(i, 2);
+                    Vector query_point = src.col(i);
 
                     float min_dist = 0;
                     ptrdiff_t nearest_idx = target_kdtree_->find_nearest(query_point, &min_dist);
@@ -175,7 +175,7 @@ namespace icp {
         RBTransform T = best_fit_transform(c, dst_reordered);
         c = T * c;
 
-        transform = T;
+        transform = T * transform;
 
         calculate_cost(neighbor.distances);
     }

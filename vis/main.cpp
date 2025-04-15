@@ -126,15 +126,28 @@ int main(int argc, const char** argv) {
 
     std::unique_ptr<icp::ICP2> icp = std::move(icp_opt.value());
 
-    // std::vector<icp::Vector> a = {icp::Vector(0, 0), icp::Vector(100, 100)};
-    // std::vector<icp::Vector> b = {};
-    // double angle = (double)8 * M_PI / 180.0;
-    // icp::Vector center = icp::get_centroid(a);
-    // icp::Matrix rotation_matrix{
-    //     {std::cos(angle), -std::sin(angle)}, {std::sin(angle), std::cos(angle)}};
-    // for (const auto& point: a) {
-    //     b.push_back(rotation_matrix * (point - center) + center);
-    // }
+    // icp::PointCloud2 a(2, 5);
+    // a.col(0) << 0, 0;
+    // a.col(1) << 100, 0;
+    // a.col(2) << 100, 100;
+    // a.col(3) << -20, 50;
+    // a.col(4) << 100, 120;
+    // icp::PointCloud2 b(2, 5);
+    // b.col(0) << 18.9132, 9.87803;
+    // b.col(1) << 105.527, 60.6843;
+    // b.col(2) << 57.3474, 146.636;
+    // b.col(3) << -22.8571, 43.3349;
+    // b.col(4) << 46.8032, 164.386;
+
+    // LidarView* view = new LidarView(a, b, std::move(icp));
+    // launch_gui(view, "test");
+    // return 0;
+
+    // icp::PointCloud2 a(2, 2);
+    // a.col(0) << 0, 0;
+    // a.col(1) << 100, 100;
+    // icp::PointCloud2 b = a;
+
     // LidarView* view = new LidarView(a, b, std::move(icp));
     // launch_gui(view, "test");
     // return 0;

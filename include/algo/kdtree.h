@@ -20,8 +20,8 @@ namespace icp {
             std::vector<size_t> indices;
         };
 
-        explicit KdTree(const std::vector<PointT>& points, int leaf_size = 10)
-            : points_ref_(points), leaf_size_(leaf_size) {
+        explicit KdTree(std::vector<PointT> points, int leaf_size = 10)
+            : points_ref_(std::move(points)), leaf_size_(leaf_size) {
             if (points_ref_.empty()) {
                 throw std::invalid_argument("Cannot build KdTree with empty points");
             }
