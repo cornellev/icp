@@ -16,6 +16,11 @@
 #include "config.h"
 
 namespace icp {
+    struct NEIGHBOR {
+        std::vector<float> distances;
+        std::vector<size_t> indices;
+    };
+  
     /**
      * Interface for iterative closest points.
      * Generally, you should interact with ICP instances through this interface or `ICPDriver`,
@@ -83,6 +88,8 @@ namespace icp {
          * clouds.
          */
         virtual void setup() = 0;
+
+        RBTransform initial_transform_;
 
     public:
         static std::optional<std::unique_ptr<ICP<Dim>>> from_method(const std::string& name,
