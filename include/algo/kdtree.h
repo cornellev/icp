@@ -9,18 +9,39 @@
 #include <functional>
 
 namespace icp {
-
+    /**
+     * @brief A k-d tree for efficient nearest neighbor search in k-dimensional space.
+     *
+     */
     template<typename PointT>
     class KdTree {
     public:
+        /**
+         * @brief Construct an empty k-d tree.
+         */
         KdTree(): root_(nullptr), dim_(PointT::DIM) {}
+
+        /**
+         * @brief Construct and build the k-d tree from a point cloud.
+         * @param points Vector of input points.
+         * @param dim Dimensionality of the space. If -1, defaults to 3.
+         */
         KdTree(const std::vector<PointT>& points, int dim = -1): root_(nullptr) {
             build(points, dim);
         }
+
+        /**
+         * @brief Destructor.
+         */
         ~KdTree() {
             clear();
         }
 
+        /**
+         * @brief Build the k-d tree from a given point set.
+         * @param points Vector of input points.
+         * @param dim Dimensionality of the space. If -1, defaults to 3.
+         */
         void build(const std::vector<PointT>& points, int dim = -1) {
             clear();
             points_ = points;
@@ -33,12 +54,18 @@ namespace icp {
             root_ = buildRecursive(indices.data(), static_cast<int>(points.size()), 0);
         }
 
+        /**
+         * @brief Clear the tree.
+         */
         void clear() {
             clearRecursive(root_);
             root_ = nullptr;
             points_.clear();
         }
 
+        /**
+         * @brief Internal node structure of the k-d tree.
+         */
         struct Node {
             int idx;        // index to the original point
             Node* next[2];  // pointers to the child nodes
@@ -49,10 +76,20 @@ namespace icp {
             }
         };
 
+        /**
+         * @brief Internal exception class for tree errors.
+         */
         class Exception : public std::exception {
             using std::exception::exception;
         };
 
+        /**
+         * @brief Search for the nearest neighbor to a query point.
+         *
+         * @param query The query point.
+         * @param minDist Optional output parameter for the squared distance to the nearest point.
+         * @return Index of the nearest neighbor in the original input point vector.
+         */
         int search(const PointT& query, double* minDist = nullptr) const {
             int guess;
             double _minDist = std::numeric_limits<double>::max();
@@ -64,6 +101,9 @@ namespace icp {
         }
 
     private:
+        /**
+         * @brief Recursively build the tree from a set of point indices.
+         */
         Node* buildRecursive(int* indices, int npoints, int depth) {
             if (npoints <= 0) return nullptr;
 
@@ -83,6 +123,9 @@ namespace icp {
             return node;
         }
 
+        /**
+         * @brief Recursively clear the tree.
+         */
         void clearRecursive(Node* node) {
             if (node == nullptr) return;
 
@@ -92,12 +135,18 @@ namespace icp {
             delete node;
         }
 
+        /**
+         * @brief Compute squared Euclidean distance between two points.
+         */
         static double distance(const PointT& p, const PointT& q) {
             double dist = 0;
             for (int i = 0; i < p.size(); i++) dist += (p[i] - q[i]) * (p[i] - q[i]);
             return std::sqrt(dist);
         }
 
+        /**
+         * @brief Recursively search for the nearest neighbor.
+         */
         void searchRecursive(const PointT& query, const Node* node, int* guess,
             double* minDist) const {
             if (node == nullptr) return;
@@ -117,9 +166,9 @@ namespace icp {
             if (diff < *minDist) searchRecursive(query, node->next[!dir], guess, minDist);
         }
 
-        Node* root_;
-        std::vector<PointT> points_;
-        int dim_;
+        Node* root_;                  // root node of the k-d tree
+        std::vector<PointT> points_;  // stored reference to the original input points
+        int dim_;                     // dimensionality of the space
     };
 
 }  // namespace icp

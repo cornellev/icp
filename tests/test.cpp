@@ -2,7 +2,7 @@
 #include <cstddef>
 #include <string>
 #include "icp/geo.h"
-#include "algo/kdtree.h"  // Add this line to include the KdTree definition
+#include "algo/kdtree.h"
 #include "icp/icp.h"
 #include "icp/driver.h"
 #include <iostream>
