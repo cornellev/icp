@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(cev_icp CXX)
+project(cev_icp LANGUAGES C CXX)
 
 set(PROJECT_VERSION 1.3.0)
 
