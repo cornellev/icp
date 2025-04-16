@@ -20,7 +20,6 @@
 #include "icp/icp.h"
 #include "icp/driver.h"
 #include "icp/impl/vanilla_3d.h"
-#include "icp/impl/not_icp.h"
 
 // Algorithm parameters
 #define BURN_IN 0                   // Minimum required iterations

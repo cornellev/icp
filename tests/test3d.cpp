@@ -3,6 +3,7 @@
 #include "icp/driver.h"
 #include "icp/impl/vanilla_3d.h"
 #include <random>
+#include <iostream>
 
 extern "C" {
 #include <simple_test/simple_test.h>
@@ -85,12 +86,10 @@ void test_icp_3d(const icp::Config& config) {
 
         Eigen::Vector3d expected_t = (Eigen::Matrix3d::Identity() - rotation_matrix) * center;
         std::cout << "expected translation: " << expected_t << std::endl;
-        std::cout << "result translation: " << result.transform.translation << std::endl;
+        std::cout << "result translation: " << result.transform.translation() << std::endl;
 
-        assert_true(std::abs(result.transform.translation.x() - expected_t.x()) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.y() - expected_t.y()) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.z() - expected_t.z()) <= TRANS_EPS);
-        assert_true(result.transform.rotation.isApprox(rotation_matrix));
+        assert_translation(expected_t, result.transform.translation());
+        assert_rotation(rotation_matrix, result.transform.rotation());
     }
 
     // Test case 4: Rotation about multiple axes
@@ -126,12 +125,10 @@ void test_icp_3d(const icp::Config& config) {
 
         Eigen::Vector3d expected_t = (Eigen::Matrix3d::Identity() - rotation_matrix) * center;
         std::cout << "expected translation: " << expected_t << std::endl;
-        std::cout << "result translation: " << result.transform.translation << std::endl;
+        std::cout << "result translation: " << result.transform.translation() << std::endl;
 
-        assert_true(std::abs(result.transform.translation.x() - expected_t.x()) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.y() - expected_t.y()) <= TRANS_EPS);
-        assert_true(std::abs(result.transform.translation.z() - expected_t.z()) <= TRANS_EPS);
-        assert_true(result.transform.rotation.isApprox(rotation_matrix));
+        assert_translation(expected_t, result.transform.translation());
+        assert_rotation(rotation_matrix, result.transform.rotation());
     }
 
     // Test case 5: Pure translation along multiple axes

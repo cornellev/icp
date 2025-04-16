@@ -1,11 +1,10 @@
 #pragma once
-#include <iostream>
 #include <vector>
 #include <algorithm>
-#include <queue>
 #include <memory>
 #include <numeric>
-#include "icp/geo.h"
+#include <stdexcept>
+#include <limits>
 
 namespace icp {
 

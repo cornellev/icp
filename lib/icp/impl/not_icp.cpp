@@ -21,27 +21,21 @@ exactly and then iterate until an optimal rotation has been found. */
 
 namespace icp {
     Not_icp::Not_icp([[maybe_unused]] const Config& config)
-        : ICP(3), current_cost_(std::numeric_limits<double>::max()) {}
+        : ICP(), c(3, 0), current_cost_(std::numeric_limits<double>::max()) {}
     Not_icp::Not_icp()
-        : ICP(3), target_kdtree_(nullptr), current_cost_(std::numeric_limits<double>::max()) {}
+        : ICP(),
+          c(3, 0),
+          target_kdtree_(nullptr),
+          current_cost_(std::numeric_limits<double>::max()) {}
     Not_icp::~Not_icp() {}
 
-    void Not_icp::set_target(const std::vector<Vector>& target) {
-        ICP::set_target(target);
-        rebuild_kdtree();
-    }
-
     void Not_icp::rebuild_kdtree() {
-        if (!b.empty()) {
-            try {
-                target_kdtree_ = std::make_unique<KdTree<Vector>>(b, 10);
-            } catch (const std::exception& e) {
-                std::cerr << "Error building KdTree: " << e.what() << std::endl;
-                target_kdtree_ = nullptr;
-            }
-        } else {
-            target_kdtree_ = nullptr;
+        // TODO: kdtree should take point cloud
+        std::vector<Vector> b_vec(b.cols());
+        for (ptrdiff_t i = 0; i < b.cols(); i++) {
+            b_vec[i] = b.col(i);
         }
+        target_kdtree_ = std::make_unique<KdTree<Vector>>(std::move(b_vec), 4);
     }
 
     // Euclidean distance between two points
@@ -49,23 +43,22 @@ namespace icp {
         return (pta - ptb).norm();
     }
 
-    NEIGHBOR Not_icp::nearest_neighbor(const Eigen::MatrixXd& src, const Eigen::MatrixXd& dst) {
-        size_t row_src = src.rows();
-        size_t row_dst = dst.rows();
+    NEIGHBOR Not_icp::nearest_neighbor(const PointCloud& src, const PointCloud& dst) {
         NEIGHBOR neigh;
-        neigh.distances.resize(row_src);
-        neigh.indices.resize(row_src);
+        neigh.distances.resize(src.cols());
+        neigh.indices.resize(dst.cols());
 
         // For small point clouds or when testing rotation with few points,
         // linear search can give more precise results
-        if (row_src <= 3 || row_dst <= 3) {
-            for (size_t i = 0; i < row_src; i++) {
-                Eigen::Vector3d pta = src.row(i).transpose();
+        // TODO: why :skull:
+        if (src.cols() <= 3 || dst.cols() <= 3) {
+            for (ptrdiff_t i = 0; i < src.cols(); i++) {
+                Eigen::Vector3d pta = src.col(i);
                 float min_dist = std::numeric_limits<float>::max();
-                size_t index = 0;
+                ptrdiff_t index = 0;
 
-                for (size_t j = 0; j < row_dst; j++) {
-                    Eigen::Vector3d ptb = dst.row(j).transpose();
+                for (ptrdiff_t j = 0; j < dst.cols(); j++) {
+                    Eigen::Vector3d ptb = dst.col(j);
                     float d = dist(pta, ptb);
                     if (d < min_dist) {
                         min_dist = d;
@@ -82,17 +75,14 @@ namespace icp {
         if (target_kdtree_) {
             bool kdtree_failed = false;
 
-            for (size_t i = 0; i < row_src; i++) {
+            for (ptrdiff_t i = 0; i < src.cols(); i++) {
                 try {
-                    Vector query_point = Vector::Zero(3);
-                    query_point(0) = src(i, 0);
-                    query_point(1) = src(i, 1);
-                    query_point(2) = src(i, 2);
+                    Vector query_point = src.col(i);
 
                     float min_dist = 0;
-                    size_t nearest_idx = target_kdtree_->find_nearest(query_point, &min_dist);
+                    ptrdiff_t nearest_idx = target_kdtree_->find_nearest(query_point, &min_dist);
 
-                    if (nearest_idx < row_dst) {
+                    if (nearest_idx < dst.cols()) {
                         neigh.indices[i] = nearest_idx;
                         neigh.distances[i] = std::sqrt(min_dist);
                     } else {
@@ -115,16 +105,16 @@ namespace icp {
         // Fall back to linear search if KD-tree fails or is not available
         neigh.distances.clear();
         neigh.indices.clear();
-        neigh.distances.resize(row_src);
-        neigh.indices.resize(row_src);
+        neigh.distances.resize(src.cols());
+        neigh.indices.resize(src.cols());
 
-        for (size_t i = 0; i < row_src; i++) {
-            Eigen::Vector3d pta = src.row(i).transpose();
+        for (ptrdiff_t i = 0; i < src.cols(); i++) {
+            Vector pta = src.col(i);
             float min_dist = std::numeric_limits<float>::max();
-            size_t index = 0;
+            ptrdiff_t index = 0;
 
-            for (size_t j = 0; j < row_dst; j++) {
-                Eigen::Vector3d ptb = dst.row(j).transpose();
+            for (ptrdiff_t j = 0; j < dst.cols(); j++) {
+                Vector ptb = dst.col(j);
                 float d = dist(pta, ptb);
                 if (d < min_dist) {
                     min_dist = d;
@@ -139,66 +129,42 @@ namespace icp {
         return neigh;
     }
 
-    Eigen::Matrix4d Not_icp::best_fit_transform(const Eigen::MatrixXd& A,
-        const Eigen::MatrixXd& B) {
-        Eigen::Vector3d centroid_A = A.colwise().mean();
-        Eigen::Vector3d centroid_B = B.colwise().mean();
-
-        Eigen::MatrixXd AA = A.rowwise() - centroid_A.transpose();
-        Eigen::MatrixXd BB = B.rowwise() - centroid_B.transpose();
-
-        Eigen::Matrix3d H = AA.transpose() * BB;
+    Not_icp::RBTransform Not_icp::best_fit_transform(const PointCloud& A, const PointCloud& B) {
+        Vector centroid_A = get_centroid(A);
+        Vector centroid_B = get_centroid(B);
 
         Eigen::Matrix3d R = initial_rotation;
 
-        Eigen::Vector3d t = centroid_B - R * centroid_A;
+        Vector t = centroid_B - R * centroid_A;
 
-        Eigen::MatrixXd T = Eigen::MatrixXd::Identity(A.cols() + 1, A.cols() + 1);
+        RBTransform transform;
+        transform.linear() = R;
+        transform.translation() = t;
 
-        T.block<3, 3>(0, 0) = R;
-        T.block<3, 1>(0, 3) = t;
-        return T;
+        return transform;
     }
 
     void Not_icp::setup() {
-        A.resize(a.size(), dim);
-        for (size_t i = 0; i < a.size(); ++i) {
-            for (size_t j = 0; j < dim; ++j) {
-                A(i, j) = a[i][j];
-            }
-        }
+        initial_rotation = transform.rotation();
+        c = a;
 
-        B.resize(b.size(), dim);
-        for (size_t i = 0; i < b.size(); ++i) {
-            for (size_t j = 0; j < dim; ++j) {
-                B(i, j) = b[i][j];
-            }
-        }
-
-        C = A;
-
-        if (!target_kdtree_ && !b.empty()) {
+        if (!target_kdtree_ && b.cols() != 0) {
             rebuild_kdtree();
         }
         current_cost_ = std::numeric_limits<double>::max();
-        initial_rotation = initial_transform_.rotation;
     }
 
     void Not_icp::iterate() {
-        size_t row = A.rows();
-
         // Reorder target point set based on nearest neighbor
-        NEIGHBOR neighbor = nearest_neighbor(C, B);
-        Eigen::MatrixXd dst_reordered(row, 3);
-        for (size_t i = 0; i < row; i++) {
-            dst_reordered.row(i) = B.row(neighbor.indices[i]);
+        NEIGHBOR neighbor = nearest_neighbor(c, b);
+        PointCloud dst_reordered(3, a.cols());  // Assuming PointCloud is a 3xN matrix
+        for (ptrdiff_t i = 0; i < a.cols(); i++) {
+            dst_reordered.col(i) = b.col(neighbor.indices[i]);
         }
-        Eigen::Matrix4d T = best_fit_transform(C, dst_reordered);
-        Eigen::MatrixXd C_homogeneous = C.transpose().colwise().homogeneous();
-        C = (T * C_homogeneous).transpose().leftCols(3);
+        RBTransform T = best_fit_transform(c, dst_reordered);
+        c = T * c;
 
-        RBTransform step(T.block<3, 1>(0, 3), T.block<3, 3>(0, 0));
-        transform = transform.and_then(step);
+        transform = T * transform;
 
         calculate_cost(neighbor.distances);
     }
@@ -211,9 +177,5 @@ namespace icp {
 
         double sum = std::accumulate(distances.begin(), distances.end(), 0.0);
         current_cost_ = sum / distances.size();
-    }
-
-    double Not_icp::get_current_cost() const {
-        return current_cost_;
     }
 }
