@@ -61,6 +61,7 @@ jobs:
           if [[ "${{ matrix.os }}" == "macos-latest" || "${{ matrix.os }}" == "macos-14" ]]; then
             brew install pcl
           else
+            sudo apt-get install mpich
             sudo apt-get install libpcl-dev
           fi
 
