@@ -1,4 +1,7 @@
 {
+    "clangd.arguments": [
+        "-header-insertion=never"
+    ],
     "files.associations": {
         "__bit_reference": "cpp",
         "__bits": "cpp",

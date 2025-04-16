@@ -10,114 +10,90 @@
 #include <Eigen/SVD>
 #include <Eigen/Dense>
 #include <vector>
+#include <memory>
 #include "icp/geo.h"
-
 #include "icp/impl/vanilla.h"
 
 namespace icp {
-    Vanilla::Vanilla([[maybe_unused]] const Config& config): ICP(2) {}
-    Vanilla::Vanilla(): ICP(2) {}
+    Vanilla::Vanilla([[maybe_unused]] const Config& config): ICP() {}
+    Vanilla::Vanilla(): ICP() {}
     Vanilla::~Vanilla() {}
 
-    void Vanilla::set_target(const std::vector<Vector>& target) {
-        ICP::set_target(target);
-        rebuild_kdtree();
-    }
-
     void Vanilla::rebuild_kdtree() {
-        if (!b.empty()) {
-            try {
-                target_kdtree_ = std::make_unique<KdTree<Vector>>(b, 4);
-            } catch (const std::exception& e) {
-                std::cerr << "Error building KdTree: " << e.what() << std::endl;
-                target_kdtree_ = nullptr;
-            }
-        } else {
-            target_kdtree_ = nullptr;
+        // TODO: kdtree should take point cloud
+        std::vector<Vector> b_vec(b.cols());
+        for (ptrdiff_t i = 0; i < b.cols(); i++) {
+            b_vec[i] = b.col(i);
         }
+        target_kdtree_ = std::make_unique<KdTree<Vector>>(b_vec, 4);
     }
 
     void Vanilla::setup() {
-        a_current.resize(a.size());
-        matches.resize(a.size());
-
-        for (size_t i = 0; i < a.size(); i++) {
-            a_current[i] = transform.apply_to(a[i]);
-            matches[i].point = i;
-            matches[i].pair = 0;
-            matches[i].cost = std::numeric_limits<double>::infinity();
-        }
+        a_current = transform * a;
+        matches.resize(a.cols());
 
         compute_matches();
     }
 
     void Vanilla::iterate() {
-        const size_t n = a.size();
-
-        if (n == 0 || b.empty()) {
+        if (a.cols() == 0 || b.cols() == 0) {
             return;
         }
 
-        for (size_t i = 0; i < n; i++) {
-            a_current[i] = transform.apply_to(a[i]);
-        }
-
-        auto a_current_cm = get_centroid(a_current);
+        a_current = transform * a;
+        Vector a_current_cm = get_centroid(a_current);
 
         compute_matches();
 
-        icp::Vector corr_cm = icp::Vector::Zero(2);
+        Vector matched_b_cm = Vector::Zero();
         for (size_t i = 0; i < matches.size(); i++) {
-            if (matches[i].pair < b.size()) {
-                corr_cm += b[matches[i].pair];
-            }
+            matched_b_cm += b.col(matches[i].pair);
         }
-        corr_cm /= matches.size();
+        matched_b_cm /= matches.size();
 
-        Matrix N = Matrix::Zero(2, 2);
-        for (size_t i = 0; i < n; i++) {
-            if (matches[i].pair < b.size()) {
-                N += (a_current[i] - a_current_cm) * (b[matches[i].pair] - corr_cm).transpose();
-            }
+        Eigen::Matrix2d N = Eigen::Matrix2d::Zero();
+        for (ptrdiff_t i = 0; i < a.cols(); i++) {
+            N += (a_current.col(i) - a_current_cm)
+                 * (b.col(matches[i].pair) - matched_b_cm).transpose();
         }
 
-        auto svd = N.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
-        const Matrix U = svd.matrixU();
-        Matrix V = svd.matrixV();
-        Matrix R = V * U.transpose();
+        Eigen::JacobiSVD<Eigen::Matrix2d> svd = N.jacobiSvd(Eigen::ComputeFullU
+                                                            | Eigen::ComputeFullV);
+        Eigen::Matrix2d U = svd.matrixU();
+        Eigen::Matrix2d V = svd.matrixV();
+        Eigen::Matrix2d R = V * U.transpose();
 
         if (R.determinant() < 0) {
-            V.col(V.cols() - 1) *= -1;
+            V.col(1) *= -1;
             R = V * U.transpose();
         }
 
-        Vector trans = corr_cm - R * a_current_cm;
-        RBTransform step(trans, R);
-        transform = transform.and_then(step);
+        RBTransform step;
+        step.linear() = R;
+        step.translation() = matched_b_cm - R * a_current_cm;
+
+        transform = step * transform;
     }
 
     void Vanilla::compute_matches() {
-        const size_t n = a.size();
-        const size_t m = b.size();
-
-        if (n == 0 || m == 0) {
+        if (a.cols() == 0 || b.cols() == 0) {
             return;
         }
 
-        if (matches.size() != n) {
-            matches.resize(n);
-        }
-
+        // TODO: why :skull:
         if (target_kdtree_) {
             bool kdtree_failed = false;
 
-            for (size_t i = 0; i < n; ++i) {
+            for (ptrdiff_t i = 0; i < a.cols(); i++) {
+                matches[i].point = i;
+
                 try {
                     float min_dist = 0;
-                    size_t best_j = target_kdtree_->find_nearest(a_current[i], &min_dist);
+                    ptrdiff_t best_j = target_kdtree_->find_nearest(a_current.col(i), &min_dist);
 
-                    if (best_j < m) {
-                        matches[i] = {i, best_j, static_cast<double>(min_dist)};
+                    if (best_j < b.cols()) {
+                        matches[i].pair = best_j;
+                        matches[i].cost = min_dist;
                     } else {
                         kdtree_failed = true;
                         break;
@@ -136,12 +112,12 @@ namespace icp {
             target_kdtree_ = nullptr;
         }
 
-        for (size_t i = 0; i < n; i++) {
+        for (ptrdiff_t i = 0; i < a.cols(); i++) {
             matches[i].point = i;
             matches[i].cost = std::numeric_limits<double>::infinity();
 
-            for (size_t j = 0; j < m; j++) {
-                double dist_ij = (b[j] - a_current[i]).squaredNorm();
+            for (ptrdiff_t j = 0; j < b.cols(); j++) {
+                double dist_ij = (b.col(j) - a_current.col(i)).squaredNorm();
 
                 if (dist_ij < matches[i].cost) {
                     matches[i].cost = dist_ij;

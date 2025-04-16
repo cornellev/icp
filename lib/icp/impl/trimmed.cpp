@@ -4,11 +4,12 @@
  */
 
 #include <cassert>
+#include <cstddef>
 #include <cstdlib>
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Geometry>
-
+#include "icp/geo.h"
 #include "icp/impl/trimmed.h"
 
 /* #name Trimmed */
@@ -21,31 +22,24 @@ reduces to vanilla. */
 
 namespace icp {
 
-    Trimmed::Trimmed(double overlap_rate): ICP(2), overlap_rate(overlap_rate) {}
-
     /* #conf "overlap_rate" A `double` between `0.0` and `1.0` for
      * the overlap rate. The default is `1.0`. */
     Trimmed::Trimmed(const Config& config)
-        : ICP(2), overlap_rate(config.get<double>("overlap_rate", 0.9)) {}
+        : ICP(), overlap_rate(config.get<double>("overlap_rate", 0.9)) {}
 
     Trimmed::~Trimmed() {}
 
     void Trimmed::setup() {
-        a_current.resize(a.size());
-        for (size_t i = 0; i < a.size(); i++) {
-            a_current[i] = transform.apply_to(a[i]);
-        }
-        b_cm = get_centroid(b);
+        a_current = transform * a;
+        matches.resize(a.cols());
 
         compute_matches();
     }
 
     void Trimmed::iterate() {
-        const size_t n = a.size();
+        const ptrdiff_t n = a.cols();
 
-        for (size_t i = 0; i < n; i++) {
-            a_current[i] = transform.apply_to(a[i]);
-        }
+        a_current = transform * a;
 
         /* #step Matching Step: see \ref vanilla_icp for details. */
         compute_matches();
@@ -61,53 +55,51 @@ namespace icp {
         */
         std::sort(matches.begin(), matches.end(),
             [](const auto& a, const auto& b) { return a.cost < b.cost; });
-        size_t new_n = static_cast<size_t>(overlap_rate * n);
-        new_n = std::max<size_t>(new_n, 1);  // TODO: bad for scans with 0 points
+        ptrdiff_t new_n = static_cast<ptrdiff_t>(overlap_rate * n);
+        new_n = std::max<ptrdiff_t>(new_n, 1);  // TODO: bad for scans with 0 points
 
         // yeah, i know this is inefficient. we'll get back to it later.
-        std::vector<icp::Vector> trimmed_current(new_n);
-        std::vector<icp::Vector> trimmed_b(new_n);
-        for (size_t i = 0; i < new_n; i++) {
-            trimmed_current[i] = a_current[matches[i].point];
-            trimmed_b[i] = b[matches[i].pair];
+        PointCloud trimmed_a_current(2, new_n);
+        PointCloud trimmed_b(2, new_n);
+        for (ptrdiff_t i = 0; i < new_n; i++) {
+            trimmed_a_current.col(i) = a_current.col(matches[i].point);
+            trimmed_b.col(i) = b.col(matches[i].pair);
         }
 
-        icp::Vector trimmed_cm = get_centroid(trimmed_current);
-        icp::Vector trimmed_b_cm = get_centroid(trimmed_b);
+        Vector trimmed_a_cm = get_centroid(trimmed_a_current);
+        Vector trimmed_b_cm = get_centroid(trimmed_b);
 
         /* #step SVD: see \ref vanilla_icp for details. */
-        Matrix N = Matrix::Zero(2, 2);
-        for (size_t i = 0; i < new_n; i++) {
-            N += (trimmed_current[i] - trimmed_cm) * (trimmed_b[i] - trimmed_b_cm).transpose();
-        }
+        Eigen::Matrix2d N = (trimmed_a_current.colwise() - trimmed_a_cm)
+                            * (trimmed_b.colwise() - trimmed_b_cm).transpose();
 
-        auto svd = N.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
-        Matrix U = svd.matrixU();
-        Matrix V = svd.matrixV();
-        Matrix R = V * U.transpose();
+        Eigen::JacobiSVD<Eigen::Matrix2d> svd = N.jacobiSvd(Eigen::ComputeFullU
+                                                            | Eigen::ComputeFullV);
+        Eigen::Matrix2d U = svd.matrixU();
+        Eigen::Matrix2d V = svd.matrixV();
+        Eigen::Matrix2d R = V * U.transpose();
 
         /* #step Reflection Handling: see \ref vanilla_icp for details. */
         if (R.determinant() < 0) {
-            V = V * Eigen::DiagonalMatrix<double, 2>(1, -1);
+            V.col(1) *= -1;
             R = V * U.transpose();
         }
 
         /* #step Transformation Step: see \ref vanilla_icp for details. */
-        RBTransform step(trimmed_b_cm - R * trimmed_cm, R);
+        RBTransform step;
+        step.linear() = R;
+        step.translation() = trimmed_b_cm - R * trimmed_a_cm;
 
-        transform = transform.and_then(step);
+        transform = step * transform;
     }
 
     void Trimmed::compute_matches() {
-        const size_t n = a.size();
-        const size_t m = b.size();
-
-        for (size_t i = 0; i < n; i++) {
+        for (ptrdiff_t i = 0; i < a.cols(); i++) {
             matches[i].point = i;
             matches[i].cost = std::numeric_limits<double>::infinity();
-            for (size_t j = 0; j < m; j++) {
+            for (ptrdiff_t j = 0; j < b.cols(); j++) {
                 // Point-to-point matching
-                double dist_ij = (b[j] - a_current[i]).squaredNorm();
+                double dist_ij = (b.col(j) - a_current.col(i)).squaredNorm();
 
                 if (dist_ij < matches[i].cost) {
                     matches[i].cost = dist_ij;

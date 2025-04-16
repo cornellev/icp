@@ -2,13 +2,13 @@
  * @author Utku Melemetci
  */
 
-#include "icp/icp.h"
 #include <Eigen/Core>
+#include <cstddef>
+#include "icp/icp.h"
+#include "icp/config.h"
 
 namespace icp {
-    class FeatureAware final : public ICP {
-        using FeatureVector = Eigen::VectorXd;
-
+    class FeatureAware final : public ICP2 {
     public:
         FeatureAware(double overlap_rate, double feature_weight, int symmetric_neighbors);
         FeatureAware(const Config& config);
@@ -20,36 +20,37 @@ namespace icp {
     private:
         void compute_matches();
 
-        void compute_features(const std::vector<icp::Vector>& points, Vector cm,
-            std::vector<FeatureVector>& features);
+        Eigen::MatrixXd compute_features(const PointCloud& points);
 
-        template<typename TVector>
-        Eigen::MatrixXd compute_norm_dists(const std::vector<TVector>& first,
-            const std::vector<TVector>& second) {
-            Eigen::MatrixXd norm_dists(first.size(), second.size());
-            double max_dist = std::numeric_limits<double>::min();
-            for (size_t i = 0; i < first.size(); i++) {
-                for (size_t j = 0; j < second.size(); j++) {
-                    double dist = (first[i] - second[j]).norm();
-                    norm_dists(i, j) = dist;
-                    if (dist > max_dist) {
-                        max_dist = dist;
-                    }
+        /**
+         * @brief Computes a matrix M where M_ij is the distance between the i-th vector (column) of
+         * `first` and the j-th vector (column) of `second`. M is of
+         * size (first.cols(), second.cols()).
+         *
+         * @tparam VectorDim the dimension of the vectors
+         * @param first the first set of vectors
+         * @param second the second set of vectors
+         * @return Eigen::MatrixXd the matrix M
+         */
+        template<const long VectorDim>
+        Eigen::MatrixXd compute_norm_dists(
+            const Eigen::Matrix<double, VectorDim, Eigen::Dynamic>& first,
+            const Eigen::Matrix<double, VectorDim, Eigen::Dynamic>& second) {
+            Eigen::MatrixXd dists(first.cols(), second.cols());
+            for (ptrdiff_t i = 0; i < first.cols(); i++) {
+                for (ptrdiff_t j = 0; j < second.cols(); j++) {
+                    dists(i, j) = (first.col(i) - second.col(j)).norm();
                 }
             }
-
-            norm_dists /= max_dist;
-            return norm_dists;
+            return dists;
         }
 
-        std::vector<icp::Vector> a_current;
+        PointCloud a_current;
 
-        icp::Vector b_cm;
+        Eigen::MatrixXd a_features;
+        Eigen::MatrixXd b_features;
 
-        std::vector<FeatureVector> a_features;
-        std::vector<FeatureVector> b_features;
-
-        Eigen::MatrixXd norm_feature_dists;
+        Eigen::MatrixXd normalized_feature_dists;
 
         double overlap_rate;
         int symmetric_neighbors;

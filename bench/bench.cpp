@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 
+#include "icp/config.h"
+#include "icp/geo.h"
 #include "icp/icp.h"
 #include "icp/driver.h"
 #include "parse_scan.h"
@@ -23,16 +25,17 @@ struct BenchmarkResult {
 
 struct BenchmarkParams {
     std::string method;
-    size_t num_iter;
-    size_t burn_in;
+    size_t num_invoc;
+    size_t max_iter;
     double angle_tol;
     double trans_tol;
     uint32_t scan_id;
 };
 
 BenchmarkResult run_benchmark(BenchmarkParams params) {
-    auto icp = icp::ICP::from_method(params.method).value();
+    auto icp = icp::ICP2::from_method(params.method, icp::Config()).value();
     icp::ICPDriver driver(std::move(icp));
+    driver.set_max_iterations(params.max_iter);
     driver.set_transform_tolerance(params.angle_tol, params.trans_tol);
 
     auto source = parse_lidar_scan("ex_data/scan" + std::to_string(params.scan_id) + "/first.csv");
@@ -42,8 +45,8 @@ BenchmarkResult run_benchmark(BenchmarkParams params) {
     std::vector<size_t> iteration_counts;
 
     const auto start = std::chrono::high_resolution_clock::now();
-    for (size_t i = 0; i < params.num_iter; i++) {
-        auto result = driver.converge(source, dest, icp::RBTransform());
+    for (size_t i = 0; i < params.num_invoc; i++) {
+        auto result = driver.converge(source, dest, icp::RBTransform2::Identity());
         final_costs.push_back(result.cost);
         iteration_counts.push_back(result.iteration_count);
     }
@@ -67,7 +70,7 @@ BenchmarkResult run_benchmark(BenchmarkParams params) {
     result.mean_iterations = std::accumulate(iteration_counts.begin(), iteration_counts.end(), 0.0)
                              / iteration_counts.size();
 
-    result.average_time_per_invocation = diff.count() / params.num_iter;
+    result.average_time_per_invocation = diff.count() / params.num_invoc;
     result.average_time_per_iteration =
         diff.count() / (std::accumulate(iteration_counts.begin(), iteration_counts.end(), 0.0));
 
@@ -76,45 +79,40 @@ BenchmarkResult run_benchmark(BenchmarkParams params) {
 
 void print_benchmark_params(BenchmarkParams params) {
     std::cout << "* Method: " << params.method << "\n"
-              << "* Number of iterations: " << params.num_iter << "\n"
-              << "* Burn-in iterations: " << params.burn_in << "\n"
+              << "* Number of invocations: " << params.num_invoc << "\n"
               << "* Angle tolerance: " << params.angle_tol << " rad\n"
               << "* Translation tolerance: " << params.trans_tol << " scan units\n";
 }
 
-void print_benchmark_result(BenchmarkResult result, BenchmarkParams params) {
+void print_benchmark_result(BenchmarkResult result) {
     std::cout << "* Min cost: " << result.min_cost << "\n"
               << "* Max cost: " << result.max_cost << "\n"
               << "* Median cost: " << result.median_cost << "\n"
               << "* Mean cost: " << result.mean_cost << "\n"
-              << "* Min iterations: " << result.min_iterations
-              << " (real: " << (result.min_iterations - params.burn_in) << ")\n"
-              << "* Max iterations: " << result.max_iterations
-              << " (real: " << (result.max_iterations - params.burn_in) << ")\n"
-              << "* Median iterations: " << result.median_iterations
-              << " (real: " << (result.median_iterations - params.burn_in) << ")\n"
-              << "* Mean iterations: " << result.mean_iterations
-              << " (real: " << (result.mean_iterations - params.burn_in) << ")\n"
+              << "* Min iterations: " << result.min_iterations << "\n"
+              << "* Max iterations: " << result.max_iterations << "\n"
+              << "* Median iterations: " << result.median_iterations << "\n"
+              << "* Mean iterations: " << result.mean_iterations << "\n"
               << "* Average time per invocation: " << result.average_time_per_invocation << "s\n"
               << "* Average time per iteration: " << result.average_time_per_iteration << "s\n";
 }
 
 int main() {
     constexpr uint32_t scans = 3;
-    constexpr size_t num_iter = 10;
-    constexpr size_t burn_in = 0;
+    constexpr size_t num_invoc = 10;
+    constexpr size_t max_iter = 50;
     constexpr double angle_tol = 0.1 * M_PI / 180;
-    constexpr double trans_tol = 0.1;
+    constexpr double trans_tol = 0.01;
 
     BenchmarkParams params;
-    params.num_iter = num_iter;
-    params.burn_in = burn_in;
+    params.num_invoc = num_invoc;
+    params.max_iter = max_iter;
     params.angle_tol = angle_tol;
     params.trans_tol = trans_tol;
 
     std::cout << "ICP ALGORITHM BENCHMARKING\n";
 
-    for (const std::string& method: icp::ICP::registered_methods()) {
+    for (const std::string& method: icp::ICP2::registered_methods()) {
         std::cout << "=======================================\n";
 
         for (uint32_t scan_id = 1; scan_id <= scans; scan_id++) {
@@ -127,7 +125,7 @@ int main() {
 
             BenchmarkResult result = run_benchmark(params);
 
-            print_benchmark_result(result, params);
+            print_benchmark_result(result);
         }
     }
     std::cout << "=======================================\n";

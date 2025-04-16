@@ -1,11 +1,10 @@
 #pragma once
-#include <iostream>
 #include <vector>
 #include <algorithm>
-#include <queue>
 #include <memory>
 #include <numeric>
-#include "icp/geo.h"
+#include <stdexcept>
+#include <limits>
 
 namespace icp {
 
@@ -20,8 +19,8 @@ namespace icp {
             std::vector<size_t> indices;
         };
 
-        explicit KdTree(const std::vector<PointT>& points, int leaf_size = 10)
-            : points_ref_(points), leaf_size_(leaf_size) {
+        explicit KdTree(std::vector<PointT> points, int leaf_size = 10)
+            : points_ref_(std::move(points)), leaf_size_(leaf_size) {
             if (points_ref_.empty()) {
                 throw std::invalid_argument("Cannot build KdTree with empty points");
             }
@@ -44,7 +43,7 @@ namespace icp {
         }
 
     private:
-        const std::vector<PointT>& points_ref_;
+        std::vector<PointT> points_ref_;
         const int leaf_size_;
         std::unique_ptr<Node> root_;
 

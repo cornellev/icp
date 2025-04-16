@@ -4,7 +4,7 @@
         {
             "label": "Build with make",
             "type": "shell",
-            "command": "make",
+            "command": "make OPT=Release",
             "group": {
                 "kind": "build",
                 "isDefault": true

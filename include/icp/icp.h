@@ -6,17 +6,21 @@
 #pragma once
 
 #include <cmath>
+#include <cstddef>
 #include <vector>
 #include <memory>
-#include <string>
-#include <functional>
-#include <unordered_map>
-#include <variant>
 #include <optional>
+#include <Eigen/Core>
 
 #include "geo.h"
+#include "config.h"
 
 namespace icp {
+    struct NEIGHBOR {
+        std::vector<float> distances;
+        std::vector<size_t> indices;
+    };
+
     /**
      * Interface for iterative closest points.
      * Generally, you should interact with ICP instances through this interface or `ICPDriver`,
@@ -45,112 +49,88 @@ namespace icp {
      * `icp->transform()`. Do note, however, that `icp->calculate_cost()` is not
      * a constant-time operation.
      */
-
-    struct NEIGHBOR {
-        std::vector<float> distances;
-        std::vector<size_t> indices;
-    };
+    template<const Dimension Dim>
     class ICP {
+    private:
+        using MethodConstructor = std::function<std::unique_ptr<ICP<Dim>>(const Config&)>;
+        static std::unordered_map<std::string, MethodConstructor> methods;
+
     protected:
-        // the dimension of icp(only 2 and 3 are legal)
-        size_t dim;
+        using Vector = icp::Vector<Dim>;
+        using RBTransform = icp::RBTransform<Dim>;
+        using PointCloud = icp::PointCloud<Dim>;
 
         /** A matching between `point` and `pair` at (arbitrary) cost `cost`.  */
         struct Match {
-            // need to be fix for xd?
             size_t point;
             size_t pair;
             double cost;
         };
 
         /** The current point cloud transformation that is being optimized. */
-        RBTransform transform;
+        RBTransform transform = RBTransform::Identity();
 
         /** The source point cloud. */
-        std::vector<Vector> a;
+        PointCloud a;
 
         /** The destination point cloud. */
-        std::vector<Vector> b;
+        PointCloud b;
 
         /** The pairing of each point in `a` to its closest in `b`. */
         std::vector<Match> matches;
 
-        // Use matrix to represent the point clouds instead of set of vectors
-        Eigen::MatrixXd A;  // a_matrix
-        Eigen::MatrixXd B;  // b_matrix
-
-        void convert_a_to_matrix() {
-            A.resize(a.size(), dim);
-            for (size_t i = 0; i < a.size(); ++i) {
-                for (size_t j = 0; j < dim; ++j) {
-                    A(i, j) = a[i][j];
-                }
-            }
-        }
-
-        void convert_b_to_matrix() {
-            B.resize(b.size(), dim);
-            for (size_t i = 0; i < b.size(); ++i) {
-                for (size_t j = 0; j < dim; ++j) {
-                    B(i, j) = b[i][j];
-                }
-            }
-        }
-
-        ICP();
-
-        ICP(size_t dim): dim(dim), transform(RBTransform(dim)) {
-            if (dim != 2 && dim != 3) {
-                throw std::invalid_argument("Dimension must be 2 or 3");
-            }
-        }
+        ICP(): a(Dim, 0), b(Dim, 0) {}
 
         /**
          * @brief Per-method setup code.
          *
-         * @post For implementers: must fill `matches` with match data for the initial point clouds.
+         * @post For implementers: must fill `matches` with match data for the initial point
+         * clouds.
          */
         virtual void setup() = 0;
 
         RBTransform initial_transform_;
 
     public:
-        /** Configuration for ICP instances. */
-        class Config {
-            using Param = std::variant<int, double, std::string>;
-            std::unordered_map<std::string, Param> params;
-
-        public:
-            /** Constructs an empty configuration. */
-            Config() {}
-
-            /** Associates `key` with an integer, double, or string `value`. */
-            template<typename T>
-            void set(std::string key, T value) {
-                params[key] = value;
+        static std::optional<std::unique_ptr<ICP<Dim>>> from_method(const std::string& name,
+            const Config& config) {
+            if (methods.find(name) == methods.end()) {
+                return {};
             }
 
-            /** Retrieves the integer, double, or string value associated with
-             * `key`. */
-            template<typename T>
-            T get(std::string key, T otherwise) const {
-                if (params.find(key) == params.end()) {
-                    return otherwise;
-                } else {
-                    return std::get<T>(params.at(key));
-                }
+            return methods[name](config);
+        }
+
+        static bool is_method_registered(const std::string& name) {
+            return methods.find(name) != methods.end();
+        }
+
+        static std::vector<std::string> registered_methods() {
+            std::vector<std::string> keys;
+            for (auto it = methods.begin(); it != methods.end(); ++it) {
+                keys.push_back(it->first);
             }
-        };
+            return keys;
+        }
 
         virtual ~ICP() = default;
 
-        virtual void set_target(const std::vector<Vector>& target) {
-            b = target;
-        }
-
         /** Begins the ICP process for point clouds `a` and `b` with an initial
          * guess for the transform `t`.*/
-        void begin(const std::vector<Vector>& a, const std::vector<Vector>& b, RBTransform t);
+        void begin(const PointCloud& a, const PointCloud& b, const RBTransform& t) {
+            // Initial transform guess
+            this->transform = t;
+
+            // Copy in point clouds
+            this->a = a;
+            this->b = b;
+
+            // Ensure arrays are the right size
+            matches.resize(this->a.cols());
+
+            // Per-instance customization routine
+            setup();
+        }
 
         /** Perform one iteration of ICP for the point clouds `a` and `b`
          * provided with ICP::begin.
@@ -166,59 +146,26 @@ namespace icp {
          * \par Efficiency:
          * `O(a.size())` where `a` is the source point cloud.
          */
-        double calculate_cost() const;
+        double calculate_cost() const {
+            double sum_squares = 0.0;
+            for (auto& match: matches) {
+                sum_squares += match.cost;
+            }
+            return std::sqrt(sum_squares / a.cols());
+        }
 
         /** The current transform. */
-        const RBTransform& current_transform() const;
-
-        /** The matches. */
-        const std::vector<Match>& get_matches() const;
-
-        /** The dimensionality supported by this ICP instance. */
-        int dimensionality() const;
-
-        /** Registers methods built into `libcevicp`. Must be called before constructing ICP
-         * instances for built-in methods. */
-        static void register_builtin_methods();
-
-        /** Registers a new ICP method that can be created with `constructor`,
-         * returning `false` if `name` has already been registered. */
-        static bool register_method(std::string name,
-            std::function<std::unique_ptr<ICP>(const Config&)> constructor);
-
-        /** Returns `true` if the ICP method `name` is registered. */
-        static bool is_method_registered(std::string name);
-
-        /** Returns a current list of the names of currently registered ICP
-         * methods. */
-        static const std::vector<std::string>& registered_methods();
-
-        /**
-         * Factory constructor for the ICP method `name` with configuration
-         * `config`.
-         *
-         * @pre `name` is a valid registered method. See
-         * ICP::registered_methods.
-         */
-        static std::optional<std::unique_ptr<ICP>> from_method(std::string name,
-            const Config& params = Config());
-
-    private:
-        struct Methods {
-            std::vector<std::string> registered_method_names;
-            std::vector<std::function<std::unique_ptr<ICP>(const ICP::Config&)>>
-                registered_method_constructors;
-        };
-
-        static Methods global;
-        static bool builtins_registered;
-
-        /** Registers methods built into `libcevicp`. Called automatically such that builtins will
-         * always appear registered to users. */
-        static void ensure_builtins_registered();
-
-        /** Internal method registration that doesn't do any checks. */
-        static void register_method_internal(std::string name,
-            std::function<std::unique_ptr<ICP>(const Config&)> constructor);
+        RBTransform current_transform() const {
+            return transform;
+        }
     };
+
+    using ICP2 = ICP<Dimension::TwoD>;
+    using ICP3 = ICP<Dimension::ThreeD>;
+
+    template<>
+    std::unordered_map<std::string, ICP2::MethodConstructor> ICP2::methods;
+
+    template<>
+    std::unordered_map<std::string, ICP3::MethodConstructor> ICP3::methods;
 }

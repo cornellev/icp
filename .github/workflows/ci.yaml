@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   ci:
@@ -55,24 +56,14 @@ jobs:
             sudo apt-get install -y libsdl2-dev
           fi
 
-      # Install PCL (MacOS)
-      - name: Install PCL (MacOS)
-        if: ${{ contains(matrix.os, 'macos') }}
+      - name: Install PCL
         run: |
-          brew install pcl
-
-      # Install PCL (Ubuntu)
-      - name: Install PCL (Ubuntu)
-        if: ${{ contains(matrix.os, 'ubuntu') }}
-        run: |
-          sudo apt install -y libboost-all-dev
-          git clone https://github.com/PointCloudLibrary/pcl.git
-          cd pcl
-          git checkout tags/pcl-1.14.1
-          mkdir build
-          cd build
-          cmake -DCMAKE_BUILD_TYPE=Release ..
-          sudo make -j$(nproc) install
+          if [[ "${{ matrix.os }}" == "macos-latest" || "${{ matrix.os }}" == "macos-14" ]]; then
+            brew install pcl
+          else
+            sudo apt-get install mpich
+            sudo apt-get install libpcl-dev
+          fi
 
       # Install sdl-wrapper (Cross-platform)
       - name: Install sdl-wrapper
@@ -108,8 +99,7 @@ jobs:
 
       # Run tests (Cross-platform)
       - name: Run tests
-        run: |
-          make test_ply OPT=Release
+        run: make test_ply OPT=Release
 
       # Run benchmarks (Cross-platform)
       - name: Run benchmarks
