@@ -43,7 +43,7 @@ namespace icp {
         }
 
     private:
-        const std::vector<PointT>& points_ref_;
+        std::vector<PointT> points_ref_;
         const int leaf_size_;
         std::unique_ptr<Node> root_;
 
