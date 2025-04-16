@@ -7,7 +7,7 @@
 #include "algo/kdtree.h"
 
 namespace icp {
-  
+
     class Vanilla_3d : public ICP3 {
     public:
         Vanilla_3d(const Config& config);

@@ -20,7 +20,7 @@ namespace icp {
         std::vector<float> distances;
         std::vector<size_t> indices;
     };
-  
+
     /**
      * Interface for iterative closest points.
      * Generally, you should interact with ICP instances through this interface or `ICPDriver`,
