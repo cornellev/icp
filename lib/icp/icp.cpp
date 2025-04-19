@@ -3,6 +3,7 @@
 #include "icp/impl/trimmed.h"
 #include "icp/impl/feature_aware.h"
 #include "icp/impl/vanilla_3d.h"
+#include "icp/impl/trimmed_3d.h"
 
 #define CONSTRUCT_CONFIG(T) [](const Config& config) { return std::make_unique<T>(config); }
 

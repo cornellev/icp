@@ -32,6 +32,7 @@ set(LIB_SOURCES
   lib/icp/impl/feature_aware.cpp
   lib/icp/impl/vanilla_3d.cpp
   lib/icp/impl/not_icp.cpp
+  lib/icp/impl/trimmed_3d.cpp
 )
 add_library(cevicp STATIC ${LIB_SOURCES})
 target_include_directories(cevicp 

@@ -20,6 +20,7 @@
 #include "icp/icp.h"
 #include "icp/driver.h"
 #include "icp/impl/vanilla_3d.h"
+#include "icp/impl/trimmed_3d.h"
 
 // Algorithm parameters
 #define BURN_IN 0                   // Minimum required iterations
@@ -102,13 +103,12 @@ int main(int argc, char* argv[]) {
 
         // ICP configuration
         icp::Config config;
-        std::unique_ptr<icp::ICP3> icp = std::make_unique<icp::Vanilla_3d>(config);
+        std::unique_ptr<icp::ICP3> icp = std::make_unique<icp::Trimmed_3d>(config);
         icp::ICPDriver driver(std::move(icp));
 
         driver.set_min_iterations(BURN_IN);
         driver.set_max_iterations(100);
         driver.set_transform_tolerance(RAD_EPS, TRANS_EPS);
-
         // Load point clouds
         icp::PointCloud3 source_points = loadPointCloud(path_a);
         icp::PointCloud3 target_points = loadPointCloud(path_b);
