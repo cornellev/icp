@@ -51,7 +51,7 @@ namespace icp {
     NEIGHBOR Trimmed_3d::nearest_neighbor(const PointCloud& src, const PointCloud& dst) {
         NEIGHBOR neigh;
         neigh.distances.resize(src.cols());
-        neigh.indices.resize(dst.cols());
+        neigh.indices.resize(src.cols());
 
         // For small point clouds or when testing rotation with few points,
         // linear search can give more precise results
