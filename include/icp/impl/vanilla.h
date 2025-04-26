@@ -21,7 +21,6 @@ namespace icp {
         void iterate() override;
 
     private:
-        void rebuild_kdtree();
         void compute_matches();
         void compute_match_for_point(size_t i);
 

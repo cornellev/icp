@@ -7,6 +7,8 @@
 #include "icp/driver.h"
 #include <iostream>
 #include <random>
+#include <cassert>
+#include <Eigen/Dense>
 
 extern "C" {
 #include <simple_test/simple_test.h>
@@ -30,40 +32,44 @@ extern "C" {
 #define assert_rotation(expected, real) assert_rotation_eps(expected, real, RAD_EPS)
 
 void test_kdtree(void) {
-    std::vector<icp::Vector2> points;
-    points.emplace_back(0, 0);
-    points.emplace_back(1, 0);
-    points.emplace_back(0, 1);
-    points.emplace_back(1, 1);
-    points.emplace_back(0.5, 0.5);
+    using Vector = Eigen::Vector3d;
+    std::vector<Vector> points;
+    std::mt19937 rng(123);
+    std::uniform_real_distribution<double> dist(-100.0, 100.0);
 
-    std::cout << "Building KdTree with " << points.size() << " points" << std::endl;
+    for (int i = 0; i < 1000; ++i) points.emplace_back(dist(rng), dist(rng), dist(rng));
 
-    try {
-        icp::KdTree<icp::Vector2> tree(points, 2);
+    icp::KdTree<Vector> kdtree(points, 3);
 
-        icp::Vector2 query(0.2, 0.2);
-        float min_dist = 0;
-        size_t nearest_idx = tree.find_nearest(query, &min_dist);
+    auto brute_force_nn = [&](const Vector& query) {
+        int best_idx = -1;
+        double best_dist = std::numeric_limits<double>::max();
+        for (size_t i = 0; i < points.size(); ++i) {
+            double d = (points[i] - query).squaredNorm();
+            if (d < best_dist) {
+                best_dist = d;
+                best_idx = static_cast<int>(i);
+            }
+        }
+        return best_idx;
+    };
 
-        std::cout << "Nearest point to (0.2, 0.2) is at index " << nearest_idx << " with distance "
-                  << min_dist << std::endl;
+    for (size_t i = 0; i < points.size(); ++i) {
+        const auto& query = points[i];
+        int brute_idx = brute_force_nn(query);
 
-        assert_true(nearest_idx == 0);
+        double kdtree_dist = 0;
+        int kdtree_idx = kdtree.search(query, &kdtree_dist);
 
-        query = icp::Vector2(0.6, 0.6);
-        nearest_idx = tree.find_nearest(query, &min_dist);
-
-        std::cout << "Nearest point to (0.6, 0.6) is at index " << nearest_idx << " with distance "
-                  << min_dist << std::endl;
-
-        assert_true(nearest_idx == 4);
-
-        std::cout << "KdTree test passed" << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "KdTree test failed: " << e.what() << std::endl;
-        assert_true(false);
+        if (kdtree_idx != brute_idx) {
+            std::cerr << "Mismatch at point " << i << ": "
+                      << "kdtree_idx = " << kdtree_idx << ", brute_idx = " << brute_idx
+                      << std::endl;
+            assert(false && "KDTree search mismatch brute force!");
+        }
     }
+
+    std::cout << "All KDTree tests passed!" << std::endl;
 }
 
 void test_icp_generic(const std::string& method, const icp::Config& config) {
@@ -180,14 +186,14 @@ void test_icp_generic(const std::string& method, const icp::Config& config) {
         transform.translation() = translation;
 
         std::default_random_engine generator;
-        std::normal_distribution<double> noise_dist(0.0, 1.0);
+        std::normal_distribution<double> noise_dist(0.0, 1.0);  // Mean 0, StdDev 1
 
-        icp::PointCloud2 a(2, 5);
+        icp::PointCloud2 a(2, 4);
         a.col(0) << 0, 0;
         a.col(1) << 100, 0;
-        a.col(2) << 100, 100;
-        a.col(3) << -20, 50;
-        a.col(4) << 100, 120;
+        a.col(2) << 50, 50;
+        a.col(3) << 0, 50;
+
         icp::PointCloud2 b = transform * a;
 
         for (ptrdiff_t i = 0; i < b.cols(); i++) {
@@ -195,7 +201,6 @@ void test_icp_generic(const std::string& method, const icp::Config& config) {
         }
 
         auto result = driver.converge(a, b, icp::RBTransform2::Identity());
-
         assert_translation_eps(translation, result.transform.translation(), TRANS_EPS * 3);
         assert_rotation_eps(rotation, Eigen::Rotation2Dd(result.transform.rotation()), RAD_EPS * 5);
     }

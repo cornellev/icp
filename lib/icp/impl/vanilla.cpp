@@ -19,15 +19,6 @@ namespace icp {
     Vanilla::Vanilla(): ICP() {}
     Vanilla::~Vanilla() {}
 
-    void Vanilla::rebuild_kdtree() {
-        // TODO: kdtree should take point cloud
-        std::vector<Vector> b_vec(b.cols());
-        for (ptrdiff_t i = 0; i < b.cols(); i++) {
-            b_vec[i] = b.col(i);
-        }
-        target_kdtree_ = std::make_unique<KdTree<Vector>>(b_vec, 4);
-    }
-
     void Vanilla::setup() {
         a_current = transform * a;
         matches.resize(a.cols());
@@ -79,51 +70,19 @@ namespace icp {
         if (a.cols() == 0 || b.cols() == 0) {
             return;
         }
-
-        // TODO: why :skull:
-        if (target_kdtree_) {
-            bool kdtree_failed = false;
-
-            for (ptrdiff_t i = 0; i < a.cols(); i++) {
-                matches[i].point = i;
-
-                try {
-                    float min_dist = 0;
-                    ptrdiff_t best_j = target_kdtree_->find_nearest(a_current.col(i), &min_dist);
-
-                    if (best_j < b.cols()) {
-                        matches[i].pair = best_j;
-                        matches[i].cost = min_dist;
-                    } else {
-                        kdtree_failed = true;
-                        break;
-                    }
-                } catch (...) {
-                    kdtree_failed = true;
-                    break;
-                }
-            }
-
-            if (!kdtree_failed) {
-                return;
-            }
-
-            std::cerr << "KdTree search failed, falling back to linear search" << std::endl;
-            target_kdtree_ = nullptr;
+        std::vector<Vector> b_vec(b.cols());
+        for (ptrdiff_t i = 0; i < b.cols(); i++) {
+            b_vec[i] = b.col(i);
         }
+        icp::KdTree<Eigen::Vector2d> kdtree(b_vec, 2);
 
-        for (ptrdiff_t i = 0; i < a.cols(); i++) {
-            matches[i].point = i;
-            matches[i].cost = std::numeric_limits<double>::infinity();
+        for (Eigen::Index i = 0; i < a.cols(); ++i) {
+            const Eigen::Vector2d query = a.col(i);
+            double min_dist = 0.0;
+            int idx = kdtree.search(query, &min_dist);
 
-            for (ptrdiff_t j = 0; j < b.cols(); j++) {
-                double dist_ij = (b.col(j) - a_current.col(i)).squaredNorm();
-
-                if (dist_ij < matches[i].cost) {
-                    matches[i].cost = dist_ij;
-                    matches[i].pair = j;
-                }
-            }
+            matches[i].cost = std::sqrt(min_dist);
+            matches[i].pair = idx;
         }
     }
 }

@@ -27,21 +27,8 @@ namespace icp {
           c(3, 0),
           current_cost_(std::numeric_limits<double>::max()),
           max_distance(config.get<double>("max_distance", 1.0)) {}
-    Trimmed_3d::Trimmed_3d()
-        : ICP(),
-          c(3, 0),
-          target_kdtree_(nullptr),
-          current_cost_(std::numeric_limits<double>::max()) {}
+    Trimmed_3d::Trimmed_3d(): ICP(), c(3, 0), current_cost_(std::numeric_limits<double>::max()) {}
     Trimmed_3d::~Trimmed_3d() {}
-
-    void Trimmed_3d::rebuild_kdtree() {
-        // TODO: kdtree should take point cloud
-        std::vector<Vector> b_vec(b.cols());
-        for (ptrdiff_t i = 0; i < b.cols(); i++) {
-            b_vec[i] = b.col(i);
-        }
-        target_kdtree_ = std::make_unique<KdTree<Vector>>(std::move(b_vec), 4);
-    }
 
     // Euclidean distance between two points
     float Trimmed_3d::dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb) {
@@ -50,121 +37,26 @@ namespace icp {
 
     NEIGHBOR Trimmed_3d::nearest_neighbor(const PointCloud& src, const PointCloud& dst) {
         NEIGHBOR neigh;
-        neigh.distances.resize(src.cols());
-        neigh.indices.resize(src.cols());
+        neigh.distances.resize(src.size());
+        neigh.indices.resize(src.size());
 
-        // For small point clouds or when testing rotation with few points,
-        // linear search can give more precise results
-        // TODO: why :skull:
-        if (src.cols() <= 3 || dst.cols() <= 3) {
-            for (ptrdiff_t i = 0; i < src.cols(); i++) {
-                Eigen::Vector3d pta = src.col(i);
-                float min_dist = std::numeric_limits<float>::max();
-                ptrdiff_t index = 0;
-
-                for (ptrdiff_t j = 0; j < dst.cols(); j++) {
-                    Eigen::Vector3d ptb = dst.col(j);
-                    float d = dist(pta, ptb);
-                    if (d < min_dist) {
-                        min_dist = d;
-                        index = j;
-                    }
-                }
-
-                neigh.distances[i] = min_dist;
-                neigh.indices[i] = index;
-            }
-            return neigh;
+        // Build KDTree
+        std::vector<Eigen::Vector3d> dst_vec(dst.cols());
+        for (ptrdiff_t i = 0; i < dst.cols(); ++i) {
+            dst_vec[i] = dst.col(i);
         }
-        if (target_kdtree_) {
-            bool kdtree_failed = false;
+        icp::KdTree<Eigen::Vector3d> kdtree(dst_vec, 3);
 
-            for (ptrdiff_t i = 0; i < src.cols(); i++) {
-                try {
-                    Vector query_point = src.col(i);
+        for (Eigen::Index i = 0; i < src.cols(); ++i) {
+            const Eigen::Vector3d query = src.col(i);
+            double min_dist = 0.0;
+            int idx = kdtree.search(query, &min_dist);
 
-                    float min_dist = 0;
-                    ptrdiff_t nearest_idx = target_kdtree_->find_nearest(query_point, &min_dist);
-
-                    if (nearest_idx < dst.cols()) {
-                        neigh.indices[i] = nearest_idx;
-                        neigh.distances[i] = std::sqrt(min_dist);
-                    } else {
-                        kdtree_failed = true;
-                        break;
-                    }
-                } catch (...) {
-                    kdtree_failed = true;
-                    break;
-                }
-            }
-
-            if (!kdtree_failed) {
-                return neigh;
-            }
-
-            std::cerr << "KdTree search failed, falling back to linear search" << std::endl;
-        }
-
-        // Fall back to linear search if KD-tree fails or is not available
-        neigh.distances.clear();
-        neigh.indices.clear();
-        neigh.distances.resize(src.cols());
-        neigh.indices.resize(src.cols());
-
-        for (ptrdiff_t i = 0; i < src.cols(); i++) {
-            Vector pta = src.col(i);
-            float min_dist = std::numeric_limits<float>::max();
-            ptrdiff_t index = 0;
-
-            for (ptrdiff_t j = 0; j < dst.cols(); j++) {
-                Vector ptb = dst.col(j);
-                float d = dist(pta, ptb);
-                if (d < min_dist) {
-                    min_dist = d;
-                    index = j;
-                }
-            }
-
-            neigh.distances[i] = min_dist;
-            neigh.indices[i] = index;
+            neigh.indices[i] = idx;
+            neigh.distances[i] = std::sqrt(min_dist);
         }
 
         return neigh;
-    }
-
-    Trimmed_3d::RBTransform Trimmed_3d::best_fit_transform(const PointCloud& A,
-        const PointCloud& B) {
-        Vector centroid_A = get_centroid(A);
-        Vector centroid_B = get_centroid(B);
-
-        Eigen::Matrix3d N = (A.colwise() - centroid_A) * (B.colwise() - centroid_B).transpose();
-
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd(N, Eigen::ComputeFullU | Eigen::ComputeFullV);
-        Eigen::Matrix3d R = svd.matrixV() * svd.matrixU().transpose();
-
-        if (R.determinant() < 0) {
-            Eigen::Matrix3d V = svd.matrixV();
-            V.col(2) *= -1;
-            R = V * svd.matrixU().transpose();
-        }
-
-        Vector t = centroid_B - R * centroid_A;
-
-        RBTransform transform;
-        transform.linear() = R;
-        transform.translation() = t;
-
-        return transform;
-    }
-
-    void Trimmed_3d::setup() {
-        c = a;
-
-        if (!target_kdtree_ && b.cols() != 0) {
-            rebuild_kdtree();
-        }
-        current_cost_ = std::numeric_limits<double>::max();
     }
 
     void Trimmed_3d::iterate() {

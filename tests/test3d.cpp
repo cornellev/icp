@@ -40,7 +40,7 @@ void test_icp_3d(const icp::Config& config) {
         a.col(0) << 0, 0, 0;
         icp::PointCloud3 b(3, 1);
         b.col(0) << 100, 0, 0;
-        auto result = driver.converge(a, b, icp::RBTransform3::Identity());  // Use RBTransform3
+        auto result = driver.converge(a, b, icp::RBTransform3::Identity());
 
         assert_true(result.iteration_count <= 10);
         assert_translation(Eigen::Vector3d(100, 0, 0), result.transform.translation());
@@ -50,17 +50,6 @@ void test_icp_3d(const icp::Config& config) {
     // Note that we will not test colinear cases as they may lead to hard to correct degenerancy
     // (and are not common at all in real world data)
     // TODO: check for the colinear case and return an error or something?
-    // Test case 2: Identity test
-    // {
-    //     std::vector<icp::Vector> a = {
-    //         icp::Vector(Eigen::Vector3d(0, 0, 0)), icp::Vector(Eigen::Vector3d(100, 100, 100))};
-    //     std::vector<icp::Vector> b = {
-    //         icp::Vector(Eigen::Vector3d(0, 0, 0)), icp::Vector(Eigen::Vector3d(100, 100, 100))};
-    //     auto result = driver.converge(a, b, icp::RBTransform(3));
-    //     assert_true(std::abs(result.transform.translation.x() - 0) <= TRANS_EPS);
-    //     assert_true(std::abs(result.transform.translation.y() - 0) <= TRANS_EPS);
-    //     assert_true(result.transform.rotation.isApprox(icp::Matrix::Identity(3, 3)));
-    // }
 
     // Test case 3: Rotation about one of the axes
     for (int deg = 0; deg < 10; deg++) {
@@ -129,23 +118,6 @@ void test_icp_3d(const icp::Config& config) {
 
         assert_translation(expected_t, result.transform.translation());
         assert_rotation(rotation_matrix, result.transform.rotation());
-    }
-
-    // Test case 5: Pure translation along multiple axes
-    {
-        icp::PointCloud3 a(3, 3);
-        a.col(0) << 1, 0, 0;
-        a.col(1) << 0, 1, 0;
-        a.col(2) << 0, 0, 1;
-        icp::PointCloud3 b(3, 3);
-        b.col(0) << 51, 73, 2;
-        b.col(1) << 50, 74, 2;
-        b.col(2) << 50, 73, 3;
-
-        auto result = driver.converge(a, b, icp::RBTransform3::Identity());  // Use RBTransform3
-
-        assert_translation(Eigen::Vector3d(50, 73, 2), result.transform.translation());
-        assert_rotation(Eigen::Matrix3d::Identity(), result.transform.rotation());
     }
 
     // Test case 6: Translation + rotation

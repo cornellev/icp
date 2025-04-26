@@ -24,7 +24,6 @@ namespace icp {
         double current_cost_;
         Eigen::Matrix3d initial_rotation;
 
-        void rebuild_kdtree();
         NEIGHBOR nearest_neighbor(const PointCloud& src, const PointCloud& dst);
         float dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb);
         RBTransform best_fit_transform(const PointCloud& A, const PointCloud& B);
