@@ -1,3 +1,10 @@
+/**
+ * @author Ethan Uppal
+ * @copyright Copyright (C) 2024 Ethan Uppal.
+ * Copyright (C) 2025 Cornell Electric Vehicles.
+ * SPDX-License-Identifier: MIT
+ */
+
 #include "parse_scan.h"
 #include <cmath>
 #include <cstddef>

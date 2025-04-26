@@ -1,3 +1,8 @@
+/**
+ * @copyright Copyright (C) 2025 Cornell Electric Vehicles.
+ * SPDX-License-Identifier: MIT
+ */
+
 #include "icp/driver.h"
 #include <limits>
 

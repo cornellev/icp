@@ -1,3 +1,6 @@
+# Copyright (C) 2024-2025 Cornell Electric Vehicles.
+# SPDX-License-Identifier: MIT
+
 import argparse
 import os
 

@@ -1,5 +1,7 @@
-/*
- * @author Utku Melemetci
+/**
+ * @copyright Copyright (C) 2024 Ethan Uppal.
+ * Copyright (C) 2025 Cornell Electric Vehicles.
+ * SPDX-License-Identifier: MIT
  */
 
 #include "icp/icp.h"

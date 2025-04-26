@@ -3,6 +3,13 @@
 #include "icp/geo.h"
 #include "icp/icp.h"
 #include "icp/driver.h"
+
+/**
+ * @author Ethan Uppal
+ * @copyright Copyright (C) 2024 Ethan Uppal.
+ * SPDX-License-Identifier: MIT
+ */
+
 #include <iostream>
 #include <random>
 

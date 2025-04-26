@@ -1,7 +1,7 @@
-// TODO: we should probably find a good solution for CEV copyright
-
-/*
- * @author Utku Melemetci
+/**
+ * @copyright Copyright (C) 2024 Ethan Uppal.
+ * Copyright (C) 2025 Cornell Electric Vehicles.
+ * SPDX-License-Identifier: MIT
  */
 
 #include "icp/icp.h"
