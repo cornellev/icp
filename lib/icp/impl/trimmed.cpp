@@ -1,6 +1,8 @@
-/*
+/**
  * @author Ethan Uppal
- * @copyright Copyright (C) 2024 Ethan Uppal. All rights reserved.
+ * @copyright Copyright (C) 2024 Ethan Uppal.
+ * Copyright (C) 2025 Cornell Electric Vehicles.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <cassert>

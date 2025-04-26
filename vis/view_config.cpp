@@ -1,6 +1,7 @@
-/*
+/**
  * @author Ethan Uppal
- * @copyright Copyright (C) 2024 Ethan Uppal. All rights reserved.
+ * @copyright Copyright (C) 2024 Ethan Uppal.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <cmath>

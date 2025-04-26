@@ -1,4 +1,5 @@
-# Copyright (C) 2024 Ethan Uppal. All rights reserved.
+# Copyright (C) 2024 Ethan Uppal.
+# SPDX-License-Identifier: MIT
 *.DS_Store
 *.o
 *.d

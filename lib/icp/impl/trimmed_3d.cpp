@@ -16,10 +16,7 @@
 #include "algo/kdtree.h"
 #include "icp/geo.h"
 
-/* #name Vanilla */
-
-/* #desc The vanilla algorithm for ICP will match the point-cloud centers
-exactly and then iterate until an optimal rotation has been found. */
+/* #name Trimmed */
 
 namespace icp {
     Trimmed_3d::Trimmed_3d([[maybe_unused]] const Config& config)
@@ -57,6 +54,36 @@ namespace icp {
         }
 
         return neigh;
+    }
+
+    Trimmed_3d::RBTransform Trimmed_3d::best_fit_transform(const PointCloud& A,
+        const PointCloud& B) {
+        Vector centroid_A = get_centroid(A);
+        Vector centroid_B = get_centroid(B);
+
+        Eigen::Matrix3d N = (A.colwise() - centroid_A) * (B.colwise() - centroid_B).transpose();
+
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd(N, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        Eigen::Matrix3d R = svd.matrixV() * svd.matrixU().transpose();
+
+        if (R.determinant() < 0) {
+            Eigen::Matrix3d V = svd.matrixV();
+            V.col(2) *= -1;
+            R = V * svd.matrixU().transpose();
+        }
+
+        Vector t = centroid_B - R * centroid_A;
+
+        RBTransform transform;
+        transform.linear() = R;
+        transform.translation() = t;
+
+        return transform;
+    }
+
+    void Trimmed_3d::setup() {
+        c = a;
+        current_cost_ = std::numeric_limits<double>::max();
     }
 
     void Trimmed_3d::iterate() {

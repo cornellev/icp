@@ -1,4 +1,8 @@
-// Copyright (C) 2024 Ethan Uppal. All rights reserved.
+/**
+ * @author Ethan Uppal
+ * @copyright Copyright (C) 2024 Ethan Uppal.
+ * SPDX-License-Identifier: MIT
+ */
 
 #include <iostream>
 #include <memory>
@@ -71,11 +75,12 @@ int main(int argc, const char** argv) {
         return 1;
     }
 
-    ca_description("Driver program for Ethan's ICP implementation.");
+    ca_description("Driver program for CEV's ICP implementation.");
     ca_author("Ethan Uppal");
-    ca_year(2024);
+    ca_author("Cornell Electric Vehicles");
+    ca_year(2025);
     ca_version(0, 0, 0);
-    ca_versioning_info("All rights reserved.");
+    ca_versioning_info("See LICENSE for details.");
 
     ca_synopsis("[-h|-v]");
     ca_synopsis("-S FILE -D FILE [-l]");
