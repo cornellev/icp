@@ -36,19 +36,27 @@ namespace icp {
 
     void FeatureAware::setup() {
         a_current = transform * a;
+
         matches.resize(a.cols());
 
-        // TODO: is relying on NRVO a good idea?
-        a_features = compute_features(a_current);
-        b_features = compute_features(b);
+        // upper bound
+        trimmed_a_current.conservativeResizeLike(a);
+        trimmed_b.conservativeResizeLike(b);
 
-        normalized_feature_dists = compute_norm_dists<Eigen::Dynamic>(a_features, b_features);
+        a_features.conservativeResize(2 * symmetric_neighbors, a.cols());
+        b_features.conservativeResize(2 * symmetric_neighbors, b.cols());
+        normalized_dists.conservativeResize(a.cols(), b.cols());
+        normalized_feature_dists.conservativeResize(a.cols(), b.cols());
+
+        compute_features(a_current, a_features);
+        compute_features(b, b_features);
+
+        compute_dists<Eigen::Dynamic>(a_features, b_features, normalized_feature_dists);
         double max = normalized_feature_dists.maxCoeff();
         if (max > 1e-6) {
             normalized_feature_dists /= max;
         }
 
-        // TODO: should we rely on NRVO here?
         compute_matches();
     }
 
@@ -83,8 +91,8 @@ namespace icp {
         new_n = std::max<ptrdiff_t>(new_n, 1);  // TODO: bad for scans with 0 points
 
         // yeah, i know this is inefficient. we'll get back to it later.
-        PointCloud trimmed_a_current(2, new_n);
-        PointCloud trimmed_b(2, new_n);
+        trimmed_a_current.conservativeResize(Eigen::NoChange, new_n);
+        trimmed_b.conservativeResize(Eigen::NoChange, new_n);
         for (ptrdiff_t i = 0; i < new_n; i++) {
             trimmed_a_current.col(i) = a_current.col(matches[i].point);
             trimmed_b.col(i) = b.col(matches[i].pair);
@@ -118,16 +126,23 @@ namespace icp {
     }
 
     void FeatureAware::compute_matches() {
-        Eigen::MatrixXd normalized_dists = compute_norm_dists<2>(a_current, b);
+        // TODO: this can all be done better with a KD tree once we have it
+        // should actually be able to do this by weighting the elements of the vector that contain
+        // feature information appropriately
+        // or maybe ball trees are more appropriate?
+        compute_dists<2>(a_current, b, normalized_dists);
         double max = normalized_dists.maxCoeff();
         if (max > 1e-6) {
             normalized_dists /= max;
         }
 
-        for (ptrdiff_t i = 0; i < a.cols(); i++) {
+        for (size_t i = 0; i < matches.size(); i++) {
             matches[i].point = i;
             matches[i].cost = std::numeric_limits<double>::infinity();
-            for (ptrdiff_t j = 0; j < b.cols(); j++) {
+        }
+
+        for (ptrdiff_t j = 0; j < b.cols(); j++) {
+            for (ptrdiff_t i = 0; i < a.cols(); i++) {
                 double dist = normalized_dists(i, j);
                 double feature_dist = normalized_feature_dists(i, j);
                 double cost = neighbor_weight * dist + feature_weight * feature_dist;
@@ -140,8 +155,7 @@ namespace icp {
         }
     }
 
-    Eigen::MatrixXd FeatureAware::compute_features(const PointCloud& points) {
-        Eigen::MatrixXd features(2 * symmetric_neighbors, points.cols());
+    void FeatureAware::compute_features(const PointCloud& points, Eigen::MatrixXd& features) {
         features.setZero();
 
         Vector cm = get_centroid(points);
@@ -164,7 +178,5 @@ namespace icp {
                 features(j - i - 1 + symmetric_neighbors, i) = cm_dist_q - cm_dist_p;
             }
         }
-
-        return features;
     }
 }

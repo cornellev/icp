@@ -44,15 +44,17 @@ BenchmarkResult run_benchmark(BenchmarkParams params) {
     std::vector<double> final_costs;
     std::vector<size_t> iteration_counts;
 
-    const auto start = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> total(0);
+
     for (size_t i = 0; i < params.num_invoc; i++) {
+        const auto start = std::chrono::high_resolution_clock::now();
         auto result = driver.converge(source, dest, icp::RBTransform2::Identity());
+        const auto end = std::chrono::high_resolution_clock::now();
+
+        total += end - start;
         final_costs.push_back(result.cost);
         iteration_counts.push_back(result.iteration_count);
     }
-    const auto end = std::chrono::high_resolution_clock::now();
-
-    const std::chrono::duration<double> diff = end - start;
 
     std::sort(final_costs.begin(), final_costs.end());
     std::sort(iteration_counts.begin(), iteration_counts.end());
@@ -70,15 +72,16 @@ BenchmarkResult run_benchmark(BenchmarkParams params) {
     result.mean_iterations = std::accumulate(iteration_counts.begin(), iteration_counts.end(), 0.0)
                              / iteration_counts.size();
 
-    result.average_time_per_invocation = diff.count() / params.num_invoc;
+    result.average_time_per_invocation = total.count() / params.num_invoc;
     result.average_time_per_iteration =
-        diff.count() / (std::accumulate(iteration_counts.begin(), iteration_counts.end(), 0.0));
+        total.count() / (std::accumulate(iteration_counts.begin(), iteration_counts.end(), 0.0));
 
     return result;
 }
 
 void print_benchmark_params(BenchmarkParams params) {
     std::cout << "* Method: " << params.method << "\n"
+              << "* Scan ID: " << params.scan_id << "\n"
               << "* Number of invocations: " << params.num_invoc << "\n"
               << "* Angle tolerance: " << params.angle_tol << " rad\n"
               << "* Translation tolerance: " << params.trans_tol << " scan units\n";
@@ -112,7 +115,10 @@ int main() {
 
     std::cout << "ICP ALGORITHM BENCHMARKING\n";
 
+    // std::vector<std::string> methods{"feature_aware"};
+
     for (const std::string& method: icp::ICP2::registered_methods()) {
+        // for (const std::string& method: methods) {
         std::cout << "=======================================\n";
 
         for (uint32_t scan_id = 1; scan_id <= scans; scan_id++) {
