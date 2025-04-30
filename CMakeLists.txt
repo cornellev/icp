@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 cmake_minimum_required(VERSION 3.14)
-project(cev_icp CXX)
+project(cev_icp LANGUAGES C CXX)
 
 set(PROJECT_VERSION 1.3.0)
 
@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add compile options
-add_compile_options(-Wall -Wextra -pedantic)
+add_compile_options(-Wall -Wextra -g)
 
 option(LIB_ONLY "Build library only" OFF)
 
@@ -18,21 +18,23 @@ option(LIB_ONLY "Build library only" OFF)
 find_package(Eigen3 REQUIRED)
 if(NOT LIB_ONLY)
   find_package(SDL2 REQUIRED)
-endif()
+  find_package(PCL 1.12 REQUIRED COMPONENTS common io)
 
-include_directories(/usr/local/include)
-link_directories(/usr/local/lib)
+  add_definitions(${PCL_DEFINITIONS})
+  include_directories(${PCL_INCLUDE_DIRS} /usr/local/include)
+  link_directories(${PCL_LIBRARY_DIRS} /usr/local/lib)
+endif()
 
 # Library target
 set(LIB_SOURCES
   lib/algo/kdtree.cpp
   lib/algo/quickselect.cpp
   lib/icp/icp.cpp
-  lib/icp/driver.cpp
-  lib/icp/geo.cpp
   lib/icp/impl/vanilla.cpp
   lib/icp/impl/trimmed.cpp
   lib/icp/impl/feature_aware.cpp
+  lib/icp/impl/vanilla_3d.cpp
+  lib/icp/impl/trimmed_3d.cpp
 )
 add_library(cevicp STATIC ${LIB_SOURCES})
 target_include_directories(cevicp 
@@ -80,6 +82,34 @@ if(NOT LIB_ONLY)
       /usr/local/include/simple_test
   )
   target_compile_definitions(test_suite PRIVATE TEST)
+  
+  set(TEST_SOURCES_3D tests/test3d.cpp)
+  add_executable(test_suite_3d ${TEST_SOURCES_3D})
+  target_link_libraries(test_suite_3d
+    cevicp
+  )
+  target_include_directories(test_suite_3d
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/include
+      /usr/local/include/simple_test
+  )
+  target_compile_definitions(test_suite_3d PRIVATE TEST)
+
+  set(TEST_SOURCES_PLY tests/test_ply.cpp)
+  add_executable(test_suite_ply ${TEST_SOURCES_PLY})
+
+  target_link_libraries(test_suite_ply
+    cevicp
+    ${PCL_LIBRARIES}
+  )
+  target_include_directories(test_suite_ply
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/common
+      /usr/local/include/simple_test
+      ${PCL_INCLUDE_DIRS}
+  )
+  target_compile_definitions(test_suite_ply PRIVATE TEST)
 
   set(BENCH_SOURCES bench/bench.cpp common/parse_scan.cpp)
   add_executable(bench_suite ${BENCH_SOURCES})
@@ -92,31 +122,6 @@ if(NOT LIB_ONLY)
       ${CMAKE_CURRENT_SOURCE_DIR}/include
       ${CMAKE_CURRENT_SOURCE_DIR}/common
   )
-endif()
-
-# Debug/Release configuration
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  target_compile_definitions(cevicp PRIVATE RELEASE_BUILD)
-  target_compile_options(cevicp PRIVATE -O3)
-  
-  if(NOT LIB_ONLY)
-    target_compile_definitions(main PRIVATE RELEASE_BUILD)
-    target_compile_options(main PRIVATE -O3)
-    
-    target_compile_definitions(test_suite PRIVATE RELEASE_BUILD)
-    target_compile_options(bench_suite PRIVATE -O3)
-
-    target_compile_definitions(bench_suite PRIVATE RELEASE_BUILD)
-    target_compile_options(bench_suite PRIVATE -O3)
-  endif()
-else()
-  target_compile_options(cevicp PRIVATE -g)
-
-  if(NOT LIB_ONLY)
-    target_compile_options(main PRIVATE -g)
-    target_compile_options(test_suite PRIVATE -g)
-    target_compile_options(bench_suite PRIVATE -g)
-  endif()
 endif()
 
 # Installation

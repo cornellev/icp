@@ -6,52 +6,33 @@
 
 #pragma once
 
-#include <vector>
-#include <cmath>
-#include <sstream>
 #include <Eigen/Core>
+#include <Eigen/Geometry>
+
+#include "icp/dim.h"
+#include "icp/neighbor.h"
 
 namespace icp {
-    using Vector = Eigen::Vector2d;
-    using Matrix = Eigen::Matrix2d;
+    template<const Dimension Dim>
+    using Vector = Eigen::Vector<double, Dim>;
+    using Vector2 = Vector<Dimension::TwoD>;
+    using Vector3 = Vector<Dimension::ThreeD>;
 
-    /** Rigid-body transformation. */
-    struct RBTransform final {
-        Vector translation;
-        Matrix rotation;
+    template<const Dimension Dim>
+    using RBTransform = Eigen::Transform<double, Dim, Eigen::Isometry>;
+    using RBTransform2 = RBTransform<Dimension::TwoD>;
+    using RBTransform3 = RBTransform<Dimension::ThreeD>;
 
-    public:
-        RBTransform() {
-            translation = Vector::Zero();
-            rotation = Matrix::Identity();
-        }
+    template<const Dimension Dim>
+    using PointCloud = Eigen::Matrix<double, Dim, Eigen::Dynamic>;
+    using PointCloud2 = PointCloud<Dimension::TwoD>;
+    using PointCloud3 = PointCloud<Dimension::ThreeD>;
 
-        RBTransform(Vector translation, Matrix rotation)
-            : translation(translation), rotation(rotation) {}
-
-        Vector apply_to(Vector v) const {
-            return rotation * v + translation;
-        }
-
-        RBTransform and_then(const RBTransform& next) const {
-            return RBTransform(next.rotation * this->translation + next.translation,
-                next.rotation * this->rotation);
-        }
-
-        RBTransform inverse() const {
-            auto transpose = this->rotation.transpose();
-            return RBTransform(-transpose * this->translation, transpose);
-        }
-
-        std::string to_string() const {
-            std::stringstream stream;
-            stream << "RBTransform {\n";
-            stream << "  translation:\n" << translation << '\n';
-            stream << "  rotation:\n" << rotation << '\n';
-            stream << "}";
-            return stream.str();
-        }
-    };
-
-    Vector get_centroid(const std::vector<Vector>& points);
+    // If we use `auto` like this we get much better template argument deduction.
+    // Allows arbitrary dimension but that's fine.
+    template<const auto Dim>
+    Eigen::Vector<double, Dim> get_centroid(
+        const Eigen::Matrix<double, Dim, Eigen::Dynamic>& points) {
+        return points.rowwise().mean();
+    }
 }
