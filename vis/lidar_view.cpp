@@ -4,8 +4,11 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <cstdlib>
+#include <SDL_pixels.h>
 #include <sdlwrapper/util/logger.h>
 #include <sdlwrapper/util/keyboard.h>
 #include <sdlwrapper/geo/midpoint.h>
@@ -62,13 +65,20 @@ void LidarView::on_event(const SDL_Event& event) {
 // current transformation
 void LidarView::draw_matches(SDL_Renderer* renderer) {
     const auto& matches = icp->get_matches();  // one iteration before we calculated the transform
+                                               //
+    double max_cost = std::max_element(matches.begin(), matches.end(),
+        [](const auto& first, const auto& second) {
+            return first.cost < second.cost;
+        })->cost;
 
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
     // the size of available points in "a" changed
     for (ptrdiff_t i = 0; i < source.cols(); i++) {
         const auto& source_point = source.col(matches[i].point);
         const auto& destination_point = destination.col(matches[i].pair);
         auto transformed_source = icp->current_transform() * source_point;
+
+        SDL_SetRenderDrawColor(renderer, 0, 255 - (uint8_t)(matches[i].cost / max_cost * 255), 0,
+            SDL_ALPHA_OPAQUE);
 
         // current transform
         SDL_RenderDrawLine(renderer,
