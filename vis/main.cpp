@@ -5,17 +5,18 @@
  */
 
 #include <iostream>
+#include <memory>
+#include <optional>
+#include "icp/geo.h"
 extern "C" {
 #include <cmdapp/cmdapp.h>
 #include <config/config.h>
 }
 #include <sdlwrapper/gui/window.h>
-#include <optional>
 #include "view_config.h"
 #include "lidar_view.h"
-#include "icp/impl/vanilla.h"
-#include "icp/impl/trimmed.h"
 #include "parse_scan.h"
+#include "icp/icp.h"
 
 void set_config_param(const char* var, const char* data, [[maybe_unused]] void* user_data) {
     if (strcmp(var, "x_displace") == 0) {
@@ -117,27 +118,41 @@ int main(int argc, const char** argv) {
         view_config::use_light_mode = true;
     }
 
-    std::optional<std::unique_ptr<icp::ICP>> icp_opt = icp::ICP::from_method(method);
+    std::optional<std::unique_ptr<icp::ICP2>> icp_opt = icp::ICP2::from_method(method,
+        icp::Config());
 
     if (!icp_opt.has_value()) {
         std::cerr << "error: unknown ICP method '" << method << "'. expected one of:\n";
-        for (const std::string& registered_method: icp::ICP::registered_methods()) {
+        for (const std::string& registered_method: icp::ICP2::registered_methods()) {
             std::cerr << "* " << registered_method << '\n';
         }
         std::exit(1);
     }
 
-    std::unique_ptr<icp::ICP> icp = std::move(icp_opt.value());
+    std::unique_ptr<icp::ICP2> icp = std::move(icp_opt.value());
 
-    // std::vector<icp::Vector> a = {icp::Vector(0, 0), icp::Vector(100, 100)};
-    // std::vector<icp::Vector> b = {};
-    // double angle = (double)8 * M_PI / 180.0;
-    // icp::Vector center = icp::get_centroid(a);
-    // icp::Matrix rotation_matrix{
-    //     {std::cos(angle), -std::sin(angle)}, {std::sin(angle), std::cos(angle)}};
-    // for (const auto& point: a) {
-    //     b.push_back(rotation_matrix * (point - center) + center);
-    // }
+    // icp::PointCloud2 a(2, 5);
+    // a.col(0) << 0, 0;
+    // a.col(1) << 100, 0;
+    // a.col(2) << 100, 100;
+    // a.col(3) << -20, 50;
+    // a.col(4) << 100, 120;
+    // icp::PointCloud2 b(2, 5);
+    // b.col(0) << 18.9132, 9.87803;
+    // b.col(1) << 105.527, 60.6843;
+    // b.col(2) << 57.3474, 146.636;
+    // b.col(3) << -22.8571, 43.3349;
+    // b.col(4) << 46.8032, 164.386;
+
+    // LidarView* view = new LidarView(a, b, std::move(icp));
+    // launch_gui(view, "test");
+    // return 0;
+
+    // icp::PointCloud2 a(2, 2);
+    // a.col(0) << 0, 0;
+    // a.col(1) << 100, 100;
+    // icp::PointCloud2 b = a;
+
     // LidarView* view = new LidarView(a, b, std::move(icp));
     // launch_gui(view, "test");
     // return 0;
@@ -146,7 +161,7 @@ int main(int argc, const char** argv) {
         auto source = parse_lidar_scan(f_src);
         auto dest = parse_lidar_scan(f_dst);
 
-        icp::ICP::Config config;
+        icp::Config config;
         config.set("overlap_rate", 0.9);
         LidarView* view = new LidarView(source, dest, std::move(icp));
 

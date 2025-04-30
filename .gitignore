@@ -20,3 +20,4 @@ build/
 .vscode/*
 !.vscode/launch.json
 !.vscode/tasks.json
+queen_result.ply

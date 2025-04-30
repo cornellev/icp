@@ -4,10 +4,14 @@
  * SPDX-License-Identifier: MIT
  */
 
+#pragma once
+
 #include "icp/icp.h"
+#include "algo/kdtree.h"
+#include "icp/config.h"
 
 namespace icp {
-    class Vanilla final : public ICP {
+    class Vanilla final : public ICP2 {
     public:
         Vanilla();
         Vanilla(const Config& config);
@@ -19,9 +23,8 @@ namespace icp {
     private:
         void compute_matches();
 
-        std::vector<icp::Vector> a_current;
-        // icp::Vector a_current_cm;
-        // icp::Vector corr_cm = icp::Vector::Zero();
-        // size_t n;
+        std::unique_ptr<KdTree<Vector>> target_kdtree_;
+
+        PointCloud a_current;
     };
 }
