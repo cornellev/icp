@@ -4,7 +4,6 @@
  * Copyright (C) 2025 Cornell Electric Vehicles.
  * SPDX-License-Identifier: MIT
  */
-#include <iostream>
 #include <cassert>
 #include <cstddef>
 #include <cstdlib>
@@ -12,7 +11,6 @@
 #include <Eigen/SVD>
 #include <Eigen/Dense>
 #include <vector>
-#include <memory>
 #include "icp/geo.h"
 #include "icp/impl/vanilla.h"
 
@@ -84,6 +82,7 @@ namespace icp {
             int idx = kdtree.search(query, &min_dist);
 
             matches[i].cost = std::sqrt(min_dist);
+            matches[i].point = i;
             matches[i].pair = idx;
         }
     }
