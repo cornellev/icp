@@ -1,9 +1,6 @@
 /**
- * @file point_cloud_registration.cpp
- * @brief Point cloud registration using Iterative Closest Point (ICP) algorithm.
- *
- * This program implements both single-stage and multi-stage ICP for 3D point cloud
- * registration. It supports PLY file format for input and output point clouds.
+ * @copyright Copyright (C) 2025 Cornell Electric Vehicles.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <cstddef>
@@ -103,7 +100,7 @@ int main(int argc, char* argv[]) {
 
         // ICP configuration
         icp::Config config;
-        std::unique_ptr<icp::ICP3> icp = std::make_unique<icp::Trimmed_3d>(config);
+        std::unique_ptr<icp::ICP3> icp = std::make_unique<icp::Trimmed3d>(config);
         icp::ICPDriver driver(std::move(icp));
 
         driver.set_min_iterations(BURN_IN);

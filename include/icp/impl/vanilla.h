@@ -22,7 +22,6 @@ namespace icp {
 
     private:
         void compute_matches();
-        void compute_match_for_point(size_t i);
 
         std::unique_ptr<KdTree<Vector>> target_kdtree_;
 

@@ -1,6 +1,7 @@
 /**
  * @author Ethan Uppal
  * @copyright Copyright (C) 2024 Ethan Uppal.
+ * Copyright (C) 2025 Cornell Electric Vehicles.
  * SPDX-License-Identifier: MIT
  */
 
@@ -17,10 +18,6 @@
 #include "config.h"
 
 namespace icp {
-    struct NEIGHBOR {
-        std::vector<float> distances;
-        std::vector<size_t> indices;
-    };
 
     /**
      * Interface for iterative closest points.

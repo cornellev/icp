@@ -1,3 +1,8 @@
+/**
+ * @copyright Copyright (C) 2025 Cornell Electric Vehicles.
+ * SPDX-License-Identifier: MIT
+ */
+
 #include "icp/icp.h"
 #include "icp/impl/vanilla.h"
 #include "icp/impl/trimmed.h"
@@ -17,6 +22,7 @@ namespace icp {
 
     template<>
     std::unordered_map<std::string, ICP3::MethodConstructor> ICP3::methods{
-        {"vanilla", CONSTRUCT_CONFIG(Vanilla_3d)},
+        {"vanilla", CONSTRUCT_CONFIG(Vanilla3d)},
+        {"trimmed", CONSTRUCT_CONFIG(Trimmed3d)},
     };
 }

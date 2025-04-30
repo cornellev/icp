@@ -29,7 +29,7 @@ namespace icp {
             size_t iteration_count = 0;
 
             /** The transform. */
-            RBTransform<Dim> transform;
+            RBTransform<Dim> transform = RBTransform<Dim>::Identity();
         };
 
         /**

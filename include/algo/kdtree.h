@@ -1,11 +1,15 @@
+/**
+ * @copyright Copyright (C) 2025 Cornell Electric Vehicles.
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
+
 #include <vector>
 #include <algorithm>
 #include <memory>
 #include <numeric>
 #include <stdexcept>
 #include <limits>
-#include <exception>
 #include <functional>
 
 namespace icp {
@@ -51,14 +55,14 @@ namespace icp {
             std::vector<int> indices(points.size());
             std::iota(std::begin(indices), std::end(indices), 0);
 
-            root_ = buildRecursive(indices.data(), static_cast<int>(points.size()), 0);
+            root_ = build_recursive(indices.data(), static_cast<int>(points.size()), 0);
         }
 
         /**
          * @brief Clear the tree.
          */
         void clear() {
-            clearRecursive(root_);
+            clear_recursive(root_);
             root_ = nullptr;
             points_.clear();
         }
@@ -77,13 +81,6 @@ namespace icp {
         };
 
         /**
-         * @brief Internal exception class for tree errors.
-         */
-        class Exception : public std::exception {
-            using std::exception::exception;
-        };
-
-        /**
          * @brief Search for the nearest neighbor to a query point.
          *
          * @param query The query point.
@@ -94,7 +91,7 @@ namespace icp {
             int guess;
             double _minDist = std::numeric_limits<double>::max();
 
-            searchRecursive(query, root_, &guess, &_minDist);
+            search_recursive(query, root_, &guess, &_minDist);
 
             if (minDist) *minDist = _minDist;
             return guess;
@@ -104,7 +101,7 @@ namespace icp {
         /**
          * @brief Recursively build the tree from a set of point indices.
          */
-        Node* buildRecursive(int* indices, int npoints, int depth) {
+        Node* build_recursive(int* indices, int npoints, int depth) {
             if (npoints <= 0) return nullptr;
 
             const int axis = depth % dim_;
@@ -117,8 +114,8 @@ namespace icp {
             node->idx = indices[mid];
             node->axis = axis;
 
-            node->next[0] = buildRecursive(indices, mid, depth + 1);
-            node->next[1] = buildRecursive(indices + mid + 1, npoints - mid - 1, depth + 1);
+            node->next[0] = build_recursive(indices, mid, depth + 1);
+            node->next[1] = build_recursive(indices + mid + 1, npoints - mid - 1, depth + 1);
 
             return node;
         }
@@ -126,11 +123,11 @@ namespace icp {
         /**
          * @brief Recursively clear the tree.
          */
-        void clearRecursive(Node* node) {
+        void clear_recursive(Node* node) {
             if (node == nullptr) return;
 
-            if (node->next[0]) clearRecursive(node->next[0]);
-            if (node->next[1]) clearRecursive(node->next[1]);
+            if (node->next[0]) clear_recursive(node->next[0]);
+            if (node->next[1]) clear_recursive(node->next[1]);
 
             delete node;
         }
@@ -147,7 +144,7 @@ namespace icp {
         /**
          * @brief Recursively search for the nearest neighbor.
          */
-        void searchRecursive(const PointT& query, const Node* node, int* guess,
+        void search_recursive(const PointT& query, const Node* node, int* guess,
             double* minDist) const {
             if (node == nullptr) return;
 
@@ -160,10 +157,10 @@ namespace icp {
 
             const int axis = node->axis;
             const int dir = query[axis] < train[axis] ? 0 : 1;
-            searchRecursive(query, node->next[dir], guess, minDist);
+            search_recursive(query, node->next[dir], guess, minDist);
 
             const double diff = std::fabs(query[axis] - train[axis]);
-            if (diff < *minDist) searchRecursive(query, node->next[!dir], guess, minDist);
+            if (diff < *minDist) search_recursive(query, node->next[!dir], guess, minDist);
         }
 
         Node* root_;                  // root node of the k-d tree

@@ -1,6 +1,8 @@
-/*
- *
+/**
+ * @copyright Copyright (C) 2025 Cornell Electric Vehicles.
+ * SPDX-License-Identifier: MIT
  */
+
 #include <cstddef>
 #include <iostream>
 #include <numeric>
@@ -19,35 +21,28 @@
 /* #name Trimmed */
 
 namespace icp {
-    Trimmed_3d::Trimmed_3d([[maybe_unused]] const Config& config)
+    Trimmed3d::Trimmed3d([[maybe_unused]] const Config& config)
         : ICP(),
           c(3, 0),
           current_cost_(std::numeric_limits<double>::max()),
           max_distance(config.get<double>("max_distance", 1.0)) {}
-    Trimmed_3d::Trimmed_3d(): ICP(), c(3, 0), current_cost_(std::numeric_limits<double>::max()) {}
-    Trimmed_3d::~Trimmed_3d() {}
+    Trimmed3d::Trimmed3d(): ICP(), c(3, 0), current_cost_(std::numeric_limits<double>::max()) {}
+    Trimmed3d::~Trimmed3d() {}
 
     // Euclidean distance between two points
-    float Trimmed_3d::dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb) {
+    float Trimmed3d::dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb) {
         return (pta - ptb).norm();
     }
 
-    NEIGHBOR Trimmed_3d::nearest_neighbor(const PointCloud& src, const PointCloud& dst) {
-        NEIGHBOR neigh;
-        neigh.distances.resize(src.size());
-        neigh.indices.resize(src.size());
-
-        // Build KDTree
-        std::vector<Eigen::Vector3d> dst_vec(dst.cols());
-        for (ptrdiff_t i = 0; i < dst.cols(); ++i) {
-            dst_vec[i] = dst.col(i);
-        }
-        icp::KdTree<Eigen::Vector3d> kdtree(dst_vec, 3);
+    Neighbors Trimmed3d::nearest_neighbor(const PointCloud& src, const PointCloud& dst) {
+        Neighbors neigh;
+        neigh.distances.resize(src.cols());
+        neigh.indices.resize(src.cols());
 
         for (Eigen::Index i = 0; i < src.cols(); ++i) {
             const Eigen::Vector3d query = src.col(i);
             double min_dist = 0.0;
-            int idx = kdtree.search(query, &min_dist);
+            int idx = kdtree_->search(query, &min_dist);
 
             neigh.indices[i] = idx;
             neigh.distances[i] = std::sqrt(min_dist);
@@ -56,8 +51,7 @@ namespace icp {
         return neigh;
     }
 
-    Trimmed_3d::RBTransform Trimmed_3d::best_fit_transform(const PointCloud& A,
-        const PointCloud& B) {
+    Trimmed3d::RBTransform Trimmed3d::best_fit_transform(const PointCloud& A, const PointCloud& B) {
         Vector centroid_A = get_centroid(A);
         Vector centroid_B = get_centroid(B);
 
@@ -81,14 +75,21 @@ namespace icp {
         return transform;
     }
 
-    void Trimmed_3d::setup() {
+    void Trimmed3d::setup() {
         c = a;
         current_cost_ = std::numeric_limits<double>::max();
+
+        std::vector<Eigen::Vector3d> dst_vec(b.cols());
+        for (ptrdiff_t i = 0; i < b.cols(); ++i) {
+            dst_vec[i] = b.col(i);
+        }
+
+        kdtree_ = std::make_unique<icp::KdTree<Eigen::Vector3d>>(dst_vec, 3);
     }
 
-    void Trimmed_3d::iterate() {
+    void Trimmed3d::iterate() {
         // Reorder target point set based on nearest neighbor
-        NEIGHBOR neighbor = nearest_neighbor(c, b);
+        Neighbors neighbor = nearest_neighbor(c, b);
         PointCloud dst_reordered(3, a.cols());  // Assuming PointCloud is a 3xN matrix
         std::vector<Eigen::Vector3d>
             src_valid;  // Get the valid points from source and distance according to max_distance
@@ -98,9 +99,6 @@ namespace icp {
             if (neighbor.distances[i] <= max_distance) {
                 src_valid.push_back(c.col(i));
                 dst_valid.push_back(b.col(neighbor.indices[i]));
-            } else {
-                std::cerr << "Distance " << neighbor.distances[i] << " exceeds max_distance "
-                          << max_distance << std::endl;
             }
         }
 
@@ -118,7 +116,7 @@ namespace icp {
         calculate_cost(neighbor.distances);
     }
 
-    void Trimmed_3d::calculate_cost(const std::vector<float>& distances) {
+    void Trimmed3d::calculate_cost(const std::vector<float>& distances) {
         if (distances.empty()) {
             current_cost_ = std::numeric_limits<double>::max();
             return;

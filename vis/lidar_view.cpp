@@ -9,8 +9,8 @@
 #include <sdlwrapper/util/logger.h>
 #include <sdlwrapper/util/keyboard.h>
 #include <sdlwrapper/geo/midpoint.h>
+#include <Eigen/Geometry>
 #include "lidar_view.h"
-#include "Eigen/src/Geometry/Rotation2D.h"
 #include "icp/geo.h"
 #include "view_config.h"
 

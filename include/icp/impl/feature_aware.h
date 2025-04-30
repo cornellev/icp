@@ -2,6 +2,7 @@
  * @copyright Copyright (C) 2025 Cornell Electric Vehicles.
  * SPDX-License-Identifier: MIT
  */
+#pragma once
 
 #include <Eigen/Core>
 #include <cstddef>

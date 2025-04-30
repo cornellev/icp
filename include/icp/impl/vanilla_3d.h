@@ -1,3 +1,7 @@
+/**
+ * @copyright Copyright (C) 2025 Cornell Electric Vehicles.
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
 
 #include <memory>
@@ -8,11 +12,11 @@
 
 namespace icp {
 
-    class Vanilla_3d : public ICP3 {
+    class Vanilla3d : public ICP3 {
     public:
-        Vanilla_3d(const Config& config);
-        Vanilla_3d();
-        ~Vanilla_3d();
+        Vanilla3d(const Config& config);
+        Vanilla3d();
+        ~Vanilla3d();
 
     protected:
         void setup() override;
@@ -22,8 +26,9 @@ namespace icp {
         PointCloud c;
         std::unique_ptr<KdTree<Vector>> target_kdtree_;
         double current_cost_;
+        std::unique_ptr<icp::KdTree<Eigen::Vector3d>> kdtree_;
 
-        NEIGHBOR nearest_neighbor(const PointCloud& src, const PointCloud& dst);
+        Neighbors nearest_neighbor(const PointCloud& src, const PointCloud& dst);
         float dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb);
         RBTransform best_fit_transform(const PointCloud& A, const PointCloud& B);
         void calculate_cost(const std::vector<float>& distances);

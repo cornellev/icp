@@ -1,3 +1,8 @@
+/**
+ * @copyright Copyright (C) 2025 Cornell Electric Vehicles.
+ * SPDX-License-Identifier: MIT
+ */
+
 #include "icp/geo.h"
 #include "icp/icp.h"
 #include "icp/driver.h"
@@ -29,7 +34,7 @@ extern "C" {
 #define assert_rotation(expected, real) assert_rotation_eps(expected, real, RAD_EPS)
 
 void test_icp_3d(const icp::Config& config) {
-    std::unique_ptr<icp::ICP3> icp = std::make_unique<icp::Vanilla_3d>(config);
+    std::unique_ptr<icp::ICP3> icp = std::make_unique<icp::Vanilla3d>(config);
     icp::ICPDriver driver(std::move(icp));
     driver.set_max_iterations(100);
     driver.set_transform_tolerance(0.1 * M_PI / 180, 0.1);

@@ -10,6 +10,7 @@
 #include <Eigen/Geometry>
 
 #include "icp/dim.h"
+#include "icp/neighbor.h"
 
 namespace icp {
     template<const Dimension Dim>
