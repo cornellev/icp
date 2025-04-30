@@ -4,13 +4,11 @@
  */
 #pragma once
 
+#include <cmath>
 #include <vector>
 #include <algorithm>
-#include <memory>
 #include <numeric>
-#include <stdexcept>
 #include <limits>
-#include <functional>
 
 namespace icp {
     /**

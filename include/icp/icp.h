@@ -60,8 +60,13 @@ namespace icp {
 
         /** A matching between `point` and `pair` at (arbitrary) cost `cost`.  */
         struct Match {
+            /** An index into the source point cloud. */
             size_t point;
+
+            /** An index into the destination point cloud. */
             size_t pair;
+
+            /** The (arbitrary) cost of the pair. */
             double cost;
         };
 
@@ -86,8 +91,6 @@ namespace icp {
          * clouds.
          */
         virtual void setup() = 0;
-
-        RBTransform initial_transform_;
 
     public:
         static std::optional<std::unique_ptr<ICP<Dim>>> from_method(const std::string& name,
@@ -155,6 +158,15 @@ namespace icp {
         /** The current transform. */
         RBTransform current_transform() const {
             return transform;
+        }
+
+        /**
+         * @brief Gets the current point matching computed by ICP.
+         *
+         * @return A reference to the matching. Invalidates if `begin` or `iterate` are called.
+         */
+        const std::vector<Match>& get_matches() const {
+            return matches;
         }
     };
 

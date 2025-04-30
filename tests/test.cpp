@@ -1,4 +1,8 @@
-// Copyright (C) 2024 Ethan Uppal. All rights reserved.
+/**
+ * @author Ethan Uppal
+ * @copyright Copyright (C) 2024 Ethan Uppal.
+ * SPDX-License-Identifier: MIT
+ */
 #include <cstddef>
 #include <string>
 #include "icp/geo.h"
