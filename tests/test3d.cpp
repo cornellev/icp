@@ -51,7 +51,7 @@ void test_icp_3d(const icp::Config& config) {
     // (and are not common at all in real world data)
     // TODO: check for the colinear case and return an error or something?
 
-    // Test case 3: Rotation about one of the axes
+    // Test case 2: Rotation about one of the axes
     for (int deg = 0; deg < 10; deg++) {
         icp::PointCloud3 a(3, 3);
         a.col(0) << 1, 0, 0;
@@ -81,7 +81,7 @@ void test_icp_3d(const icp::Config& config) {
         assert_rotation(rotation_matrix, result.transform.rotation());
     }
 
-    // Test case 4: Rotation about multiple axes
+    // Test case 3: Rotation about multiple axes
     {
         icp::PointCloud3 a(3, 3);
         a.col(0) << 1, 0, 0;
@@ -120,7 +120,7 @@ void test_icp_3d(const icp::Config& config) {
         assert_rotation(rotation_matrix, result.transform.rotation());
     }
 
-    // Test case 6: Translation + rotation
+    // Test case 4: Translation + rotation
     {
         icp::PointCloud3 a(3, 3);
         a.col(0) << 100, 0, 0;
@@ -151,7 +151,7 @@ void test_icp_3d(const icp::Config& config) {
         assert_rotation(rotation_matrix, result.transform.rotation());
     }
 
-    // Test case 7: Add noise
+    // Test case 5: Add noise
     {
         icp::PointCloud3 a(3, 3);
         a.col(0) << 100, 0, 0;

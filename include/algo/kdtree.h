@@ -17,14 +17,14 @@ namespace icp {
     class KdTree {
     public:
         /**
-         * @brief Construct an empty k-d tree.
+         * @brief Construct an empty k-d tree. defaults to 3D space.
          */
-        KdTree(): root_(nullptr), dim_(PointT::DIM) {}
+        KdTree(): root_(nullptr), dim_(3) {}
 
         /**
          * @brief Construct and build the k-d tree from a point cloud.
          * @param points Vector of input points.
-         * @param dim Dimensionality of the space. If -1, defaults to 3.
+         * @param dim Dimensionality of the space. Defaults to 3 if not specified.
          */
         KdTree(const std::vector<PointT>& points, int dim = -1): root_(nullptr) {
             build(points, dim);
