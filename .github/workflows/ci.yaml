@@ -22,7 +22,7 @@ jobs:
         if: ${{ contains(matrix.os, 'ubuntu') }}
         run: sudo apt-get update
 
-       - name: Cache APT packages (Ubuntu)
+      - name: Cache APT packages (Ubuntu)
         if: ${{ contains(matrix.os, 'ubuntu') }}
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
