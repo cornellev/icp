@@ -23,7 +23,6 @@ namespace icp {
          */
         KdTree(): dim_(3) {}
 
-
         /**
          * @brief Construct and build the k-d tree from a point cloud.
          * @param points Vector of input points.
@@ -31,7 +30,6 @@ namespace icp {
          */
 
         KdTree(const std::vector<PointT>& points, int dim = -1) {
-
             build(points, dim);
         }
 
@@ -40,7 +38,6 @@ namespace icp {
          */
 
         ~KdTree() = default;
-
 
         /**
          * @brief Build the k-d tree from a given point set.
@@ -63,7 +60,6 @@ namespace icp {
          * @brief Clear the tree.
          */
         void clear() {
-
             root_.reset();
             points_.clear();
         }
@@ -72,7 +68,6 @@ namespace icp {
          * @brief Internal node structure of the k-d tree.
          */
         struct Node {
-
             int idx;                        // index to the original point
             std::unique_ptr<Node> next[2];  // pointers to the child nodes using unique_ptr
             int axis;                       // dimension's axis
@@ -90,7 +85,6 @@ namespace icp {
         int search(const PointT& query, double* minDist = nullptr) const {
             int guess;
             double _minDist = std::numeric_limits<double>::max();
-
 
             search_recursive(query, root_.get(), &guess, &_minDist);
 
@@ -111,7 +105,6 @@ namespace icp {
 
             std::nth_element(indices, indices + mid, indices + npoints,
                 [&](int lhs, int rhs) { return points_[lhs][axis] < points_[rhs][axis]; });
-
 
             auto node = std::make_unique<Node>();
 
@@ -160,6 +153,5 @@ namespace icp {
         std::vector<PointT> points_;  // stored reference to the original input points
         int dim_;                     // dimensionality of the space
     };
-
 
 }  // namespace icp
