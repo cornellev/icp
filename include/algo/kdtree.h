@@ -35,12 +35,6 @@ namespace icp {
         }
 
         /**
-         * @brief Destructor.
-         */
-
-        ~KdTree() = default;
-
-        /**
          * @brief Build the k-d tree from a given point set.
          * @param points Vector of input points.
          * @param dim Dimensionality of the space. If -1, defaults to 3.
