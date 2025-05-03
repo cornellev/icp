@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <numeric>
 #include <limits>
+#include <memory>
 
 namespace icp {
     /**
@@ -21,22 +22,16 @@ namespace icp {
         /**
          * @brief Construct an empty k-d tree. defaults to 3D space.
          */
-        KdTree(): root_(nullptr), dim_(3) {}
+        KdTree(): dim_(3) {}
 
         /**
          * @brief Construct and build the k-d tree from a point cloud.
          * @param points Vector of input points.
          * @param dim Dimensionality of the space. Defaults to 3 if not specified.
          */
-        KdTree(const std::vector<PointT>& points, int dim = -1): root_(nullptr) {
-            build(points, dim);
-        }
 
-        /**
-         * @brief Destructor.
-         */
-        ~KdTree() {
-            clear();
+        KdTree(const std::vector<PointT>& points, int dim = -1) {
+            build(points, dim);
         }
 
         /**
@@ -60,8 +55,7 @@ namespace icp {
          * @brief Clear the tree.
          */
         void clear() {
-            clear_recursive(root_);
-            root_ = nullptr;
+            root_.reset();
             points_.clear();
         }
 
@@ -69,13 +63,11 @@ namespace icp {
          * @brief Internal node structure of the k-d tree.
          */
         struct Node {
-            int idx;        // index to the original point
-            Node* next[2];  // pointers to the child nodes
-            int axis;       // dimension's axis
+            int idx;                        // index to the original point
+            std::unique_ptr<Node> next[2];  // pointers to the child nodes using unique_ptr
+            int axis;                       // dimension's axis
 
-            Node(): idx(-1), axis(-1) {
-                next[0] = next[1] = nullptr;
-            }
+            Node(): idx(-1), axis(-1) {}
         };
 
         /**
@@ -89,7 +81,7 @@ namespace icp {
             int guess;
             double _minDist = std::numeric_limits<double>::max();
 
-            search_recursive(query, root_, &guess, &_minDist);
+            search_recursive(query, root_.get(), &guess, &_minDist);
 
             if (minDist) *minDist = _minDist;
             return guess;
@@ -99,7 +91,8 @@ namespace icp {
         /**
          * @brief Recursively build the tree from a set of point indices.
          */
-        Node* build_recursive(int* indices, int npoints, int depth) {
+
+        std::unique_ptr<Node> build_recursive(int* indices, int npoints, int depth) {
             if (npoints <= 0) return nullptr;
 
             const int axis = depth % dim_;
@@ -108,7 +101,8 @@ namespace icp {
             std::nth_element(indices, indices + mid, indices + npoints,
                 [&](int lhs, int rhs) { return points_[lhs][axis] < points_[rhs][axis]; });
 
-            Node* node = new Node();
+            auto node = std::make_unique<Node>();
+
             node->idx = indices[mid];
             node->axis = axis;
 
@@ -116,18 +110,6 @@ namespace icp {
             node->next[1] = build_recursive(indices + mid + 1, npoints - mid - 1, depth + 1);
 
             return node;
-        }
-
-        /**
-         * @brief Recursively clear the tree.
-         */
-        void clear_recursive(Node* node) {
-            if (node == nullptr) return;
-
-            if (node->next[0]) clear_recursive(node->next[0]);
-            if (node->next[1]) clear_recursive(node->next[1]);
-
-            delete node;
         }
 
         /**
@@ -155,13 +137,14 @@ namespace icp {
 
             const int axis = node->axis;
             const int dir = query[axis] < train[axis] ? 0 : 1;
-            search_recursive(query, node->next[dir], guess, minDist);
+
+            search_recursive(query, node->next[dir].get(), guess, minDist);
 
             const double diff = std::fabs(query[axis] - train[axis]);
-            if (diff < *minDist) search_recursive(query, node->next[!dir], guess, minDist);
+            if (diff < *minDist) search_recursive(query, node->next[!dir].get(), guess, minDist);
         }
 
-        Node* root_;                  // root node of the k-d tree
+        std::unique_ptr<Node> root_;  // root node of the k-d tree
         std::vector<PointT> points_;  // stored reference to the original input points
         int dim_;                     // dimensionality of the space
     };
