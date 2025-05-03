@@ -4,7 +4,6 @@
  */
 
 #include <cstddef>
-#include <iostream>
 #include <numeric>
 #include <vector>
 #include <cmath>
@@ -34,7 +33,7 @@ namespace icp {
         return (pta - ptb).norm();
     }
 
-    Neighbors Trimmed3d::nearest_neighbor(const PointCloud& src, const PointCloud& dst) {
+    Neighbors Trimmed3d::nearest_neighbor(const PointCloud& src) {
         Neighbors neigh;
         neigh.distances.resize(src.cols());
         neigh.indices.resize(src.cols());
@@ -89,7 +88,7 @@ namespace icp {
 
     void Trimmed3d::iterate() {
         // Reorder target point set based on nearest neighbor
-        Neighbors neighbor = nearest_neighbor(c, b);
+        Neighbors neighbor = nearest_neighbor(c);
         PointCloud dst_reordered(3, a.cols());  // Assuming PointCloud is a 3xN matrix
         std::vector<Eigen::Vector3d>
             src_valid;  // Get the valid points from source and distance according to max_distance

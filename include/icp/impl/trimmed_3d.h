@@ -29,7 +29,7 @@ namespace icp {
         double max_distance;  // max distance for trimming
         std::unique_ptr<icp::KdTree<Eigen::Vector3d>> kdtree_;
 
-        Neighbors nearest_neighbor(const PointCloud& src, const PointCloud& dst);
+        Neighbors nearest_neighbor(const PointCloud& src);
         float dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb);
         RBTransform best_fit_transform(const PointCloud& A, const PointCloud& B);
         void calculate_cost(const std::vector<float>& distances);

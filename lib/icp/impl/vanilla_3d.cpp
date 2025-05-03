@@ -28,7 +28,7 @@ namespace icp {
         return (pta - ptb).norm();
     }
 
-    Neighbors Vanilla3d::nearest_neighbor(const PointCloud& src, const PointCloud& dst) {
+    Neighbors Vanilla3d::nearest_neighbor(const PointCloud& src) {
         Neighbors neigh;
         neigh.distances.resize(src.cols());
         neigh.indices.resize(src.cols());
@@ -83,7 +83,7 @@ namespace icp {
 
     void Vanilla3d::iterate() {
         // Reorder target point set based on nearest neighbor
-        Neighbors neighbor = nearest_neighbor(c, b);
+        Neighbors neighbor = nearest_neighbor(c);
         PointCloud dst_reordered(3, a.cols());  // Assuming PointCloud is a 3xN matrix
         for (ptrdiff_t i = 0; i < a.cols(); i++) {
             dst_reordered.col(i) = b.col(neighbor.indices[i]);
