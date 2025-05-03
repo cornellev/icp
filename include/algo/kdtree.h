@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <numeric>
 #include <limits>
+#include <memory>
 
 namespace icp {
     /**
