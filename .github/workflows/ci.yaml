@@ -22,6 +22,14 @@ jobs:
         if: ${{ contains(matrix.os, 'ubuntu') }}
         run: sudo apt-get update
 
+       - name: Cache APT packages (Ubuntu)
+        if: ${{ contains(matrix.os, 'ubuntu') }}
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libpcl-dev libeigen3-dev libsdl2-dev mpich
+          version: pcl-cache-v1
+          execute_install_scripts: true
+
       - name: Set up Homebrew (MacOS)
         if: ${{ contains(matrix.os, 'macos') }}
         uses: Homebrew/actions/setup-homebrew@master
