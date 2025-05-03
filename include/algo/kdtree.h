@@ -23,19 +23,24 @@ namespace icp {
          */
         KdTree(): dim_(3) {}
 
+
         /**
          * @brief Construct and build the k-d tree from a point cloud.
          * @param points Vector of input points.
          * @param dim Dimensionality of the space. Defaults to 3 if not specified.
          */
+
         KdTree(const std::vector<PointT>& points, int dim = -1) {
+
             build(points, dim);
         }
 
         /**
          * @brief Destructor.
          */
+
         ~KdTree() = default;
+
 
         /**
          * @brief Build the k-d tree from a given point set.
@@ -58,6 +63,7 @@ namespace icp {
          * @brief Clear the tree.
          */
         void clear() {
+
             root_.reset();
             points_.clear();
         }
@@ -66,6 +72,7 @@ namespace icp {
          * @brief Internal node structure of the k-d tree.
          */
         struct Node {
+
             int idx;                        // index to the original point
             std::unique_ptr<Node> next[2];  // pointers to the child nodes using unique_ptr
             int axis;                       // dimension's axis
@@ -84,6 +91,7 @@ namespace icp {
             int guess;
             double _minDist = std::numeric_limits<double>::max();
 
+
             search_recursive(query, root_.get(), &guess, &_minDist);
 
             if (minDist) *minDist = _minDist;
@@ -94,6 +102,7 @@ namespace icp {
         /**
          * @brief Recursively build the tree from a set of point indices.
          */
+
         std::unique_ptr<Node> build_recursive(int* indices, int npoints, int depth) {
             if (npoints <= 0) return nullptr;
 
@@ -103,7 +112,9 @@ namespace icp {
             std::nth_element(indices, indices + mid, indices + npoints,
                 [&](int lhs, int rhs) { return points_[lhs][axis] < points_[rhs][axis]; });
 
+
             auto node = std::make_unique<Node>();
+
             node->idx = indices[mid];
             node->axis = axis;
 
@@ -138,6 +149,7 @@ namespace icp {
 
             const int axis = node->axis;
             const int dir = query[axis] < train[axis] ? 0 : 1;
+
             search_recursive(query, node->next[dir].get(), guess, minDist);
 
             const double diff = std::fabs(query[axis] - train[axis]);
@@ -148,5 +160,6 @@ namespace icp {
         std::vector<PointT> points_;  // stored reference to the original input points
         int dim_;                     // dimensionality of the space
     };
+
 
 }  // namespace icp
