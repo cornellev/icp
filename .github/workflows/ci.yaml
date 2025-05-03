@@ -30,6 +30,15 @@ jobs:
           version: pcl-cache-v1
           execute_install_scripts: true
 
+      - name: Cache Homebrew downloads (macOS)
+        if: ${{ contains(matrix.os, 'macos') }}
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: homebrew-cache-${{ runner.os }}-${{ hashFiles('**/Brewfile') }}
+          restore-keys: |
+            homebrew-cache-${{ runner.os }}-
+
       - name: Set up Homebrew (MacOS)
         if: ${{ contains(matrix.os, 'macos') }}
         uses: Homebrew/actions/setup-homebrew@master
