@@ -19,7 +19,9 @@ if(DEFINED ENV{CI})
 
   # for clang thinking unused functions in headers are problematic
   # and also complaining about float-store
-  add_compile_options(-Wno-error=unused-function -Wno-error=ignored-optimization-argument)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-Wno-error=unused-function -Wno-error=ignored-optimization-argument)
+  endif()
 endif()
 
 # Add compile options
