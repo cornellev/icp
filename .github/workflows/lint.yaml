@@ -1,4 +1,4 @@
-name: Code Style
+name: Lint
 
 on:
   pull_request:
@@ -6,8 +6,11 @@ on:
     branches:
       - main
 
+env:
+  CI: true
+
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
