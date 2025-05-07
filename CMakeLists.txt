@@ -16,6 +16,7 @@ option(USE_SANITIZERS "Compile with ASan and UBSan" OFF)
 if(DEFINED ENV{CI})
   set(USE_SANITIZERS ON)
   set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+  add_compile_options(-Wno-error=unused-function)
 endif()
 
 # Add compile options
