@@ -1,7 +1,7 @@
 # Copyright (C) 2024-2025 Cornell Electric Vehicles.
 # SPDX-License-Identifier: MIT
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.15)
 project(CevIcp LANGUAGES C CXX)
 
 set(PROJECT_VERSION 1.3.0)
