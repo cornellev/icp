@@ -19,7 +19,7 @@ if(DEFINED ENV{CI})
 
   # for clang thinking unused functions in headers are problematic
   # and also complaining about float-store
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     add_compile_options(-Wno-error=unused-function -Wno-error=ignored-optimization-argument)
   endif()
 endif()
