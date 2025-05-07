@@ -16,7 +16,7 @@ option(USE_SANITIZERS "Compile with ASan and UBSan" OFF)
 if(DEFINED ENV{CI})
   set(USE_SANITIZERS ON)
   set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
-  add_compile_options(-Wno-error=unused-function)
+  add_compile_options(-Wno-error=unused-function)  # for clang thinking unused functions in headers are problematic
 endif()
 
 # Add compile options

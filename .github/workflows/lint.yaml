@@ -78,7 +78,8 @@ jobs:
 
       - name: Install clang-tidy
         run: |
-          sudo apt-get install clang-tidy
+          sudo apt-get install clang-tidy-19
+          sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-19 100
           clang-tidy --version
 
       - name: Run clang-tidy
