@@ -16,7 +16,10 @@ option(USE_SANITIZERS "Compile with ASan and UBSan" OFF)
 if(DEFINED ENV{CI})
   set(USE_SANITIZERS ON)
   set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
-  add_compile_options(-Wno-error=unused-function)  # for clang thinking unused functions in headers are problematic
+
+  # for clang thinking unused functions in headers are problematic
+  # and also complaining about float-store
+  add_compile_options(-Wno-error=unused-function -Wno-error=ignored-optimization-argument)
 endif()
 
 # Add compile options
