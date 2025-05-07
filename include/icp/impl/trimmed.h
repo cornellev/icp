@@ -13,7 +13,7 @@ namespace icp {
     public:
         Trimmed(double overlap_rate);
         Trimmed(const Config& config);
-        ~Trimmed();
+        ~Trimmed() override;
 
         void setup() override;
         void iterate() override;

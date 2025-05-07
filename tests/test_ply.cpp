@@ -16,13 +16,11 @@
 #include "icp/geo.h"
 #include "icp/icp.h"
 #include "icp/driver.h"
-#include "icp/impl/vanilla_3d.h"
 #include "icp/impl/trimmed_3d.h"
 
 // Algorithm parameters
-#define BURN_IN 0                   // Minimum required iterations
-#define TRANS_EPS 0.0001            // Translation tolerance (units)
-#define RAD_EPS ((double)(0.0001))  // Rotation tolerance (radians)
+constexpr double TRANS_EPS = 0.0001;  // Translation tolerance (units)
+constexpr double RAD_EPS = 0.0001;    // Rotation tolerance (radians)
 
 /**
  * @brief Load a point cloud from PLY file
@@ -41,7 +39,7 @@ icp::PointCloud3 loadPointCloud(const std::string& path) {
 
     for (size_t i = 0; i < cloud->points.size(); i++) {
         auto point = cloud->points[i];
-        points.col(i) = Eigen::Vector3d(point.x, point.y, point.z);
+        points.col(static_cast<Eigen::Index>(i)) = Eigen::Vector3d(point.x, point.y, point.z);
     }
 
     return points;
@@ -103,14 +101,13 @@ int main(int argc, char* argv[]) {
         std::unique_ptr<icp::ICP3> icp = std::make_unique<icp::Trimmed3d>(config);
         icp::ICPDriver driver(std::move(icp));
 
-        driver.set_min_iterations(BURN_IN);
         driver.set_max_iterations(100);
         driver.set_transform_tolerance(RAD_EPS, TRANS_EPS);
         // Load point clouds
         icp::PointCloud3 source_points = loadPointCloud(path_a);
         icp::PointCloud3 target_points = loadPointCloud(path_b);
 
-        std::cout << "Starting ICP..." << std::endl;
+        std::cout << "Starting ICP..." << "\n";
 
         // Run ICP
         auto result = driver.converge(source_points, target_points, icp::RBTransform3::Identity());
@@ -119,14 +116,14 @@ int main(int argc, char* argv[]) {
         saveTransformedPointCloud(source_points, result.transform, output_path);
 
         // Print results
-        std::cout << "\n===== ICP Results =====" << std::endl;
-        std::cout << "  Rotation: \n" << result.transform.rotation() << std::endl;
-        std::cout << "  Translation: " << result.transform.translation().transpose() << std::endl;
-        std::cout << "  Iterations: " << result.iteration_count << std::endl;
+        std::cout << "\n===== ICP Results =====" << "\n";
+        std::cout << "  Rotation: \n" << result.transform.rotation() << "\n";
+        std::cout << "  Translation: " << result.transform.translation().transpose() << "\n";
+        std::cout << "  Iterations: " << result.iteration_count << "\n";
 
-        std::cout << "ICP completed successfully" << std::endl;
+        std::cout << "ICP completed successfully" << "\n";
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << "Error: " << e.what() << "\n";
         return 1;
     }
 

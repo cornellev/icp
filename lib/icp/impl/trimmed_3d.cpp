@@ -14,6 +14,7 @@
 #include <Eigen/Dense>
 
 #include "icp/impl/trimmed_3d.h"
+#include <Eigen/src/Core/util/Meta.h>
 #include "algo/kdtree.h"
 #include "icp/geo.h"
 
@@ -21,15 +22,14 @@
 
 namespace icp {
     Trimmed3d::Trimmed3d([[maybe_unused]] const Config& config)
-        : ICP(),
-          c(3, 0),
+        : c(3, 0),
           current_cost_(std::numeric_limits<double>::max()),
           max_distance(config.get<double>("max_distance", 1.0)) {}
-    Trimmed3d::Trimmed3d(): ICP(), c(3, 0), current_cost_(std::numeric_limits<double>::max()) {}
-    Trimmed3d::~Trimmed3d() {}
+    Trimmed3d::Trimmed3d(): c(3, 0), current_cost_(std::numeric_limits<double>::max()) {}
+    Trimmed3d::~Trimmed3d() = default;
 
     // Euclidean distance between two points
-    float Trimmed3d::dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb) {
+    double Trimmed3d::dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb) {
         return (pta - ptb).norm();
     }
 
@@ -79,7 +79,7 @@ namespace icp {
         current_cost_ = std::numeric_limits<double>::max();
 
         std::vector<Eigen::Vector3d> dst_vec(b.cols());
-        for (ptrdiff_t i = 0; i < b.cols(); ++i) {
+        for (Eigen::Index i = 0; i < b.cols(); ++i) {
             dst_vec[i] = b.col(i);
         }
 
@@ -94,18 +94,18 @@ namespace icp {
             src_valid;  // Get the valid points from source and distance according to max_distance
         std::vector<Eigen::Vector3d> dst_valid;
 
-        for (ptrdiff_t i = 0; i < a.cols(); ++i) {
+        for (Eigen::Index i = 0; i < a.cols(); ++i) {
             if (neighbor.distances[i] <= max_distance) {
-                src_valid.push_back(c.col(i));
-                dst_valid.push_back(b.col(neighbor.indices[i]));
+                src_valid.emplace_back(c.col(i));
+                dst_valid.emplace_back(b.col(neighbor.indices[i]));
             }
         }
 
         Eigen::MatrixXd AA(3, src_valid.size());
         Eigen::MatrixXd BB(3, dst_valid.size());
         for (size_t i = 0; i < src_valid.size(); ++i) {
-            AA.col(i) = src_valid[i];
-            BB.col(i) = dst_valid[i];
+            AA.col(static_cast<Eigen::Index>(i)) = src_valid[i];
+            BB.col(static_cast<Eigen::Index>(i)) = dst_valid[i];
         }
 
         RBTransform T = best_fit_transform(AA, BB);
@@ -115,13 +115,13 @@ namespace icp {
         calculate_cost(neighbor.distances);
     }
 
-    void Trimmed3d::calculate_cost(const std::vector<float>& distances) {
+    void Trimmed3d::calculate_cost(const std::vector<double>& distances) {
         if (distances.empty()) {
             current_cost_ = std::numeric_limits<double>::max();
             return;
         }
 
         double sum = std::accumulate(distances.begin(), distances.end(), 0.0);
-        current_cost_ = sum / distances.size();
+        current_cost_ = sum / static_cast<double>(distances.size());
     }
 }

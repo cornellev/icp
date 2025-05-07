@@ -16,7 +16,7 @@ namespace icp {
     public:
         Vanilla3d(const Config& config);
         Vanilla3d();
-        ~Vanilla3d();
+        ~Vanilla3d() override;
 
     protected:
         void setup() override;
@@ -29,9 +29,9 @@ namespace icp {
         std::unique_ptr<icp::KdTree<Eigen::Vector3d>> kdtree_;
 
         Neighbors nearest_neighbor(const PointCloud& src);
-        float dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb);
-        RBTransform best_fit_transform(const PointCloud& A, const PointCloud& B);
-        void calculate_cost(const std::vector<float>& distances);
+        static double dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb);
+        static RBTransform best_fit_transform(const PointCloud& A, const PointCloud& B);
+        void calculate_cost(const std::vector<double>& distances);
     };
 
 }  // namespace icp

@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <cstddef>
 #include <numeric>
 #include <vector>
 #include <cmath>
@@ -19,12 +18,12 @@
 
 namespace icp {
     Vanilla3d::Vanilla3d([[maybe_unused]] const Config& config)
-        : ICP(), c(3, 0), current_cost_(std::numeric_limits<double>::max()) {}
-    Vanilla3d::Vanilla3d(): ICP(), c(3, 0), current_cost_(std::numeric_limits<double>::max()) {}
-    Vanilla3d::~Vanilla3d() {}
+        : c(3, 0), current_cost_(std::numeric_limits<double>::max()) {}
+    Vanilla3d::Vanilla3d(): c(3, 0), current_cost_(std::numeric_limits<double>::max()) {}
+    Vanilla3d::~Vanilla3d() = default;
 
     // Euclidean distance between two points
-    float Vanilla3d::dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb) {
+    double Vanilla3d::dist(const Eigen::Vector3d& pta, const Eigen::Vector3d& ptb) {
         return (pta - ptb).norm();
     }
 
@@ -74,7 +73,7 @@ namespace icp {
         current_cost_ = std::numeric_limits<double>::max();
 
         std::vector<Eigen::Vector3d> dst_vec(b.cols());
-        for (ptrdiff_t i = 0; i < b.cols(); ++i) {
+        for (Eigen::Index i = 0; i < b.cols(); ++i) {
             dst_vec[i] = b.col(i);
         }
 
@@ -85,7 +84,7 @@ namespace icp {
         // Reorder target point set based on nearest neighbor
         Neighbors neighbor = nearest_neighbor(c);
         PointCloud dst_reordered(3, a.cols());  // Assuming PointCloud is a 3xN matrix
-        for (ptrdiff_t i = 0; i < a.cols(); i++) {
+        for (Eigen::Index i = 0; i < a.cols(); i++) {
             dst_reordered.col(i) = b.col(neighbor.indices[i]);
         }
         RBTransform T = best_fit_transform(c, dst_reordered);
@@ -96,13 +95,13 @@ namespace icp {
         calculate_cost(neighbor.distances);
     }
 
-    void Vanilla3d::calculate_cost(const std::vector<float>& distances) {
+    void Vanilla3d::calculate_cost(const std::vector<double>& distances) {
         if (distances.empty()) {
             current_cost_ = std::numeric_limits<double>::max();
             return;
         }
 
         double sum = std::accumulate(distances.begin(), distances.end(), 0.0);
-        current_cost_ = sum / distances.size();
+        current_cost_ = sum / static_cast<double>(distances.size());
     }
 }

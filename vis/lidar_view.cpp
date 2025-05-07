@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstdint>
 #include <cstdlib>
 #include <SDL_pixels.h>
 #include <sdlwrapper/util/logger.h>
@@ -17,9 +16,9 @@
 #include "icp/geo.h"
 #include "view_config.h"
 
-#define CIRCLE_RADIUS 3
+constexpr int CIRCLE_RADIUS = 3;
 
-LidarView::LidarView(icp::PointCloud2 source, icp::PointCloud2 destination,
+LidarView::LidarView(const icp::PointCloud2& source, const icp::PointCloud2& destination,
     std::unique_ptr<icp::ICP2> icp)
     : source(source),
       destination(destination),
@@ -72,24 +71,24 @@ void LidarView::draw_matches(SDL_Renderer* renderer) {
         })->cost;
 
     // the size of available points in "a" changed
-    for (ptrdiff_t i = 0; i < source.cols(); i++) {
+    for (Eigen::Index i = 0; i < source.cols(); i++) {
         const auto& source_point = source.col(matches[i].point);
         const auto& destination_point = destination.col(matches[i].pair);
         auto transformed_source = icp->current_transform() * source_point;
 
-        SDL_SetRenderDrawColor(renderer, 0, 255 - (uint8_t)(matches[i].cost / max_cost * 255), 0,
-            SDL_ALPHA_OPAQUE);
+        SDL_SetRenderDrawColor(renderer, 0,
+            255 - static_cast<int>(matches[i].cost / max_cost * 255), 0, SDL_ALPHA_OPAQUE);
 
         // current transform
         SDL_RenderDrawLine(renderer,
-            static_cast<int>(view_config::view_scale * transformed_source[0])
-                + view_config::x_displace,
-            static_cast<int>(view_config::view_scale * transformed_source[1])
-                + view_config::y_displace,
-            static_cast<int>(view_config::view_scale * destination_point[0])
-                + view_config::x_displace,
-            static_cast<int>(view_config::view_scale * destination_point[1])
-                + view_config::y_displace);
+            static_cast<int>(view_config::view_scale * transformed_source[0]
+                             + view_config::x_displace),
+            static_cast<int>(view_config::view_scale * transformed_source[1]
+                             + view_config::y_displace),
+            static_cast<int>(view_config::view_scale * destination_point[0]
+                             + view_config::x_displace),
+            static_cast<int>(view_config::view_scale * destination_point[1]
+                             + view_config::y_displace));
     }
 }
 
@@ -104,15 +103,19 @@ void LidarView::draw(SDL_Renderer* renderer, [[maybe_unused]] const SDL_Rect* fr
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
     for (const icp::Vector2& point: destination.colwise()) {
-        SDL_DrawCircle(renderer, view_config::view_scale * point[0] + view_config::x_displace,
-            view_config::view_scale * point[1] + view_config::y_displace, CIRCLE_RADIUS);
+        SDL_DrawCircle(renderer,
+            static_cast<int>(view_config::view_scale * point.x() + view_config::x_displace),
+            static_cast<int>(view_config::view_scale * point.y() + view_config::y_displace),
+            CIRCLE_RADIUS);
     }
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
     for (const icp::Vector2& point: source.colwise()) {
         icp::Vector2 result = icp->current_transform() * point;
-        SDL_DrawCircle(renderer, view_config::view_scale * result[0] + view_config::x_displace,
-            view_config::view_scale * result[1] + view_config::y_displace, CIRCLE_RADIUS);
+        SDL_DrawCircle(renderer,
+            static_cast<int>(view_config::view_scale * result[0] + view_config::x_displace),
+            static_cast<int>(view_config::view_scale * result[1] + view_config::y_displace),
+            CIRCLE_RADIUS);
     }
 
     // Draw a line connecting the transformed source point to the destination point (in green)
@@ -120,13 +123,15 @@ void LidarView::draw(SDL_Renderer* renderer, [[maybe_unused]] const SDL_Rect* fr
 
     icp::Vector2 a_cm = icp->current_transform() * icp::get_centroid(source);
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
-    SDL_DrawCircle(renderer, view_config::view_scale * a_cm.x() + view_config::x_displace,
-        view_config::view_scale * a_cm.y() + view_config::y_displace, 20);
+    SDL_DrawCircle(renderer,
+        static_cast<int>(view_config::view_scale * a_cm.x() + view_config::x_displace),
+        static_cast<int>(view_config::view_scale * a_cm.y() + view_config::y_displace), 20);
 
     icp::Vector2 b_cm = icp::get_centroid(destination);
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
-    SDL_DrawCircle(renderer, view_config::view_scale * b_cm.x() + view_config::x_displace,
-        view_config::view_scale * b_cm.y() + view_config::y_displace, 20);
+    SDL_DrawCircle(renderer,
+        static_cast<int>(view_config::view_scale * b_cm.x() + view_config::x_displace),
+        static_cast<int>(view_config::view_scale * b_cm.y() + view_config::y_displace), 20);
 
     if (is_iterating) {
         step();

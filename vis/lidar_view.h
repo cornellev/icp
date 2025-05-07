@@ -26,7 +26,7 @@ class LidarView final : public View {
 public:
     /** Constructs a new lidar view visualizing ICP (by method `method`) on
      * the given instance (`source` and `destination`). */
-    LidarView(icp::PointCloud2 source, icp::PointCloud2 destination,
+    LidarView(const icp::PointCloud2& source, const icp::PointCloud2& destination,
         std::unique_ptr<icp::ICP2> icp);
 
     void on_event(const SDL_Event& event) override;

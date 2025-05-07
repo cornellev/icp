@@ -63,11 +63,10 @@ namespace icp {
          * @brief Internal node structure of the k-d tree.
          */
         struct Node {
-            int idx;                        // index to the original point
-            std::unique_ptr<Node> next[2];  // pointers to the child nodes using unique_ptr
-            int axis;                       // dimension's axis
-
-            Node(): idx(-1), axis(-1) {}
+            int idx = -1;   // index to the original point
+            std::array<std::unique_ptr<Node>, 2>
+                next;       // pointers to the child nodes using unique_ptr
+            int axis = -1;  // dimension's axis
         };
 
         /**
@@ -78,12 +77,14 @@ namespace icp {
          * @return Index of the nearest neighbor in the original input point vector.
          */
         int search(const PointT& query, double* minDist = nullptr) const {
-            int guess;
+            int guess = -1;
             double _minDist = std::numeric_limits<double>::max();
 
             search_recursive(query, root_.get(), &guess, &_minDist);
 
-            if (minDist) *minDist = _minDist;
+            if (minDist != nullptr) {
+                *minDist = _minDist;
+            }
             return guess;
         }
 
@@ -93,7 +94,9 @@ namespace icp {
          */
 
         std::unique_ptr<Node> build_recursive(int* indices, int npoints, int depth) {
-            if (npoints <= 0) return nullptr;
+            if (npoints <= 0) {
+                return nullptr;
+            }
 
             const int axis = depth % dim_;
             const int mid = (npoints - 1) / 2;
@@ -117,7 +120,9 @@ namespace icp {
          */
         static double distance(const PointT& p, const PointT& q) {
             double dist = 0;
-            for (int i = 0; i < p.size(); i++) dist += (p[i] - q[i]) * (p[i] - q[i]);
+            for (int i = 0; i < p.size(); i++) {
+                dist += (p[i] - q[i]) * (p[i] - q[i]);
+            }
             return std::sqrt(dist);
         }
 
@@ -126,7 +131,9 @@ namespace icp {
          */
         void search_recursive(const PointT& query, const Node* node, int* guess,
             double* minDist) const {
-            if (node == nullptr) return;
+            if (node == nullptr) {
+                return;
+            }
 
             const PointT& train = points_[node->idx];
             const double dist = distance(query, train);
@@ -141,7 +148,9 @@ namespace icp {
             search_recursive(query, node->next[dir].get(), guess, minDist);
 
             const double diff = std::fabs(query[axis] - train[axis]);
-            if (diff < *minDist) search_recursive(query, node->next[!dir].get(), guess, minDist);
+            if (diff < *minDist) {
+                search_recursive(query, node->next[dir == 0].get(), guess, minDist);
+            }
         }
 
         std::unique_ptr<Node> root_;  // root node of the k-d tree

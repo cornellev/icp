@@ -43,15 +43,15 @@ namespace icp {
          * @brief Runs ICP to convergence based on the termination conditions set. If no conditions
          * are set, ICP will run indefinitely. This is rarely desirable.
          *
-         * @param a The source point cloud.
-         * @param b The destination point cloud.
-         * @param t The initial guess for the transformation.
+         * @param source The source point cloud.
+         * @param target The target point cloud.
+         * @param guess The initial guess for the transformation.
          * @return ConvergenceState
          */
-        ConvergenceState converge(const PointCloud<Dim>& a, const PointCloud<Dim>& b,
-            RBTransform<Dim> t) {
+        ConvergenceState converge(const PointCloud<Dim>& source, const PointCloud<Dim>& target,
+            RBTransform<Dim> guess) {
             start_time_ = std::chrono::steady_clock::now();
-            icp_->begin(a, b, t);
+            icp_->begin(source, target, guess);
             ConvergenceState state;
 
             state.iteration_count = 0;

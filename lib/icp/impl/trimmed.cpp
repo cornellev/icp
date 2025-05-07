@@ -6,7 +6,6 @@
  */
 
 #include <cassert>
-#include <cstddef>
 #include <cstdlib>
 #include <Eigen/Core>
 #include <Eigen/SVD>
@@ -26,10 +25,8 @@ namespace icp {
 
     /* #conf "overlap_rate" A `double` between `0.0` and `1.0` for
      * the overlap rate. The default is `1.0`. */
-    Trimmed::Trimmed(const Config& config)
-        : ICP(), overlap_rate(config.get<double>("overlap_rate", 0.9)) {}
-
-    Trimmed::~Trimmed() {}
+    Trimmed::Trimmed(const Config& config): overlap_rate(config.get<double>("overlap_rate", 0.9)) {}
+    Trimmed::~Trimmed() = default;
 
     void Trimmed::setup() {
         a_current = transform * a;
@@ -39,7 +36,7 @@ namespace icp {
     }
 
     void Trimmed::iterate() {
-        const ptrdiff_t n = a.cols();
+        const Eigen::Index n = a.cols();
 
         a_current = transform * a;
 
@@ -57,13 +54,13 @@ namespace icp {
         */
         std::sort(matches.begin(), matches.end(),
             [](const auto& a, const auto& b) { return a.cost < b.cost; });
-        ptrdiff_t new_n = static_cast<ptrdiff_t>(overlap_rate * n);
-        new_n = std::max<ptrdiff_t>(new_n, 1);  // TODO: bad for scans with 0 points
+        auto new_n = static_cast<Eigen::Index>(overlap_rate * static_cast<double>(n));
+        new_n = std::max<Eigen::Index>(new_n, 1);  // TODO: bad for scans with 0 points
 
         // yeah, i know this is inefficient. we'll get back to it later.
         PointCloud trimmed_a_current(2, new_n);
         PointCloud trimmed_b(2, new_n);
-        for (ptrdiff_t i = 0; i < new_n; i++) {
+        for (Eigen::Index i = 0; i < new_n; i++) {
             trimmed_a_current.col(i) = a_current.col(matches[i].point);
             trimmed_b.col(i) = b.col(matches[i].pair);
         }
@@ -96,10 +93,10 @@ namespace icp {
     }
 
     void Trimmed::compute_matches() {
-        for (ptrdiff_t i = 0; i < a.cols(); i++) {
+        for (Eigen::Index i = 0; i < a.cols(); i++) {
             matches[i].point = i;
             matches[i].cost = std::numeric_limits<double>::infinity();
-            for (ptrdiff_t j = 0; j < b.cols(); j++) {
+            for (Eigen::Index j = 0; j < b.cols(); j++) {
                 // Point-to-point matching
                 double dist_ij = (b.col(j) - a_current.col(i)).squaredNorm();
 

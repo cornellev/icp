@@ -7,7 +7,6 @@
 #include <iostream>
 #include <memory>
 #include <optional>
-#include "icp/geo.h"
 extern "C" {
 #include <cmdapp/cmdapp.h>
 #include <config/config.h>
@@ -17,6 +16,13 @@ extern "C" {
 #include "lidar_view.h"
 #include "parse_scan.h"
 #include "icp/icp.h"
+
+#define ASSERT_OPT(result)                                                                         \
+    do {                                                                                           \
+        if ((result) == nullptr) {                                                                 \
+            return 1;                                                                              \
+        }                                                                                          \
+    } while (0);
 
 void set_config_param(const char* var, const char* data, [[maybe_unused]] void* user_data) {
     if (strcmp(var, "x_displace") == 0) {
@@ -32,28 +38,25 @@ void set_config_param(const char* var, const char* data, [[maybe_unused]] void* 
     }
 }
 
-void parse_config(const char* path) {
+bool parse_config(const char* path) {
     FILE* file = fopen(path, "r");
-    if (!file) {
+    if (file == nullptr) {
         perror("parse_config: fopen");
-        std::exit(1);
+        fclose(file);
+        return false;
     }
 
     if (conf_parse_file(file, set_config_param, nullptr) != 0) {
         perror("parse_config: conf_parse_file");
-        std::exit(1);
+        fclose(file);
+        return false;
     }
 
     fclose(file);
+    return true;
 }
 
-void assert_opt(bool* opt_result) {
-    if (!opt_result) {
-        std::exit(1);
-    }
-}
-
-void launch_gui(LidarView* view, std::string visualized = "LiDAR scans") {
+void launch_gui(LidarView* view, const std::string& visualized = "LiDAR scans") {
     Window window("Scan Matching", view_config::window_width, view_config::window_height);
 
     window.attach_view(view);
@@ -86,34 +89,40 @@ int main(int argc, const char** argv) {
     ca_synopsis("-S FILE -D FILE [-l]");
     ca_synopsis("-b METHOD [-l]");
 
-    bool* enable_log = NULL;
-    bool* read_scan_files = NULL;
-    bool* basic_mode = NULL;  // for gbody people
-    const char* f_src = NULL;
-    const char* f_dst = NULL;
+    bool* enable_log = nullptr;
+    bool* read_scan_files = nullptr;
+    bool* basic_mode = nullptr;  // for gbody people
+    const char* f_src = nullptr;
+    const char* f_dst = nullptr;
     const char* config_file = "view.conf";
     const char* method = "vanilla";
 
-    assert_opt(read_scan_files = ca_opt('S', "src", ".FILE&D", &f_src,
+    // NOLINTBEGIN(bugprone-assignment-in-if-condition)
+    ASSERT_OPT(read_scan_files = ca_opt('S', "src", ".FILE&D", &f_src,
                    "source scan (pass with -D)"));
-    assert_opt(ca_opt('D', "dst", ".FILE&S", &f_dst, "destination scan (pass with -S)"));
-    assert_opt(ca_opt('c', "config", ".FILE", &config_file,
+    ASSERT_OPT(ca_opt('D', "dst", ".FILE&S", &f_dst, "destination scan (pass with -S)"));
+    ASSERT_OPT(ca_opt('c', "config", ".FILE", &config_file,
         "selects a configuration file (default: view.conf)"));
-    assert_opt(ca_opt('m', "method", ".METHOD", &method, "selects an ICP method"));
-    assert_opt(basic_mode = ca_long_opt("basic-mode", "", NULL, "uses a ligher gui background"));
-    assert_opt(enable_log = ca_opt('l', "log", "", NULL, "enables debug logging"));
-    assert_opt(ca_opt('h', "help", "<h", NULL, "prints this info"));
-    assert_opt(ca_opt('v', "version", "<v", NULL, "prints version info"));
+    ASSERT_OPT(ca_opt('m', "method", ".METHOD", &method, "selects an ICP method"));
+    ASSERT_OPT(basic_mode = ca_long_opt("basic-mode", "", nullptr, "uses a ligher gui background"));
+    ASSERT_OPT(enable_log = ca_opt('l', "log", "", nullptr, "enables debug logging"));
+    ASSERT_OPT(ca_opt('h', "help", "<h", nullptr, "prints this info"));
+    ASSERT_OPT(ca_opt('v', "version", "<v", nullptr, "prints version info"));
+    // NOLINTEND(bugprone-assignment-in-if-condition)
 
     if (argc == 1) {
         ca_print_help();
         return 1;
-    } else if (ca_parse(NULL) != 0) {
+    } else if (ca_parse(nullptr) != 0) {
         return 1;
     }
 
     Log.is_enabled = *enable_log;
-    parse_config(config_file);
+    bool success = parse_config(config_file);
+    if (!success) {
+        return 1;
+    }
+
     if (*basic_mode) {
         view_config::use_light_mode = true;
     }
@@ -126,36 +135,10 @@ int main(int argc, const char** argv) {
         for (const std::string& registered_method: icp::ICP2::registered_methods()) {
             std::cerr << "* " << registered_method << '\n';
         }
-        std::exit(1);
+        return 1;
     }
 
     std::unique_ptr<icp::ICP2> icp = std::move(icp_opt.value());
-
-    // icp::PointCloud2 a(2, 5);
-    // a.col(0) << 0, 0;
-    // a.col(1) << 100, 0;
-    // a.col(2) << 100, 100;
-    // a.col(3) << -20, 50;
-    // a.col(4) << 100, 120;
-    // icp::PointCloud2 b(2, 5);
-    // b.col(0) << 18.9132, 9.87803;
-    // b.col(1) << 105.527, 60.6843;
-    // b.col(2) << 57.3474, 146.636;
-    // b.col(3) << -22.8571, 43.3349;
-    // b.col(4) << 46.8032, 164.386;
-
-    // LidarView* view = new LidarView(a, b, std::move(icp));
-    // launch_gui(view, "test");
-    // return 0;
-
-    // icp::PointCloud2 a(2, 2);
-    // a.col(0) << 0, 0;
-    // a.col(1) << 100, 100;
-    // icp::PointCloud2 b = a;
-
-    // LidarView* view = new LidarView(a, b, std::move(icp));
-    // launch_gui(view, "test");
-    // return 0;
 
     if (*read_scan_files) {
         auto source = parse_lidar_scan(f_src);
@@ -163,7 +146,7 @@ int main(int argc, const char** argv) {
 
         icp::Config config;
         config.set("overlap_rate", 0.9);
-        LidarView* view = new LidarView(source, dest, std::move(icp));
+        auto* view = new LidarView(source, dest, std::move(icp));
 
         launch_gui(view, std::string(f_src) + std::string(" and ") + std::string(f_dst));
     }

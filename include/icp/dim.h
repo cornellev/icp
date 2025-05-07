@@ -1,3 +1,5 @@
+#include <cstdint>
+
 namespace icp {
-    enum Dimension { TwoD = 2, ThreeD = 3 };
+    enum Dimension : std::uint8_t { TwoD = 2, ThreeD = 3 };
 }

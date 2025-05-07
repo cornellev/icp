@@ -5,7 +5,6 @@
  * SPDX-License-Identifier: MIT
  */
 #include <cassert>
-#include <cstddef>
 #include <cstdlib>
 #include <Eigen/Core>
 #include <Eigen/SVD>
@@ -15,9 +14,9 @@
 #include "icp/impl/vanilla.h"
 
 namespace icp {
-    Vanilla::Vanilla([[maybe_unused]] const Config& config): ICP() {}
-    Vanilla::Vanilla(): ICP() {}
-    Vanilla::~Vanilla() {}
+    Vanilla::Vanilla([[maybe_unused]] const Config& config) {}
+    Vanilla::Vanilla() = default;
+    Vanilla::~Vanilla() = default;
 
     void Vanilla::setup() {
         a_current = transform * a;
@@ -37,13 +36,13 @@ namespace icp {
         compute_matches();
 
         Vector matched_b_cm = Vector::Zero();
-        for (size_t i = 0; i < matches.size(); i++) {
-            matched_b_cm += b.col(matches[i].pair);
+        for (auto& match: matches) {
+            matched_b_cm += b.col(match.pair);
         }
-        matched_b_cm /= matches.size();
+        matched_b_cm /= static_cast<double>(matches.size());
 
         Eigen::Matrix2d N = Eigen::Matrix2d::Zero();
-        for (ptrdiff_t i = 0; i < a.cols(); i++) {
+        for (Eigen::Index i = 0; i < a.cols(); i++) {
             N += (a_current.col(i) - a_current_cm)
                  * (b.col(matches[i].pair) - matched_b_cm).transpose();
         }
@@ -70,8 +69,9 @@ namespace icp {
         if (a.cols() == 0 || b.cols() == 0) {
             return;
         }
+
         std::vector<Vector> b_vec(b.cols());
-        for (ptrdiff_t i = 0; i < b.cols(); i++) {
+        for (Eigen::Index i = 0; i < b.cols(); i++) {
             b_vec[i] = b.col(i);
         }
         icp::KdTree<Eigen::Vector2d> kdtree(b_vec, 2);

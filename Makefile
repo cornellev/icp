@@ -75,6 +75,21 @@ view: $(MAIN_TARGET)
 bench: $(BENCH_TARGET)
 	DYLD_LIBRARY_PATH=/usr/local/lib ./$(BUILD_DIR)/$(BENCH_TARGET)
 
+.PHONY: tidy
+tidy: configure  # needed for compile commands database
+	@if [ -z "$(CI)" ]; then \
+		find . -iname '*.h' -o -iname '*.cpp' \
+		-o -path ./$(BUILD_DIR) -prune -false \
+		-o -path ./script -prune -false \
+		-o -path ./test -prune -false \
+		| xargs clang-tidy -p ./$(BUILD_DIR); \
+	else \
+		find . -iname '*.h' -o -iname '*.cpp' \
+		-o -path ./$(BUILD_DIR) -prune -false \
+		-o -path ./script -prune -false \
+		-o -path ./test -prune -false \
+		| xargs clang-tidy -p ./$(BUILD_DIR) -warnings-as-errors='*'; \
+	fi
 
 .PHONY: clean
 clean: configure
