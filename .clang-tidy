@@ -1,0 +1,2 @@
+Checks: 'clang-diagnostic-*,clang-analyzer-*,bugprone-*,modernize-*,performance-*,readability-*,concurrency-*,-modernize-use-trailing-return-type,-readability-else-after-return,-readability-math-missing-parentheses,-bugprone-easily-swappable-parameters,-readability-identifier-length,-readability-magic-numbers,-performance-implicit-conversion-in-loop,-bugprone-exception-escape'
+CheckOptions: [{key: readability-function-cognitive-complexity.Threshold, value: 35}]

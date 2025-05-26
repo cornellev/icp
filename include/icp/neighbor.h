@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include <Eigen/Core>
 #include <vector>
 
 namespace icp {
     struct Neighbors {
-        std::vector<float> distances;
-        std::vector<size_t> indices;
+        std::vector<double> distances;
+        std::vector<Eigen::Index> indices;
     };
 }

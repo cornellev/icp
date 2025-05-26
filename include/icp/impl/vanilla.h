@@ -15,7 +15,7 @@ namespace icp {
     public:
         Vanilla();
         Vanilla(const Config& config);
-        ~Vanilla();
+        ~Vanilla() override;
 
         void setup() override;
         void iterate() override;

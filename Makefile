@@ -75,6 +75,15 @@ view: $(MAIN_TARGET)
 bench: $(BENCH_TARGET)
 	DYLD_LIBRARY_PATH=/usr/local/lib ./$(BUILD_DIR)/$(BENCH_TARGET)
 
+.PHONY: tidy
+tidy: configure  # needed for compile commands database
+	@if [ -z "$(CI)" ]; then \
+		find bench common include lib vis -iname '*.h' -o -iname '*.cpp' \
+		| xargs clang-tidy -p ./$(BUILD_DIR); \
+	else \
+		find bench common include lib vis -iname '*.h' -o -iname '*.cpp' \
+		| xargs clang-tidy -p ./$(BUILD_DIR) -warnings-as-errors='*'; \
+	fi
 
 .PHONY: clean
 clean: configure

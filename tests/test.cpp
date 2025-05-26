@@ -18,8 +18,9 @@ extern "C" {
 #include <simple_test/simple_test.h>
 }
 
-#define TRANS_EPS 0.5             // Translation tolerance in units
-#define RAD_EPS ((double)(0.01))  // Rotation tolerance in radians
+constexpr double TRANS_EPS = 0.5;  // Translation tolerance (units)
+constexpr double RAD_EPS = 0.01;   // Rotation tolerance (radians)
+                                   //
 #define assert_translation_eps(expected, real, eps)                                                \
     do {                                                                                           \
         assert_true(std::abs((real).x() - (expected).x()) < (eps));                                \
@@ -35,13 +36,17 @@ extern "C" {
 
 #define assert_rotation(expected, real) assert_rotation_eps(expected, real, RAD_EPS)
 
-void test_kdtree(void) {
+void test_kdtree() {
     using Vector = Eigen::Vector3d;
     std::vector<Vector> points;
+    points.reserve(1000);
+
     std::mt19937 rng(123);
     std::uniform_real_distribution<double> dist(-100.0, 100.0);
 
-    for (int i = 0; i < 1000; ++i) points.emplace_back(dist(rng), dist(rng), dist(rng));
+    for (int i = 0; i < 1000; ++i) {
+        points.emplace_back(dist(rng), dist(rng), dist(rng));
+    }
 
     icp::KdTree<Vector> kdtree(points, 3);
 
@@ -67,16 +72,16 @@ void test_kdtree(void) {
 
         if (kdtree_idx != brute_idx) {
             std::cerr << "Mismatch at point " << i << ": "
-                      << "kdtree_idx = " << kdtree_idx << ", brute_idx = " << brute_idx
-                      << std::endl;
+                      << "kdtree_idx = " << kdtree_idx << ", brute_idx = " << brute_idx << "\n";
             assert(false && "KDTree search mismatch brute force!");
         }
     }
 
-    std::cout << "All KDTree tests passed!" << std::endl;
+    std::cout << "All KDTree tests passed!" << "\n";
 }
 
 void test_icp_generic(const std::string& method, const icp::Config& config) {
+    // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
     std::unique_ptr<icp::ICP2> icp = icp::ICP2::from_method(method, config).value();
     icp::ICPDriver driver(std::move(icp));
     driver.set_max_iterations(100);
@@ -200,7 +205,7 @@ void test_icp_generic(const std::string& method, const icp::Config& config) {
 
         icp::PointCloud2 b = transform * a;
 
-        for (ptrdiff_t i = 0; i < b.cols(); i++) {
+        for (Eigen::Index i = 0; i < b.cols(); i++) {
             b.col(i) += Eigen::Vector2d(noise_dist(generator), noise_dist(generator));
         }
 

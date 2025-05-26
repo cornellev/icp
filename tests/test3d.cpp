@@ -14,8 +14,8 @@ extern "C" {
 #include <simple_test/simple_test.h>
 }
 
-#define TRANS_EPS 0.5             // Translation tolerance in units
-#define RAD_EPS ((double)(0.01))  // Rotation tolerance in radians
+constexpr double TRANS_EPS = 0.5;  // Translation tolerance (units)
+constexpr double RAD_EPS = 0.01;   // Rotation tolerance (radians)
 
 #define assert_translation_eps(expected, real, eps)                                                \
     do {                                                                                           \
@@ -79,8 +79,8 @@ void test_icp_3d(const icp::Config& config) {
         auto result = driver.converge(a, b, icp::RBTransform3::Identity());  // Use RBTransform3
 
         Eigen::Vector3d expected_t = (Eigen::Matrix3d::Identity() - rotation_matrix) * center;
-        std::cout << "expected translation: " << expected_t << std::endl;
-        std::cout << "result translation: " << result.transform.translation() << std::endl;
+        std::cout << "expected translation: " << expected_t << "\n";
+        std::cout << "result translation: " << result.transform.translation() << "\n";
 
         assert_translation(expected_t, result.transform.translation());
         assert_rotation(rotation_matrix, result.transform.rotation());
@@ -118,8 +118,8 @@ void test_icp_3d(const icp::Config& config) {
         auto result = driver.converge(a, b, icp::RBTransform3::Identity());  // Use RBTransform3
 
         Eigen::Vector3d expected_t = (Eigen::Matrix3d::Identity() - rotation_matrix) * center;
-        std::cout << "expected translation: " << expected_t << std::endl;
-        std::cout << "result translation: " << result.transform.translation() << std::endl;
+        std::cout << "expected translation: " << expected_t << "\n";
+        std::cout << "result translation: " << result.transform.translation() << "\n";
 
         assert_translation(expected_t, result.transform.translation());
         assert_rotation(rotation_matrix, result.transform.rotation());
@@ -186,7 +186,7 @@ void test_icp_3d(const icp::Config& config) {
         icp::PointCloud3 b_transformed = transform * a;  // Apply transform first
 
         // Add noise separately
-        for (ptrdiff_t i = 0; i < a.cols(); ++i) {  // Iterate through columns
+        for (Eigen::Index i = 0; i < a.cols(); ++i) {  // Iterate through columns
             Eigen::Vector3d noisy_point = b_transformed.col(i);
             noisy_point.x() += noise_dist(generator);
             noisy_point.y() += noise_dist(generator);

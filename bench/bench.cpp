@@ -5,7 +5,7 @@
  */
 
 #include <chrono>
-#include <stdio.h>
+#include <cstdio>
 #include <numeric>
 #include <iostream>
 #include <vector>
@@ -38,9 +38,11 @@ struct BenchmarkParams {
     uint32_t scan_id;
 };
 
-BenchmarkResult run_benchmark(BenchmarkParams params) {
+BenchmarkResult run_benchmark(const BenchmarkParams& params) {
+    // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
     auto icp = icp::ICP2::from_method(params.method, icp::Config()).value();
     icp::ICPDriver driver(std::move(icp));
+
     driver.set_max_iterations(params.max_iter);
     driver.set_transform_tolerance(params.angle_tol, params.trans_tol);
 
@@ -68,22 +70,22 @@ BenchmarkResult run_benchmark(BenchmarkParams params) {
     result.max_cost = final_costs.back();
     result.median_cost = final_costs[final_costs.size() / 2];
     result.mean_cost = std::accumulate(final_costs.begin(), final_costs.end(), 0.0)
-                       / final_costs.size();
+                       / static_cast<double>(final_costs.size());
 
     result.min_iterations = iteration_counts.front();
     result.max_iterations = iteration_counts.back();
     result.median_iterations = iteration_counts[iteration_counts.size() / 2];
     result.mean_iterations = std::accumulate(iteration_counts.begin(), iteration_counts.end(), 0.0)
-                             / iteration_counts.size();
+                             / static_cast<double>(iteration_counts.size());
 
-    result.average_time_per_invocation = diff.count() / params.num_invoc;
+    result.average_time_per_invocation = diff.count() / static_cast<double>(params.num_invoc);
     result.average_time_per_iteration =
         diff.count() / (std::accumulate(iteration_counts.begin(), iteration_counts.end(), 0.0));
 
     return result;
 }
 
-void print_benchmark_params(BenchmarkParams params) {
+void print_benchmark_params(const BenchmarkParams& params) {
     std::cout << "* Method: " << params.method << "\n"
               << "* Number of invocations: " << params.num_invoc << "\n"
               << "* Angle tolerance: " << params.angle_tol << " rad\n"
@@ -122,7 +124,9 @@ int main() {
         std::cout << "=======================================\n";
 
         for (uint32_t scan_id = 1; scan_id <= scans; scan_id++) {
-            if (scan_id != 1) std::cout << "---------------------------------------\n";
+            if (scan_id != 1) {
+                std::cout << "---------------------------------------\n";
+            }
 
             params.method = method;
             params.scan_id = scan_id;

@@ -8,7 +8,6 @@
 #pragma once
 
 #include <cmath>
-#include <cstddef>
 #include <vector>
 #include <memory>
 #include <optional>
@@ -61,10 +60,10 @@ namespace icp {
         /** A matching between `point` and `pair` at (arbitrary) cost `cost`.  */
         struct Match {
             /** An index into the source point cloud. */
-            size_t point;
+            Eigen::Index point;
 
             /** An index into the destination point cloud. */
-            size_t pair;
+            Eigen::Index pair;
 
             /** The (arbitrary) cost of the pair. */
             double cost;
@@ -116,15 +115,15 @@ namespace icp {
 
         virtual ~ICP() = default;
 
-        /** Begins the ICP process for point clouds `a` and `b` with an initial
-         * guess for the transform `t`.*/
-        void begin(const PointCloud& a, const PointCloud& b, const RBTransform& t) {
+        /** Begins the ICP process for point clouds `source` and `target` with an initial
+         * guess for the transform `guess`.*/
+        void begin(const PointCloud& source, const PointCloud& target, const RBTransform& guess) {
             // Initial transform guess
-            this->transform = t;
+            this->transform = guess;
 
             // Copy in point clouds
-            this->a = a;
-            this->b = b;
+            this->a = source;
+            this->b = target;
 
             // Ensure arrays are the right size
             matches.resize(this->a.cols());
@@ -147,7 +146,7 @@ namespace icp {
          * \par Efficiency:
          * `O(a.size())` where `a` is the source point cloud.
          */
-        double calculate_cost() const {
+        [[nodiscard]] double calculate_cost() const {
             double sum_squares = 0.0;
             for (auto& match: matches) {
                 sum_squares += match.cost;
@@ -156,7 +155,7 @@ namespace icp {
         }
 
         /** The current transform. */
-        RBTransform current_transform() const {
+        [[nodiscard]] RBTransform current_transform() const {
             return transform;
         }
 
@@ -165,7 +164,7 @@ namespace icp {
          *
          * @return A reference to the matching. Invalidates if `begin` or `iterate` are called.
          */
-        const std::vector<Match>& get_matches() const {
+        [[nodiscard]] const std::vector<Match>& get_matches() const {
             return matches;
         }
     };

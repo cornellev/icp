@@ -6,4 +6,4 @@
 
 #include "icp/geo.h"
 
-icp::PointCloud2 parse_lidar_scan(std::string path);
+icp::PointCloud2 parse_lidar_scan(const std::string& path);

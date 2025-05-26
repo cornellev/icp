@@ -1,4 +1,4 @@
-name: Code Style
+name: Lint
 
 on:
   pull_request:
@@ -6,10 +6,81 @@ on:
     branches:
       - main
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+env:
+  CI: true
 
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - uses: DoozyX/clang-format-lint-action@v0.18.1
+
+      - name: Add clang apt repository
+        run: |
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          sudo add-apt-repository 'deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-19 main'
+
+      - name: apt update
+        run: sudo apt-get update
+
+      - name: Cache APT packages (Ubuntu)
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libpcl-dev libeigen3-dev libsdl2-dev mpich clang-tidy
+          version: lint-cache-v1
+          execute_install_scripts: true
+
+      # Install Eigen (Cross-platform)
+      - name: Install Eigen
+        run: |
+          sudo apt-get install -y libeigen3-dev
+
+      # Install SDL2 (Cross-platform)
+      - name: Install SDL2
+        run: |
+          sudo apt-get install -y libsdl2-dev
+
+      - name: Install PCL
+        run: |
+          sudo apt-get install mpich
+          sudo apt-get install libpcl-dev
+
+      # Install sdl-wrapper (Cross-platform)
+      - name: Install sdl-wrapper
+        run: |
+          git clone https://github.com/cornellev/sdl-wrapper.git
+          cd sdl-wrapper
+          sudo make install
+
+      # Install libcmdapp2 (Cross-platform)
+      - name: Install libcmdapp2
+        run: |
+          git clone https://github.com/cornellev/libcmdapp2.git
+          cd libcmdapp2
+          sudo make install
+
+      # Install libconfig (Cross-platform)
+      - name: Install libconfig
+        run: |
+          git clone https://github.com/cornellev/config
+          cd config
+          sudo make install
+
+      # Install simple-test (Cross-platform)
+      - name: Install simple-test
+        run: |
+          git clone https://github.com/cornellev/simple-test
+          cd simple-test
+          sudo make install
+
+      - name: Install clang-tidy
+        run: |
+          sudo apt-get install clang-tidy-19
+          sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-19 100
+          clang-tidy --version
+
+      - name: Run clang-tidy
+        run: make tidy

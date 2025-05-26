@@ -5,7 +5,6 @@
 #pragma once
 
 #include <Eigen/Core>
-#include <cstddef>
 #include "icp/icp.h"
 #include "icp/config.h"
 
@@ -14,7 +13,7 @@ namespace icp {
     public:
         FeatureAware(double overlap_rate, double feature_weight, int symmetric_neighbors);
         FeatureAware(const Config& config);
-        ~FeatureAware();
+        ~FeatureAware() override;
 
         void setup() override;
         void iterate() override;
@@ -22,7 +21,7 @@ namespace icp {
     private:
         void compute_matches();
 
-        Eigen::MatrixXd compute_features(const PointCloud& points);
+        [[nodiscard]] Eigen::MatrixXd compute_features(const PointCloud& points) const;
 
         /**
          * @brief Computes a matrix M where M_ij is the distance between the i-th vector (column) of
@@ -39,8 +38,8 @@ namespace icp {
             const Eigen::Matrix<double, VectorDim, Eigen::Dynamic>& first,
             const Eigen::Matrix<double, VectorDim, Eigen::Dynamic>& second) {
             Eigen::MatrixXd dists(first.cols(), second.cols());
-            for (ptrdiff_t i = 0; i < first.cols(); i++) {
-                for (ptrdiff_t j = 0; j < second.cols(); j++) {
+            for (Eigen::Index i = 0; i < first.cols(); i++) {
+                for (Eigen::Index j = 0; j < second.cols(); j++) {
                     dists(i, j) = (first.col(i) - second.col(j)).norm();
                 }
             }

@@ -6,7 +6,6 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Dense>
-#include <cstddef>
 #include "icp/geo.h"
 
 /* #name Feature-Aware */
@@ -19,9 +18,13 @@ distance criteria, matches them based on a local "feature vector."
 #include "icp/impl/feature_aware.h"
 
 namespace icp {
+    constexpr double DEFAULT_OVERLAP_RATE = 0.9;
+    constexpr double DEFAULT_FEATURE_WEIGHT = 0.7;
+    constexpr int DEFAULT_SYMMETRIC_NEIGHBORS = 10;
+    constexpr double MIN_NORM_THRESHOLD = 1e-6;
+
     FeatureAware::FeatureAware(double overlap_rate, double feature_weight, int symmetric_neighbors)
-        : ICP(),
-          overlap_rate(overlap_rate),
+        : overlap_rate(overlap_rate),
           symmetric_neighbors(symmetric_neighbors),
           feature_weight(feature_weight),
           neighbor_weight(1 - feature_weight) {}
@@ -33,11 +36,11 @@ namespace icp {
     /* #conf "symmetric_neighbors" An `int` with default value `10`. Decides how many neighbors to
      * use on each side of a point when constructing the feature vector. */
     FeatureAware::FeatureAware(const Config& config)
-        : FeatureAware(config.get<double>("overlap_rate", 0.9),
-              config.get<double>("feature_weight", 0.7),
-              config.get<int>("symmetric_neighbors", 10)) {}
+        : FeatureAware(config.get<double>("overlap_rate", DEFAULT_OVERLAP_RATE),
+              config.get<double>("feature_weight", DEFAULT_FEATURE_WEIGHT),
+              config.get<int>("symmetric_neighbors", DEFAULT_SYMMETRIC_NEIGHBORS)) {}
 
-    FeatureAware::~FeatureAware() {}
+    FeatureAware::~FeatureAware() = default;
 
     void FeatureAware::setup() {
         a_current = transform * a;
@@ -49,7 +52,7 @@ namespace icp {
 
         normalized_feature_dists = compute_norm_dists<Eigen::Dynamic>(a_features, b_features);
         double max = normalized_feature_dists.maxCoeff();
-        if (max > 1e-6) {
+        if (max > MIN_NORM_THRESHOLD) {
             normalized_feature_dists /= max;
         }
 
@@ -84,13 +87,13 @@ namespace icp {
         */
         std::sort(matches.begin(), matches.end(),
             [](const auto& a, const auto& b) { return a.cost < b.cost; });
-        ptrdiff_t new_n = static_cast<ptrdiff_t>(overlap_rate * a.cols());
-        new_n = std::max<ptrdiff_t>(new_n, 1);  // TODO: bad for scans with 0 points
+        auto new_n = static_cast<Eigen::Index>(overlap_rate * static_cast<double>(a.cols()));
+        new_n = std::max<Eigen::Index>(new_n, 1);  // TODO: bad for scans with 0 points
 
         // yeah, i know this is inefficient. we'll get back to it later.
         PointCloud trimmed_a_current(2, new_n);
         PointCloud trimmed_b(2, new_n);
-        for (ptrdiff_t i = 0; i < new_n; i++) {
+        for (Eigen::Index i = 0; i < new_n; i++) {
             trimmed_a_current.col(i) = a_current.col(matches[i].point);
             trimmed_b.col(i) = b.col(matches[i].pair);
         }
@@ -125,14 +128,14 @@ namespace icp {
     void FeatureAware::compute_matches() {
         Eigen::MatrixXd normalized_dists = compute_norm_dists<2>(a_current, b);
         double max = normalized_dists.maxCoeff();
-        if (max > 1e-6) {
+        if (max > MIN_NORM_THRESHOLD) {
             normalized_dists /= max;
         }
 
-        for (ptrdiff_t i = 0; i < a.cols(); i++) {
+        for (Eigen::Index i = 0; i < a.cols(); i++) {
             matches[i].point = i;
             matches[i].cost = std::numeric_limits<double>::infinity();
-            for (ptrdiff_t j = 0; j < b.cols(); j++) {
+            for (Eigen::Index j = 0; j < b.cols(); j++) {
                 double dist = normalized_dists(i, j);
                 double feature_dist = normalized_feature_dists(i, j);
                 double cost = neighbor_weight * dist + feature_weight * feature_dist;
@@ -145,27 +148,27 @@ namespace icp {
         }
     }
 
-    Eigen::MatrixXd FeatureAware::compute_features(const PointCloud& points) {
+    Eigen::MatrixXd FeatureAware::compute_features(const PointCloud& points) const {
         Eigen::MatrixXd features(2 * symmetric_neighbors, points.cols());
         features.setZero();
 
-        Vector cm = get_centroid(points);
+        Vector centroid = get_centroid(points);
 
-        for (ptrdiff_t i = 0; i < points.cols(); i++) {
-            Vector p = points.col(i);
-            double cm_dist_p = (p - cm).norm();
+        for (Eigen::Index i = 0; i < points.cols(); i++) {
+            Vector point1 = points.col(i);
+            double cm_dist_p = (point1 - centroid).norm();
 
-            ptrdiff_t lower = std::max<ptrdiff_t>(0, i - symmetric_neighbors);
-            for (ptrdiff_t j = lower; j < i; j++) {
-                Vector q = points.col(j);
-                double cm_dist_q = (q - cm).norm();
+            Eigen::Index lower = std::max<Eigen::Index>(0, i - symmetric_neighbors);
+            for (Eigen::Index j = lower; j < i; j++) {
+                Vector point2 = points.col(j);
+                double cm_dist_q = (point2 - centroid).norm();
                 features(j - lower, i) = cm_dist_q - cm_dist_p;
             }
 
-            ptrdiff_t upper = std::min(points.cols() - 1, i + symmetric_neighbors);
-            for (ptrdiff_t j = i + 1; j <= upper; j++) {
-                Vector q = points.col(j);
-                double cm_dist_q = (q - cm).norm();
+            Eigen::Index upper = std::min(points.cols() - 1, i + symmetric_neighbors);
+            for (Eigen::Index j = i + 1; j <= upper; j++) {
+                Vector point2 = points.col(j);
+                double cm_dist_q = (point2 - centroid).norm();
                 features(j - i - 1 + symmetric_neighbors, i) = cm_dist_q - cm_dist_p;
             }
         }

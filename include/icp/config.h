@@ -12,18 +12,18 @@ namespace icp {
 
     public:
         /** Constructs an empty configuration. */
-        Config() {}
+        Config() = default;
 
         /** Associates `key` with an integer, double, or string `value`. */
         template<typename T>
-        void set(std::string key, T value) {
+        void set(const std::string& key, T value) {
             params[key] = value;
         }
 
         /** Retrieves the integer, double, or string value associated with
          * `key`. */
         template<typename T>
-        T get(std::string key, T otherwise) const {
+        T get(const std::string& key, T otherwise) const {
             if (params.find(key) == params.end()) {
                 return otherwise;
             } else {
