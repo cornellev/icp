@@ -1,1 +1,1 @@
-This library was made by Ethan Uppal and Utku Melemetci.
+This library was made by Ethan Uppal, Jess Wang, and Utku Melemetci.
