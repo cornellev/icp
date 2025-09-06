@@ -92,8 +92,8 @@ See the following reference implementations:
 
 | File                                                     | Type     |
 | -------------------------------------------------------- | ---------|
-| [`vanilla.cpp`](src/icp/impl/vanilla.cpp)                | 2d       |
-| [`trimmed.cpp`](src/icp/impl/trimmed.cpp)                | 2d       |
-| [`feature_aware.cpp`](src/icp/impl/feature_aware.cpp)    | 2d       |
-| [`vanilla_3d.cpp`](src/icp/impl/vanilla_3d.cpp)          | 3d       |
-| [`trimmed_3d.cpp`](src/icp/impl/trimmed_3d.cpp)          | 3d.      |
+| [`vanilla.cpp`](/lib/icp/impl/vanilla.cpp)                | 2d       |
+| [`trimmed.cpp`](/lib/icp/impl/trimmed.cpp)                | 2d       |
+| [`feature_aware.cpp`](/lib/icp/impl/feature_aware.cpp)    | 2d       |
+| [`vanilla_3d.cpp`](/lib/icp/impl/vanilla_3d.cpp)          | 3d       |
+| [`trimmed_3d.cpp`](/lib/icp/impl/trimmed_3d.cpp)          | 3d.      |
