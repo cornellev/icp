@@ -8,9 +8,10 @@ This document explains how to effectively develop `icp`. It covers development e
 `libicp` itself can be built and installed with only Eigen as a dependency---this is by design. However, to effectively develop the project, you'll need a few extra things.
 
 1. [libcmdapp2](https://github.com/cornellev/libcmdapp2), a command-line parsing library (built by Ethan) which we use for the 2D visualization.
-2. [sdl-wrapper](https://github.com/cornellev/sdl-wrapper), a C++ wrapper for SDL to make things easier for the visualization.
-3. [simple-test](https://github.com/cornellev/simple-test), a header-only testing library.
-4. [PCL](https://pointclouds.org/) 1.12.1 (ideally), a point cloud processing library. We actually only use this to parse 3D point clouds for testing.
+2. [libconfig](https://github.com/cornellev/config.git), a library for loading configuration from files
+3. [sdl-wrapper](https://github.com/cornellev/sdl-wrapper), a C++ wrapper for SDL to make things easier for the visualization.
+4. [simple-test](https://github.com/cornellev/simple-test), a header-only testing library.
+5. [PCL](https://pointclouds.org/) 1.12.1 (ideally), a point cloud processing library. We actually only use this to parse 3D point clouds for testing.
 
 Each of the links above should have installation instructions. If you have everything installed correctly, you should be able to [build](#building) the project and not have any errors.
 
