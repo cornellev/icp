@@ -12,7 +12,7 @@
 
 namespace icp {
 
-    class Trimmed3d : public ICP3 {
+    class Trimmed3d final : public ICP3 {
     public:
         Trimmed3d(const Config& config);
         Trimmed3d();
