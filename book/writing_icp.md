@@ -1,104 +1,90 @@
-<!--  
-Copyright (C) 2025 Ethan Uppal.
-SPDX-License-Identifier: MIT
---->
-\page write_icp_instance Writing an ICP Instance
+# Contributing: Adding a New ICP Instance
 
-\tableofcontents
+This section explains how to implement and document a new **ICP instance**.
 
-To write an ICP instance, create a C++ source file with at least the following:
+---
 
-1. A `final` class that inherits from `public icp::ICP`
-2. A static initialization variable (described below)
+## 1. Overview
 
-It is highly recommended you also provide documentation for your ICP instance in the format described here.
+An ICP instance is a specific implementation of the Iterative Closest Point algorithm. Each instance should be:
 
-\section core_func_sec Core Functionality
+- A `final` C++ class that inherits from `icp::ICP`
+- Properly registered so users can instantiate it
 
-The class must define the following behavior:
+---
 
-- A constructor that calls the `icp::ICP` constructor
-- An overridden destructor (which may do nothing)
-- `void iterate() override`
+## 2. File and Class Requirements
 
-In `iterate`, the point clouds are given by the instance variables `a` and `b`.
-There is also the `match` instance variable, allocated to have size `a.size()`, which cannot be assumed to contain any definite values.
-At the end of `iterate`, the `transform` instance variable should have been updated (although the update may be zero).
+Create a new `method_xd.cpp` file in `lib/icp/impl/`, and implement your instance class.
 
-Optionally, the class can override:
+### Required
 
-- `void setup() override`
+- Class must be `final` and inherit from `public icp::ICP`
+- Must implement `void iterate() override`
+- Must provide a constructor that calls the `icp::ICP` constructor
+- A destructor (can be empty)
 
-`setup` is invoked upon the user call to `ICP::begin` after the internals of ICP have been readied.
-
-\section static_init_sec Static Initialization
-
-TODO: update -- we do this in icp.cpp now and the documentation builder will
-automatically search there.
-
-The static initialization is required so that users can instantiate your ICP instance.
-Define
+Example:
 
 ```cpp
-static bool static_initialization = []() {
-    assert(ICP::register_method("name_of_instance", []() -> std::unique_ptr<ICP> {
-        return std::make_unique<NameOfClass>();
-    }));
-    return true;
-}();
-```
+class MyICP final : public icp::ICP {
+public:
+    MyICP();
+    MyICP(const Config& config);
+    ~MyICP();
 
-where `"name_of_instance"` is the name of your ICP implementation and `NameOfClass` is the name of the class.
+    void setup() override;    // Optional
+    void iterate() override;
+};
+````
 
-\section icp_dpc_sec Documentation
+---
 
-The script icp_doc_builder.py will automatically generate documentation for your ICP instances as markdown files and place them in a desired directory. The invocation format is:
+## 3. ICP Lifecycle
 
-```shell
-python3 icp_doc_builder.py dir/where/your/icps/are/ dir/where/markdown/should/go/ where/main/file/is.md
-```
+### Provided Instance Variables
 
-Notably, `where/main/file/is.md` should contain two lines of the form
+| Variable    | Type               | Description                        |
+| ----------- | ------------------ | ---------------------------------- |
+| `a`         | `PointCloud`       | Source point cloud                 |
+| `b`         | `PointCloud`       | Target point cloud                 |
+| `match`     | `std::vector<int>` | Matches from `a` to `b`            |
+| `transform` | `RBTransform`      | Current accumulated transformation |
 
-```md
-<!-- ICP_DOCS_BUILDER EDIT MARKER START -->
-...
-<!-- ICP_DOCS_BUILDER EDIT MARKER END -->
-```
+### Method Responsibilities
 
-the contents between which markers will be automatically updated by the
-documentation builder.
+| Method      | When it is Called            | What to Do                                     |
+| ----------- | --------------------------- | ---------------------------------------------- |
+| `setup()`   | Once before first iteration | Initialize resources (e.g. KD-tree)            |
+| `iterate()` | Once per iteration          | Compute correspondences and update `transform` |
 
-If the file name is `foo_bar.cpp`, then the Doxygen page reference (from which you can refer to from other pages) will be be `foo_bar_icp Foo_bar`. Information about the file should be encoded in special block comments of the following format.
+---
+
+## 4. Registration
+
+To allow users to select your ICP instance by name, add it to the static methods map in `ICP2` or `ICP3` in `icp.cpp`
 
 ```cpp
-/*
-#command values...
-*/
+#include "icp/impl/my_icp.h"
+
+namespace icp {
+    template<>
+    std::unordered_map<std::string, ICPX::MethodConstructor> ICPX::methods{
+        {"my_icp", CONSTRUCT_CONFIG(MyICP)},  // ← Register your method here
+    };
+}
 ```
 
-Supported commands are described below.
+---
 
-- The name of the instance should be given by `/* #name Name of Instance */`.
-- An overview of the algorithm should be provided by `/* #desc Overview of algorithm. */`. This description will be rendered as Doxygen source, so you can use markdown and Doxygen commands such as `\ref`.
-- If your instance uses icp::ICP::Config parameters, document them as `/* #conf "name_of_param" This is a sentence. This is another sentence describing the parameter. */`. This description will be rendered as Doxygen source.
-- Every major step your instance takes should be documented by
+## 5. Examples
 
-    ```cpp
-    /*
-        #step My Step: brief description
+See the following reference implementations:
 
-        Detailed explanation.
-
-        Sources:
-        https://www.example.com
-        https://www.example.com
-        https://www.example.com
-        https://www.example.com
-    */
-    ```
-
-    The `: brief description` section is optional, as are the detailed explanation and sources sections.
-    These descriptions will be rendered as Doxygen source.
-
-See the source code of vanilla.cpp or trimmed.cpp as examples.
+| File                                                     | Type     |
+| -------------------------------------------------------- | ---------|
+| [`vanilla.cpp`](/lib/icp/impl/vanilla.cpp)                | 2d       |
+| [`trimmed.cpp`](/lib/icp/impl/trimmed.cpp)                | 2d       |
+| [`feature_aware.cpp`](/lib/icp/impl/feature_aware.cpp)    | 2d       |
+| [`vanilla_3d.cpp`](/lib/icp/impl/vanilla_3d.cpp)          | 3d       |
+| [`trimmed_3d.cpp`](/lib/icp/impl/trimmed_3d.cpp)          | 3d.      |
