@@ -68,5 +68,3 @@ You can use `make bench` to run the benchmarks. They'll run 2D ICP on the exampl
 
 ## Continuous Integration
 The CI system is defined in `.github/workflows/ci.yaml`. It's pretty standard: it just runs the tests on MacOS and Linux.
-
-## Writing a new ICP method

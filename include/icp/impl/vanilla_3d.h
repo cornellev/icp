@@ -12,7 +12,7 @@
 
 namespace icp {
 
-    class Vanilla3d : public ICP3 {
+    class Vanilla3d final : public ICP3 {
     public:
         Vanilla3d(const Config& config);
         Vanilla3d();
