@@ -14,9 +14,7 @@
 #include <cassert>
 #include <Eigen/Dense>
 
-extern "C" {
-#include <simple_test/simple_test.h>
-}
+#include "test_support.h"
 
 constexpr double TRANS_EPS = 0.5;  // Translation tolerance (units)
 constexpr double RAD_EPS = 0.01;   // Rotation tolerance (radians)
@@ -73,7 +71,7 @@ void test_kdtree() {
         if (kdtree_idx != brute_idx) {
             std::cerr << "Mismatch at point " << i << ": "
                       << "kdtree_idx = " << kdtree_idx << ", brute_idx = " << brute_idx << "\n";
-            assert(false && "KDTree search mismatch brute force!");
+            assert_true(false && "KDTree search mismatch brute force!");
         }
     }
 

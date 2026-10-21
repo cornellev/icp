@@ -69,13 +69,6 @@ jobs:
           cd config
           sudo make install
 
-      # Install simple-test (Cross-platform)
-      - name: Install simple-test
-        run: |
-          git clone https://github.com/cornellev/simple-test
-          cd simple-test
-          sudo make install
-
       - name: Install clang-tidy
         run: |
           sudo apt-get install clang-tidy-19

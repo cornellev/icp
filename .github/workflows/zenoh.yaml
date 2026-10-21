@@ -1,0 +1,30 @@
+name: C++ Zenoh
+on:
+  pull_request:
+  push:
+    branches: [main, rust]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        build: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libeigen3-dev nlohmann-json3-dev
+          mkdir -p "$RUNNER_TEMP/zenoh"
+          curl --fail --location --retry 3 https://github.com/eclipse-zenoh/zenoh-c/releases/download/1.10.1/zenoh-c-1.10.1-x86_64-unknown-linux-gnu-standalone.zip -o "$RUNNER_TEMP/zenoh-c.zip"
+          curl --fail --location --retry 3 https://github.com/eclipse-zenoh/zenoh-cpp/releases/download/1.10.1/zenohcpp-1.10.1-standalone.zip -o "$RUNNER_TEMP/zenoh-cpp.zip"
+          unzip -q -o "$RUNNER_TEMP/zenoh-c.zip" -d "$RUNNER_TEMP/zenoh"
+          unzip -q -o "$RUNNER_TEMP/zenoh-cpp.zip" -d "$RUNNER_TEMP/zenoh"
+      - name: Build
+        run: |
+          cmake -S . -B build/zenoh -DCEV_ICP_BUILD_TOOLS=OFF -DCEV_ICP_BUILD_ZENOH=ON -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/zenoh" -DUSE_SANITIZERS=ON
+          cmake --build build/zenoh --parallel 2
+      - name: Test
+        run: ctest --test-dir build/zenoh --output-on-failure

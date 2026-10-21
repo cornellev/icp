@@ -1,5 +1,58 @@
 # Installation Instructions
 
+## Library and tests with Eigen only
+
+Use a C++17 compiler, CMake, and Eigen3. The library and unit tests do not require
+the viewer's SDL/PCL dependencies or a separate test library:
+
+```sh
+cmake -S . -B build/library -DCEV_ICP_BUILD_TOOLS=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build/library --parallel
+ctest --test-dir build/library --output-on-failure
+```
+
+`CEV_ICP_BUILD_TESTS` defaults to `ON`; set it to `OFF` for a library-only build.
+`CEV_ICP_BUILD_ZENOH` defaults to `OFF`, so ordinary builds do not require Zenoh
+or JSON dependencies.
+
+## Optional C++ Zenoh node
+
+Install **zenoh-c 1.10.1**, **zenoh-cpp 1.10.1**, and **nlohmann_json 3.11+** into
+your normal CMake search path or a local prefix. The node uses the official
+`zenoh.hxx` C++ API, linked to its required zenoh-c runtime. Official standalone
+packages are available from the [zenoh-c release](https://github.com/eclipse-zenoh/zenoh-c/releases/tag/1.10.1)
+and [zenoh-cpp release](https://github.com/eclipse-zenoh/zenoh-cpp/releases/tag/1.10.1).
+Choose the zenoh-c archive for your platform and extract both packages into the
+same prefix. The JSON library's [CMake installation guide](https://json.nlohmann.me/integration/cmake/)
+describes its package setup.
+
+On macOS, the 1.10.1 standalone zenoh-c dylib can contain its release runner's
+absolute install name. If that package reports `Library not loaded` pointing at
+`/Users/runner/`, fix the downloaded library before rebuilding your executable
+(adjust the prefix if needed):
+
+```sh
+install_name_tool -id @rpath/libzenohc.dylib "$HOME/.local/lib/libzenohc.dylib"
+codesign --force --sign - "$HOME/.local/lib/libzenohc.dylib"
+```
+
+```sh
+# Replace the prefix with the directory containing include/ and lib/cmake/.
+cmake -S . -B build/zenoh -DCEV_ICP_BUILD_TOOLS=OFF \
+  -DCEV_ICP_BUILD_ZENOH=ON -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="$HOME/.local"
+cmake --build build/zenoh --parallel
+./build/zenoh/icp_zenoh --help
+ctest --test-dir build/zenoh --output-on-failure
+```
+
+The loopback and CLI tests bind localhost TCP sockets. Python 3 is optional and
+enables the executable's CLI/signal test. The C++ decoder/registration and
+two-session transport tests do not require Python or LiDAR hardware. Continue
+with the [Zenoh usage guide](book/zenoh.md).
+
+## Legacy viewer and system installation
+
 This document assumes you have downloaded the repository and installed the library dependencies.
 If not, please read the instructions at [cornellev.github.io/icp/](https://cornellev.github.io/icp/).
 

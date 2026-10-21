@@ -38,7 +38,31 @@ void align_clouds(const icp::PointCloud2& a, const icp::PointCloud2& b) {
 }
 ```
 
+## Zenoh node
+The optional C++ Zenoh node subscribes to raw 3D XYZI scans, runs vanilla ICP, and
+publishes the estimated rotation/translation together with geometric RMSE,
+iterations, point counts, termination, and registration duration.
+
+```sh
+# Install Zenoh C/C++ 1.10.1 and nlohmann_json first; see INSTALL.md.
+cmake -S . -B build/zenoh -DCEV_ICP_BUILD_TOOLS=OFF \
+  -DCEV_ICP_BUILD_ZENOH=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build/zenoh --parallel
+./build/zenoh/icp_zenoh --listen tcp/127.0.0.1:7447
+```
+
+Defaults: input `rslidar/points/raw`, output `rslidar/icp/registration`. The first
+valid scan initializes the reference; later results map the current scan into the
+previous processed valid scan. Rotation is a normalized XYZW quaternion and
+translation uses the input length units. Results are published over Zenoh; the
+terminal prints a startup message. Use `--help` for all options.
+
+See the [Zenoh guide](book/zenoh.md) for installation, wire layout, output schema,
+sensor integration, networking/router examples, stopping conditions, and tests.
+The implementation also documents these contracts with Doxygen comments.
+
 ## Documentation
+
 Some documentation is available in the `book` folder. There are also Doxygen docs and other generated documentation hosted at 
 [cornellev.github.io/icp/](https://cornellev.github.io/icp/), but we haven't update this system in a bit and it might be out of date.
 

@@ -107,20 +107,16 @@ jobs:
           cd config
           sudo make install
 
-      # Install simple-test (Cross-platform)
-      - name: Install simple-test
-        run: |
-          git clone https://github.com/cornellev/simple-test
-          cd simple-test
-          sudo make install
-
       # Build all (Cross-platform)
       - name: Build all
         run: make OPT=${{ matrix.build }}
 
       # Run tests (Cross-platform)
       - name: Run tests
-        run: make test_ply OPT=${{ matrix.build }}
+        run: |
+          make test OPT=${{ matrix.build }}
+          make test_3d OPT=${{ matrix.build }}
+          make test_ply OPT=${{ matrix.build }}
 
       # Run benchmarks (Cross-platform)
       - name: Run benchmarks

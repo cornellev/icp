@@ -10,9 +10,7 @@
 #include <random>
 #include <iostream>
 
-extern "C" {
-#include <simple_test/simple_test.h>
-}
+#include "test_support.h"
 
 constexpr double TRANS_EPS = 0.5;  // Translation tolerance (units)
 constexpr double RAD_EPS = 0.01;   // Rotation tolerance (radians)

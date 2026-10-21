@@ -12,6 +12,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(USE_SANITIZERS "Compile with ASan and UBSan" OFF)
+option(CEV_ICP_BUILD_TOOLS "Build the legacy viewer, PLY demo, and benchmarks" ON)
+option(CEV_ICP_BUILD_TESTS "Build the Eigen-only legacy unit suites" ON)
+option(CEV_ICP_BUILD_ZENOH "Build the C++ Zenoh scan-matching node" OFF)
 
 if(DEFINED ENV{CI})
   set(USE_SANITIZERS ON)
@@ -37,6 +40,7 @@ link_directories(/usr/local/lib)
 
 # Find dependencies
 find_package(Eigen3 REQUIRED)
+if(CEV_ICP_BUILD_TOOLS)
 find_package(SDL2)
 find_package(PCL)
 
@@ -80,6 +84,8 @@ else()
   set(LIBSDLWRAPPER sdlwrapper)
 endif()
 
+endif()
+
 # Library target
 set(LIB_SOURCES
   lib/algo/kdtree.cpp
@@ -99,8 +105,45 @@ target_include_directories(${PROJECT_NAME_LOWER} PUBLIC
 )
 target_link_libraries(${PROJECT_NAME_LOWER} Eigen3::Eigen)
 
+if(CEV_ICP_BUILD_TESTS AND "${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
+  enable_testing()
+  add_executable(test_suite tests/test.cpp)
+  add_executable(test_suite_3d tests/test3d.cpp)
+  target_link_libraries(test_suite PRIVATE ${PROJECT_NAME_LOWER} Eigen3::Eigen)
+  target_link_libraries(test_suite_3d PRIVATE ${PROJECT_NAME_LOWER} Eigen3::Eigen)
+  add_test(NAME legacy_2d COMMAND test_suite)
+  add_test(NAME legacy_3d COMMAND test_suite_3d)
+endif()
+
+# Transport and JSON dependencies are private to the optional application.
+if(CEV_ICP_BUILD_ZENOH)
+  find_package(zenohc 1.10.1 EXACT REQUIRED)
+  find_package(zenohcxx 1.10.1 EXACT REQUIRED)
+  find_package(nlohmann_json 3.11 REQUIRED)
+  find_package(Threads REQUIRED)
+  add_library(icp_zenoh_support STATIC tools/icp_zenoh_support.cpp)
+  target_include_directories(icp_zenoh_support PUBLIC tools)
+  target_link_libraries(icp_zenoh_support PUBLIC ${PROJECT_NAME_LOWER}
+    zenohcxx::zenohc nlohmann_json::nlohmann_json Threads::Threads)
+  add_executable(icp_zenoh tools/icp_zenoh.cpp)
+  target_link_libraries(icp_zenoh PRIVATE icp_zenoh_support)
+  if(CEV_ICP_BUILD_TESTS AND "${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
+    add_executable(test_zenoh tests/test_zenoh.cpp)
+    target_link_libraries(test_zenoh PRIVATE icp_zenoh_support)
+    add_test(NAME zenoh_unit COMMAND test_zenoh --unit)
+    add_test(NAME zenoh_loopback COMMAND test_zenoh --loopback)
+    set_tests_properties(zenoh_unit zenoh_loopback PROPERTIES TIMEOUT 30)
+    find_package(Python3 COMPONENTS Interpreter)
+    if(Python3_Interpreter_FOUND)
+      add_test(NAME zenoh_cli COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_zenoh_cli.py $<TARGET_FILE:icp_zenoh>)
+      set_tests_properties(zenoh_cli PROPERTIES TIMEOUT 30)
+    endif()
+  endif()
+endif()
+
 # Main executable
-if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
+if(CEV_ICP_BUILD_TOOLS AND "${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
   set(MAIN_SOURCES
     vis/main.cpp
     vis/lidar_view.cpp
@@ -127,26 +170,7 @@ if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
       /usr/local/include/sdlwrapper
   )
   
-  set(TEST_SOURCES tests/test.cpp)
-  add_executable(test_suite ${TEST_SOURCES})
-  target_link_libraries(test_suite ${PROJECT_NAME_LOWER} Eigen3::Eigen)
-  target_include_directories(test_suite
-    PRIVATE
-      ${CMAKE_CURRENT_SOURCE_DIR}/include
-      /usr/local/include/simple_test
-  )
-  target_compile_definitions(test_suite PRIVATE TEST)
-
-  set(TEST_SOURCES_3D tests/test3d.cpp)
-  add_executable(test_suite_3d ${TEST_SOURCES_3D})
-  target_link_libraries(test_suite_3d ${PROJECT_NAME_LOWER} Eigen3::Eigen)
-  target_include_directories(test_suite_3d
-    PRIVATE
-      ${CMAKE_CURRENT_SOURCE_DIR}/include
-      /usr/local/include/simple_test
-  )
-  target_compile_definitions(test_suite_3d PRIVATE TEST)
-
+  if(PCL_FOUND)
   set(TEST_SOURCES_PLY tests/test_ply.cpp)
   add_executable(test_suite_ply ${TEST_SOURCES_PLY})
 
@@ -159,10 +183,10 @@ if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
     PRIVATE
       ${CMAKE_CURRENT_SOURCE_DIR}/include
       ${CMAKE_CURRENT_SOURCE_DIR}/common
-      /usr/local/include/simple_test
       ${PCL_INCLUDE_DIRS}
   )
   target_compile_definitions(test_suite_ply PRIVATE TEST)
+  endif()
 
   set(BENCH_SOURCES bench/bench.cpp common/parse_scan.cpp)
   add_executable(bench_suite ${BENCH_SOURCES})
@@ -178,6 +202,7 @@ if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
 endif()
 
 # Include
+include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME_LOWER})
 

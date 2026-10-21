@@ -11,6 +11,10 @@ Scan-matching is a method for localization that uses high-frequency LiDAR data.
 This project is [Ethan](https://ethanuppal.com)'s implementation of algorithms for scan-matching.
 Please read [this document](icp.pdf) to learn more about the math.
 
+For live scan matching, the optional [C++ Zenoh node](zenoh.md) consumes raw XYZI
+point clouds and publishes per-scan rotation/translation estimates and geometric
+metrics. See its source Doxygen comments and `icp_zenoh --help` for the contracts.
+
 <table>
     <tr>
         <th style="text-align:left; vertical-align:top">Item</th>
@@ -48,6 +52,8 @@ Please read [this document](icp.pdf) to learn more about the math.
 \warning This section applies only to Unix-like operating systems, such as MacOS and Linux.
 
 First, download and install the dependencies.
+For the Eigen-only library/test build or optional Zenoh dependencies, see
+[INSTALL.md](https://github.com/cornellev/icp/blob/main/INSTALL.md).
 **Only eigen3 is necessary for the library. If you only wish to build the library, install eigen3 only. The remaining dependencies are only for the visualization tool.**
 
 | Dependency                                                     | Library Location (at which)      | Header Location (under which)    |

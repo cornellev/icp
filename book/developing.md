@@ -10,7 +10,7 @@ This document explains how to effectively develop `icp`. It covers development e
 1. [libcmdapp2](https://github.com/cornellev/libcmdapp2), a command-line parsing library (built by Ethan) which we use for the 2D visualization.
 2. [libconfig](https://github.com/cornellev/config.git), a library for loading configuration from files
 3. [sdl-wrapper](https://github.com/cornellev/sdl-wrapper), a C++ wrapper for SDL to make things easier for the visualization.
-4. [simple-test](https://github.com/cornellev/simple-test), a header-only testing library.
+4. The unit test harness is included in `tests/test_support.h`; no external test library is required.
 5. [PCL](https://pointclouds.org/) 1.12.1 (ideally), a point cloud processing library. We actually only use this to parse 3D point clouds for testing.
 
 Each of the links above should have installation instructions. If you have everything installed correctly, you should be able to [build](#building) the project and not have any errors.
@@ -26,7 +26,7 @@ The build system, by default, will generate the `compile_commands.json` file tha
 {
     "clangd.arguments": [
         "-compile-commands-dir=build"
-    ],
+    ]
 }
 ```
 
@@ -43,6 +43,7 @@ The build system, by default, will generate the `compile_commands.json` file tha
 ├── lib - library source files
 ├── script - various utility scripts
 ├── tests - unit test code
+├── tools - optional C++ Zenoh application and its documented helpers
 └── vis - 2D visualization app
 ```
 
@@ -52,6 +53,21 @@ A few things to note:
 3. You'll probably be doing most of your work in `include` and `lib`. These are the core folders.
 
 ## Building
+For library and test development with only Eigen installed:
+
+```sh
+cmake -S . -B build/library -DCEV_ICP_BUILD_TOOLS=OFF -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/library --parallel
+ctest --test-dir build/library --output-on-failure
+```
+
+For the optional Zenoh node, follow [installation](../INSTALL.md#optional-c-zenoh-node)
+and the [usage guide](zenoh.md). Set `CEV_ICP_BUILD_ZENOH=ON` to enable its executable
+and decoder/registration/transport tests. Input decoding, matching, and JSON
+contracts are documented directly in `tools/icp_zenoh_support.h`; command-line
+usage is also embedded in `tools/icp_zenoh.cpp`. Keep the core library independent
+of transport and JSON dependencies.
+
 `CMakeLists.txt` is the main build file. However, for convenience, there is a `Makefile` that shortens the `cmake` commands. Just typing `make` will build everything: the library, visualization, benchmarks, and tests.
 
 There are some extra options you should be aware of. Setting `OPT=[Release | Debug]` (i.e. `make OPT=Release`) changes the optimization level. `USE_SANTIZERS=ON` will enable the address and undefined behavior sanitizers, which can be useful when debugging UB. `CI=ON` will run a CI build, which compiles with warnings as errors and enables the sanitizers.
@@ -69,3 +85,6 @@ You can use `make bench` to run the benchmarks. They'll run 2D ICP on the exampl
 
 ## Continuous Integration
 The CI system is defined in `.github/workflows/ci.yaml`. It's pretty standard: it just runs the tests on MacOS and Linux.
+The optional node has its own `.github/workflows/zenoh.yaml` jobs, which build
+Debug and Release with sanitizers and run the decoder, registration, TCP, and CLI
+tests against the official Zenoh C/C++ 1.10.1 packages.

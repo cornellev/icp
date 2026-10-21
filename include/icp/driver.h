@@ -6,6 +6,7 @@
 #pragma once
 
 #include <optional>
+#include <cassert>
 #include <chrono>
 #include <memory>
 #include <utility>
